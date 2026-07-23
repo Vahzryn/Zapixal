@@ -38,11 +38,11 @@ export default function App() {
 
   // Handle URL hash changes
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash || '/';
-      setCurrentRoute(hash);
+    const handlePathChange = () => {
+      const path = window.location.pathname || '/';
+      setCurrentRoute(path);
 
-      const seo = getSeoInfoForRoute(hash);
+      const seo = getSeoInfoForRoute(path);
       if (seo.targetFormat) {
         setSettings((prev) => ({
           ...prev,
@@ -51,15 +51,15 @@ export default function App() {
       }
     };
 
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    handlePathChange();
+    window.addEventListener('popstate', handlePathChange);
+    return () => window.removeEventListener('popstate', handlePathChange);
   }, []);
 
-  const handleNavigate = (routeHash: string) => {
-    window.location.hash = routeHash === '/' ? '' : routeHash;
-    setCurrentRoute(routeHash);
-    const seo = getSeoInfoForRoute(routeHash);
+  const handleNavigate = (routePath: string) => {
+    window.history.pushState({}, '', routePath);
+    setCurrentRoute(routePath);
+    const seo = getSeoInfoForRoute(routePath);
     if (seo.targetFormat) {
       setSettings((prev) => ({
         ...prev,
@@ -149,59 +149,84 @@ export default function App() {
   // Batch Conversion Engine
   const handleConvertAll = async () => {
     if (items.length === 0 || isProcessing) return;
-
     setIsProcessing(true);
 
-    for (let i = 0; i < items.length; i++) {
-      const currentItem = items[i];
+    // Limit concurrency to keep UI responsive
+    const concurrencyLimit = 2; 
+    let activeTasks = 0;
+    let currentIndex = 0;
 
-      // Update item state to processing
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === currentItem.id
-            ? { ...item, status: 'processing', progress: 30 }
-            : item
-        )
-      );
+    return new Promise<void>((resolve) => {
+      const processNext = async () => {
+        if (currentIndex >= items.length && activeTasks === 0) {
+          setIsProcessing(false);
+          setViewState('success');
+          resolve();
+          return;
+        }
 
-      try {
-        const result = await convertSingleImage(currentItem, settings);
+        while (activeTasks < concurrencyLimit && currentIndex < items.length) {
+          const itemIndex = currentIndex++;
+          activeTasks++;
+          
+          const currentItem = items[itemIndex];
+          
+          // Yield to main thread briefly before heavy work
+          await new Promise(r => setTimeout(r, 20));
 
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === currentItem.id
-              ? {
-                  ...item,
-                  status: 'completed',
-                  progress: 100,
-                  convertedBlob: result.blob,
-                  convertedSize: result.convertedSize,
-                  convertedUrl: result.convertedUrl,
-                  convertedDimensions: result.dimensions,
-                  convertedFormat: settings.targetFormat,
-                }
-              : item
-          )
-        );
-      } catch (error: any) {
-        console.error(`Error converting ${currentItem.name}:`, error);
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === currentItem.id
-              ? {
-                  ...item,
-                  status: 'error',
-                  progress: 0,
-                  errorMessage: error.message || 'Conversion failed',
-                }
-              : item
-          )
-        );
-      }
-    }
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === currentItem.id
+                ? { ...item, status: 'processing', progress: 30 }
+                : item
+            )
+          );
 
-    setIsProcessing(false);
-    setViewState('success');
+          try {
+            // Give UI time to update the progress bar to 30%
+            await new Promise(r => setTimeout(r, 20));
+            const result = await convertSingleImage(currentItem, settings);
+            
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === currentItem.id
+                  ? {
+                      ...item,
+                      status: 'completed',
+                      progress: 100,
+                      convertedBlob: result.blob,
+                      convertedSize: result.convertedSize,
+                      convertedUrl: result.convertedUrl,
+                      convertedDimensions: result.dimensions,
+                      convertedFormat: settings.targetFormat,
+                    }
+                  : item
+              )
+            );
+          } catch (error: any) {
+            console.error(`Error converting ${currentItem.name}:`, error);
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === currentItem.id
+                  ? {
+                      ...item,
+                      status: 'error',
+                      progress: 0,
+                      errorMessage: error.message || 'Conversion failed',
+                    }
+                  : item
+              )
+            );
+          } finally {
+            activeTasks--;
+            // Yield before starting next
+            setTimeout(processNext, 20);
+          }
+        }
+      };
+
+      processNext();
+    });
   };
 
   const handleReset = () => {
@@ -316,14 +341,14 @@ export default function App() {
 
           <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 text-[10px] text-slate-400">
             <a href="/" className="hover:text-slate-600 transition-colors">Home</a>
-            <a href="#/heic-to-jpg" className="hover:text-slate-600 transition-colors">HEIC to JPG</a>
-            <a href="#/compress-jpeg" className="hover:text-slate-600 transition-colors">Compress JPEG</a>
-            <a href="#/compress-png" className="hover:text-slate-600 transition-colors">PNG Compressor</a>
-            <a href="#/image-format-changer" className="hover:text-slate-600 transition-colors">Image Format Changer</a>
-            <a href="#/convert-to-avif" className="hover:text-slate-600 transition-colors">AVIF Converter</a>
-            <a href="#/image-to-pdf" className="hover:text-slate-600 transition-colors">Image to PDF</a>
-            <a href="#/webp-converter" className="hover:text-slate-600 transition-colors">WEBP Optimizer</a>
-            <a href="#/ico-converter" className="hover:text-slate-600 transition-colors">Favicon Generator</a>
+            <a href="/heic-to-jpg" className="hover:text-slate-600 transition-colors">HEIC to JPG</a>
+            <a href="/compress-jpeg" className="hover:text-slate-600 transition-colors">Compress JPEG</a>
+            <a href="/compress-png" className="hover:text-slate-600 transition-colors">PNG Compressor</a>
+            <a href="/image-format-changer" className="hover:text-slate-600 transition-colors">Image Format Changer</a>
+            <a href="/convert-to-avif" className="hover:text-slate-600 transition-colors">AVIF Converter</a>
+            <a href="/image-to-pdf" className="hover:text-slate-600 transition-colors">Image to PDF</a>
+            <a href="/webp-converter" className="hover:text-slate-600 transition-colors">WEBP Optimizer</a>
+            <a href="/ico-converter" className="hover:text-slate-600 transition-colors">Favicon Generator</a>
           </nav>
         </div>
       </footer>

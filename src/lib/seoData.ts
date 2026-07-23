@@ -27,8 +27,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/heic-to-jpg': {
-    path: '#/heic-to-jpg',
+  '/heic-to-jpg': {
+    path: '/heic-to-jpg',
     targetFormat: 'jpg',
     title: 'HEIC to JPG Converter Online - Free iPhone Photo Batch Conversion',
     metaDescription: 'Convert HEIC and HEIF photos from Apple iPhone directly to JPG or PNG in high resolution. 100% free, private browser-based batch conversion.',
@@ -50,8 +50,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/convert-to-avif': {
-    path: '#/convert-to-avif',
+  '/convert-to-avif': {
+    path: '/convert-to-avif',
     targetFormat: 'avif',
     title: 'AVIF Image Converter - Next-Gen High Compression Tool',
     metaDescription: 'Convert JPG, PNG, WEBP images to AVIF format. Achieve maximum web performance with up to 80% smaller file sizes using AVIF image compression.',
@@ -69,8 +69,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/compress-png': {
-    path: '#/compress-png',
+  '/compress-png': {
+    path: '/compress-png',
     targetFormat: 'png',
     title: 'Compress PNG Online - Lossless & Transparent PNG Optimizer',
     metaDescription: 'Shrink PNG image file sizes without sacrificing alpha channel transparency or sharp graphic details. Free batch PNG compression tool.',
@@ -88,8 +88,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/image-to-pdf': {
-    path: '#/image-to-pdf',
+  '/image-to-pdf': {
+    path: '/image-to-pdf',
     targetFormat: 'pdf',
     title: 'Batch Image to PDF Converter - Convert JPG, PNG to PDF Document',
     metaDescription: 'Combine multiple images into a single clean PDF document online. Free, secure client-side image to PDF converter with custom page fitting.',
@@ -107,8 +107,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/webp-converter': {
-    path: '#/webp-converter',
+  '/webp-converter': {
+    path: '/webp-converter',
     targetFormat: 'webp',
     title: 'WEBP Converter & Compressor - Optimize Images for Web Speed',
     metaDescription: 'Batch convert JPG, PNG, and HEIC files to lightweight WEBP format. Speed up website load times with Google-recommended WEBP encoding.',
@@ -122,8 +122,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/ico-converter': {
-    path: '#/ico-converter',
+  '/ico-converter': {
+    path: '/ico-converter',
     targetFormat: 'ico',
     title: 'Image to ICO Favicon Generator - Free Icon Converter',
     metaDescription: 'Convert PNG, JPG, or SVG images into standard .ICO multi-resolution website favicons. Fast, client-side favicon creation.',
@@ -137,8 +137,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/compress-jpeg': {
-    path: '#/compress-jpeg',
+  '/compress-jpeg': {
+    path: '/compress-jpeg',
     targetFormat: 'jpg',
     title: 'Compress JPEG & JPG Online - Free Photo Compressor',
     metaDescription: 'Compress JPG and JPEG images without losing quality. Fast, free client-side photo compressor for reducing image file size in your browser.',
@@ -156,8 +156,8 @@ export const SEO_ROUTES: Record<string, SeoRouteInfo> = {
       }
     ]
   },
-  '#/image-format-changer': {
-    path: '#/image-format-changer',
+  '/image-format-changer': {
+    path: '/image-format-changer',
     targetFormat: 'jpg',
     title: 'Free Image Format Changer & Bulk Converter',
     metaDescription: 'Batch change image formats to JPG, PNG, WEBP, AVIF, and more. 100% free, secure browser-based image format changer and converter.',

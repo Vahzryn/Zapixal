@@ -1,5 +1,5 @@
-import JSZip from 'jszip';
-import { jsPDF } from 'jspdf';
+
+
 import { ConversionSettings, ImageDimensions, ImageFileItem, OutputFormat } from '../types';
 
 /**
@@ -34,24 +34,45 @@ export function calculateSavings(originalSize: number, convertedSize: number): {
 /**
  * Load image elements safely with HEIC fallback support
  */
+// HEIC Worker singleton
+let heicWorker: Worker | null = null;
+let heicTaskId = 0;
+const heicResolvers = new Map<number, { resolve: (b: Blob) => void, reject: (e: any) => void }>();
+
+function getHeicWorker() {
+  if (!heicWorker) {
+    heicWorker = new Worker(new URL('./heicWorker', import.meta.url), { type: 'module' });
+    heicWorker.onmessage = (e) => {
+      const { id, status, blob, error } = e.data;
+      const resolvers = heicResolvers.get(id);
+      if (resolvers) {
+        if (status === 'success') resolvers.resolve(blob);
+        else resolvers.reject(new Error(error));
+        heicResolvers.delete(id);
+      }
+    };
+  }
+  return heicWorker;
+}
+
 export async function loadImageElement(file: File): Promise<{
-  img: HTMLImageElement;
+  img: ImageBitmap | HTMLImageElement;
   dimensions: ImageDimensions;
   objectUrl: string;
 }> {
   let objectUrl: string;
+  let targetFile: File | Blob = file;
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
 
   if (extension === 'heic' || extension === 'heif' || file.type.includes('heic')) {
     try {
-      // Dynamic import or usage of heic2any for client-side HEIC rendering
-      const heic2any = (await import('heic2any')).default;
-      const convertedBlob = await heic2any({
-        blob: file,
-        toType: 'image/png',
+      const worker = getHeicWorker();
+      const id = heicTaskId++;
+      targetFile = await new Promise<Blob>((resolve, reject) => {
+        heicResolvers.set(id, { resolve, reject });
+        worker.postMessage({ id, file });
       });
-      const singleBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-      objectUrl = URL.createObjectURL(singleBlob);
+      objectUrl = URL.createObjectURL(targetFile);
     } catch (e) {
       console.warn('HEIC decoding fallback to direct object URL:', e);
       objectUrl = URL.createObjectURL(file);
@@ -60,21 +81,30 @@ export async function loadImageElement(file: File): Promise<{
     objectUrl = URL.createObjectURL(file);
   }
 
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      resolve({
-        img,
-        dimensions: { width: img.naturalWidth, height: img.naturalHeight },
-        objectUrl,
-      });
+  try {
+    // createImageBitmap is much faster and offloads decoding from main thread
+    const imgBitmap = await createImageBitmap(targetFile);
+    return {
+      img: imgBitmap,
+      dimensions: { width: imgBitmap.width, height: imgBitmap.height },
+      objectUrl,
     };
-    img.onerror = (err) => {
-      reject(new Error(`Failed to load image: ${file.name}`));
-    };
-    img.src = objectUrl;
-  });
+  } catch (err) {
+    // Fallback to Image element
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        resolve({
+          img,
+          dimensions: { width: img.naturalWidth, height: img.naturalHeight },
+          objectUrl,
+        });
+      };
+      img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+      img.src = objectUrl;
+    });
+  }
 }
 
 /**
@@ -136,6 +166,8 @@ export async function convertSingleImage(
       resize.keepAspectRatio
     );
 
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.jsPDF;
     const doc = new jsPDF({
       orientation: targetDim.width > targetDim.height ? 'landscape' : 'portrait',
       unit: 'px',
@@ -172,91 +204,101 @@ export async function convertSingleImage(
     resize.keepAspectRatio
   );
 
-  const canvas = document.createElement('canvas');
-  canvas.width = targetDim.width;
-  canvas.height = targetDim.height;
-  const ctx = canvas.getContext('2d');
+  let convertedBlob: Blob;
 
-  if (!ctx) {
-    throw new Error('Failed to create HTML5 Canvas context');
-  }
+  // Try OffscreenCanvas Web Worker approach if supported and we have an ImageBitmap
+  if (typeof OffscreenCanvas !== 'undefined' && loaded.img instanceof ImageBitmap && targetFormat !== 'ico') {
+    convertedBlob = await new Promise<Blob>((resolve, reject) => {
+      const worker = new Worker(new URL('./conversionWorker.ts', import.meta.url), { type: 'module' });
+      worker.onmessage = (e) => {
+        if (e.data.status === 'success') resolve(e.data.blob);
+        else reject(new Error(e.data.error));
+        worker.terminate();
+      };
+      worker.onerror = (err) => {
+        reject(err);
+        worker.terminate();
+      };
+      
+      worker.postMessage({
+        id: item.id,
+        imageBitmap: loaded.img,
+        settings,
+        targetDim
+      }, [loaded.img]); // Transfer ownership of ImageBitmap to worker for zero-copy
+    });
+  } else {
+    // Fallback to Main Thread Canvas (for ICO or if OffscreenCanvas/ImageBitmap not supported)
+    const canvas = document.createElement('canvas');
+    canvas.width = targetDim.width;
+    canvas.height = targetDim.height;
+    const ctx = canvas.getContext('2d');
 
-  // Smooth scaling settings
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-
-  // Format specific canvas background fill (JPG/BMP need white background for non-transparent export)
-  if (targetFormat === 'jpg' || targetFormat === 'bmp') {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, targetDim.width, targetDim.height);
-  }
-
-  ctx.drawImage(loaded.img, 0, 0, targetDim.width, targetDim.height);
-
-  let mimeType = 'image/jpeg';
-  switch (targetFormat) {
-    case 'webp':
-      mimeType = 'image/webp';
-      break;
-    case 'avif':
-      mimeType = 'image/avif';
-      break;
-    case 'jpg':
-      mimeType = 'image/jpeg';
-      break;
-    case 'png':
-      mimeType = 'image/png';
-      break;
-    case 'bmp':
-      mimeType = 'image/bmp';
-      break;
-    case 'ico':
-      mimeType = 'image/x-icon';
-      break;
-  }
-
-  const convertedBlob = await new Promise<Blob>((resolve, reject) => {
-    // ICO scaling check
-    if (targetFormat === 'ico') {
-      const icoCanvas = document.createElement('canvas');
-      const icoDim = Math.min(256, Math.max(16, targetDim.width));
-      icoCanvas.width = icoDim;
-      icoCanvas.height = icoDim;
-      const icoCtx = icoCanvas.getContext('2d');
-      if (icoCtx) {
-        icoCtx.drawImage(canvas, 0, 0, icoDim, icoDim);
-        icoCanvas.toBlob(
-          (b) => (b ? resolve(b) : reject(new Error('ICO export failed'))),
-          'image/x-icon'
-        );
-        return;
-      }
+    if (!ctx) {
+      throw new Error('Failed to create HTML5 Canvas context');
     }
 
-    canvas.toBlob(
-      (b) => {
-        if (b) {
-          resolve(b);
-        } else {
-          // Fallback if browser doesn't natively support AVIF/BMP toBlob
-          if (targetFormat === 'avif' || targetFormat === 'bmp') {
-            canvas.toBlob(
-              (fallbackBlob) =>
-                fallbackBlob
-                  ? resolve(fallbackBlob)
-                  : reject(new Error(`${targetFormat.toUpperCase()} export not supported in this browser`)),
-              'image/webp',
-              quality
-            );
-          } else {
-            reject(new Error('Canvas export failed'));
-          }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    if (targetFormat === 'jpg' || targetFormat === 'bmp') {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetDim.width, targetDim.height);
+    }
+
+    ctx.drawImage(loaded.img, 0, 0, targetDim.width, targetDim.height);
+
+    let mimeType = 'image/jpeg';
+    switch (targetFormat) {
+      case 'webp': mimeType = 'image/webp'; break;
+      case 'avif': mimeType = 'image/avif'; break;
+      case 'jpg': mimeType = 'image/jpeg'; break;
+      case 'png': mimeType = 'image/png'; break;
+      case 'bmp': mimeType = 'image/bmp'; break;
+      case 'ico': mimeType = 'image/x-icon'; break;
+    }
+
+    convertedBlob = await new Promise<Blob>((resolve, reject) => {
+      if (targetFormat === 'ico') {
+        const icoCanvas = document.createElement('canvas');
+        const icoDim = Math.min(256, Math.max(16, targetDim.width));
+        icoCanvas.width = icoDim;
+        icoCanvas.height = icoDim;
+        const icoCtx = icoCanvas.getContext('2d');
+        if (icoCtx) {
+          icoCtx.drawImage(canvas, 0, 0, icoDim, icoDim);
+          icoCanvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error('ICO export failed'))),
+            'image/x-icon'
+          );
+          return;
         }
-      },
-      mimeType,
-      targetFormat === 'png' ? undefined : quality
-    );
-  });
+      }
+
+      canvas.toBlob(
+        (b) => {
+          if (b) {
+            resolve(b);
+          } else {
+            if (targetFormat === 'avif' || targetFormat === 'bmp') {
+              canvas.toBlob(
+                (fallbackBlob) =>
+                  fallbackBlob
+                    ? resolve(fallbackBlob)
+                    : reject(new Error(`${targetFormat.toUpperCase()} export not supported`)),
+                'image/webp',
+                quality
+              );
+            } else {
+              reject(new Error('Canvas export failed'));
+            }
+          }
+        },
+        mimeType,
+        targetFormat === 'png' ? undefined : quality
+      );
+    });
+  }
 
   const convertedUrl = URL.createObjectURL(convertedBlob);
 
@@ -275,6 +317,8 @@ export async function createZipArchive(
   items: ImageFileItem[],
   targetFormat: OutputFormat
 ): Promise<Blob> {
+  const JSZipModule = await import('jszip');
+  const JSZip = JSZipModule.default;
   const zip = new JSZip();
 
   for (let i = 0; i < items.length; i++) {
@@ -295,7 +339,9 @@ export async function createZipArchive(
 export async function createCombinedPdf(items: ImageFileItem[]): Promise<Blob> {
   if (items.length === 0) throw new Error('No items to export to PDF');
 
-  let doc: jsPDF | null = null;
+  const jsPDFModule = await import('jspdf');
+  const jsPDF = jsPDFModule.jsPDF;
+  let doc: any | null = null;
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];

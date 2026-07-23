@@ -15,12 +15,12 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const quickRoutes = [
     { hash: '/', label: 'All Converters' },
-    { hash: '#/heic-to-jpg', label: 'HEIC to JPG' },
-    { hash: '#/convert-to-avif', label: 'AVIF Speed' },
-    { hash: '#/compress-png', label: 'PNG Compress' },
-    { hash: '#/image-to-pdf', label: 'Image to PDF' },
-    { hash: '#/webp-converter', label: 'WEBP Tool' },
-    { hash: '#/ico-converter', label: 'Favicon .ICO' },
+    { hash: '/heic-to-jpg', label: 'HEIC to JPG' },
+    { hash: '/convert-to-avif', label: 'AVIF Speed' },
+    { hash: '/compress-png', label: 'PNG Compress' },
+    { hash: '/image-to-pdf', label: 'Image to PDF' },
+    { hash: '/webp-converter', label: 'WEBP Tool' },
+    { hash: '/ico-converter', label: 'Favicon .ICO' },
   ];
 
   return (
