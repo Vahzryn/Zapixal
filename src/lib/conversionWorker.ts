@@ -20,6 +20,11 @@ self.onmessage = async (e) => {
 
     ctx.drawImage(imageBitmap, 0, 0, targetDim.width, targetDim.height);
 
+    // Immediately close ImageBitmap to release CPU/GPU memory in worker thread
+    if (typeof imageBitmap.close === 'function') {
+      imageBitmap.close();
+    }
+
     let mimeType = 'image/jpeg';
     switch (targetFormat) {
       case 'webp': mimeType = 'image/webp'; break;

@@ -1,6 +1,4 @@
-
-
-import { ConversionSettings, ImageDimensions, ImageFileItem, OutputFormat } from '../types';
+import { ConversionSettings, ImageDimensions, ImageFileItem, TargetFormat } from '../types';
 
 /**
  * Format helper for readable file size
@@ -31,9 +29,6 @@ export function calculateSavings(originalSize: number, convertedSize: number): {
   };
 }
 
-/**
- * Load image elements safely with HEIC fallback support
- */
 // HEIC Worker singleton
 let heicWorker: Worker | null = null;
 let heicTaskId = 0;
@@ -82,7 +77,6 @@ export async function loadImageElement(file: File): Promise<{
   }
 
   try {
-    // createImageBitmap is much faster and offloads decoding from main thread
     const imgBitmap = await createImageBitmap(targetFile);
     return {
       img: imgBitmap,
@@ -90,7 +84,6 @@ export async function loadImageElement(file: File): Promise<{
       objectUrl,
     };
   } catch (err) {
-    // Fallback to Image element
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -107,20 +100,29 @@ export async function loadImageElement(file: File): Promise<{
   }
 }
 
-/**
- * Calculate target aspect-ratio safe dimensions
- */
 export function calculateTargetDimensions(
   original: ImageDimensions,
   maxWidth?: number,
   maxHeight?: number,
   keepAspectRatio: boolean = true
 ): ImageDimensions {
-  if (!maxWidth && !maxHeight) {
-    return original;
+  let { width, height } = original;
+
+  // Thermal & OOM Safeguard: Absolute safe dimension bounds for HTML Canvas (especially for iOS Safari limit of ~256MB)
+  const isMobile = typeof navigator !== 'undefined' && (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768);
+  const MAX_SAFE_DIM = isMobile ? 8192 : 16384; 
+  if (width > MAX_SAFE_DIM || height > MAX_SAFE_DIM) {
+    const safetyRatio = Math.min(MAX_SAFE_DIM / width, MAX_SAFE_DIM / height);
+    width = Math.round(width * safetyRatio);
+    height = Math.round(height * safetyRatio);
   }
 
-  let { width, height } = original;
+  if (!maxWidth && !maxHeight) {
+    return {
+      width: Math.max(1, width),
+      height: Math.max(1, height),
+    };
+  }
 
   if (keepAspectRatio) {
     const widthRatio = maxWidth ? maxWidth / width : 1;
@@ -142,9 +144,6 @@ export function calculateTargetDimensions(
   };
 }
 
-/**
- * Main function to convert an image item
- */
 export async function convertSingleImage(
   item: ImageFileItem,
   settings: ConversionSettings
@@ -180,7 +179,10 @@ export async function convertSingleImage(
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas context not available');
 
-    ctx.drawImage(loaded.img, 0, 0, targetDim.width, targetDim.height);
+    ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    if (loaded.img instanceof ImageBitmap) {
+      loaded.img.close(); // Immediate memory release
+    }
     const imgDataUrl = canvas.toDataURL('image/jpeg', Math.max(0.6, quality));
 
     doc.addImage(imgDataUrl, 'JPEG', 0, 0, targetDim.width, targetDim.height);
@@ -246,7 +248,10 @@ export async function convertSingleImage(
       ctx.fillRect(0, 0, targetDim.width, targetDim.height);
     }
 
-    ctx.drawImage(loaded.img, 0, 0, targetDim.width, targetDim.height);
+    ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    if (loaded.img instanceof ImageBitmap) {
+      loaded.img.close(); // Immediate memory release
+    }
 
     let mimeType = 'image/jpeg';
     switch (targetFormat) {
@@ -310,53 +315,35 @@ export async function convertSingleImage(
   };
 }
 
-/**
- * Packaging multiple files into a single ZIP file for Bulk Export
- */
-export async function createZipArchive(
+export async function generateCombinedPdf(
   items: ImageFileItem[],
-  targetFormat: OutputFormat
+  settings: ConversionSettings
 ): Promise<Blob> {
-  const JSZipModule = await import('jszip');
-  const JSZip = JSZipModule.default;
-  const zip = new JSZip();
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item.convertedBlob) {
-      const baseName = item.name.substring(0, item.name.lastIndexOf('.')) || item.name;
-      const fileName = `${baseName}.${targetFormat}`;
-      zip.file(fileName, item.convertedBlob);
-    }
-  }
-
-  return await zip.generateAsync({ type: 'blob' });
-}
-
-/**
- * Combine multiple converted image items into a single unified multi-page PDF document
- */
-export async function createCombinedPdf(items: ImageFileItem[]): Promise<Blob> {
-  if (items.length === 0) throw new Error('No items to export to PDF');
-
   const jsPDFModule = await import('jspdf');
   const jsPDF = jsPDFModule.jsPDF;
-  let doc: any | null = null;
+  let doc: any = null;
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
+    if (item.status !== 'success' && item.status !== 'pending') continue;
+
     const loaded = await loadImageElement(item.file);
-    const dim = loaded.dimensions;
+    const dim = calculateTargetDimensions(
+      loaded.dimensions,
+      settings.resize.maxWidth,
+      settings.resize.maxHeight,
+      settings.resize.keepAspectRatio
+    );
 
     const orientation = dim.width > dim.height ? 'landscape' : 'portrait';
 
-    if (i === 0) {
+    if (!doc) {
       doc = new jsPDF({
         orientation,
         unit: 'px',
         format: [dim.width, dim.height],
       });
-    } else if (doc) {
+    } else {
       doc.addPage([dim.width, dim.height], orientation);
     }
 
@@ -365,12 +352,15 @@ export async function createCombinedPdf(items: ImageFileItem[]): Promise<Blob> {
     canvas.height = dim.height;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.drawImage(loaded.img, 0, 0, dim.width, dim.height);
+      ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
+      if (loaded.img instanceof ImageBitmap) {
+        loaded.img.close(); // Immediate memory release
+      }
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       doc?.addImage(dataUrl, 'JPEG', 0, 0, dim.width, dim.height);
     }
   }
 
-  if (!doc) throw new Error('Failed to generate PDF document');
+  if (!doc) throw new Error('No images available for PDF compile');
   return doc.output('blob');
 }

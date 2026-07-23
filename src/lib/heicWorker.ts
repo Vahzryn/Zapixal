@@ -2,16 +2,18 @@ import heic2any from 'heic2any';
 
 self.onmessage = async (e) => {
   try {
-    const { file, id } = e.data;
+    const { id, file } = e.data;
     
-    const convertedBlob = await heic2any({
+    // heic2any returns either a Blob or an array of Blobs
+    const result = await heic2any({
       blob: file,
-      toType: 'image/png',
+      toType: 'image/jpeg',
+      quality: 0.8
     });
     
-    const singleBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+    const blob = Array.isArray(result) ? result[0] : result;
     
-    self.postMessage({ id, status: 'success', blob: singleBlob });
+    self.postMessage({ id, status: 'success', blob });
   } catch (error: any) {
     self.postMessage({ id: e.data.id, status: 'error', error: error.message });
   }

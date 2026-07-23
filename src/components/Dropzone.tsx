@@ -1,194 +1,116 @@
-import React, { useRef, useState } from 'react';
-import { Upload, ShieldCheck, Zap, FileImage, Sparkles, CheckCircle2 } from 'lucide-react';
-import { SeoRouteInfo } from '../types';
+import React, { useCallback, useState } from 'react';
+import { Upload, Zap, CheckCircle2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface DropzoneProps {
-  onFilesSelected: (files: File[]) => void;
-  seoInfo: SeoRouteInfo;
-  onQuickPresetSelect?: (format: 'webp' | 'avif' | 'jpg' | 'pdf') => void;
+  onFilesAdded: (files: File[]) => void;
 }
 
-export const Dropzone: React.FC<DropzoneProps> = ({
-  onFilesSelected,
-  seoInfo,
-  onQuickPresetSelect,
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export function Dropzone({ onFilesAdded }: DropzoneProps) {
+  const [isDragActive, setIsDragActive] = useState(false);
 
-  const supportedFormats = [
-    { label: 'JPG', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-    { label: 'PNG', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-    { label: 'WEBP', bg: 'bg-blue-50 text-blue-700 border-blue-200' },
-    { label: 'AVIF', bg: 'bg-purple-50 text-purple-700 border-purple-200' },
-    { label: 'HEIC', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-    { label: 'SVG', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-    { label: 'BMP', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-    { label: 'PDF', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-  ];
-
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+    setIsDragActive(true);
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
+    setIsDragActive(false);
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragActive(false);
+      
+      const files = Array.from(e.dataTransfer.files).filter((file: File) => 
+        file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.heic')
+      );
+      
+      if (files.length > 0) {
+        onFilesAdded(files);
+      }
+    },
+    [onFilesAdded]
+  );
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const filesArray = Array.from(e.dataTransfer.files);
-      onFilesSelected(filesArray);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files);
-      onFilesSelected(filesArray);
-    }
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        const files = Array.from(e.target.files).filter((file: File) => 
+          file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.heic')
+        );
+        if (files.length > 0) {
+          onFilesAdded(files);
+        }
+      }
+    },
+    [onFilesAdded]
+  );
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      {/* Route Hero Heading */}
-      <div className="text-center space-y-3 pt-2 sm:pt-4">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold tracking-wide shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          <span>{seoInfo.badge}</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          {seoInfo.h1}
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal leading-relaxed">
-          {seoInfo.subtitle}
-        </p>
-      </div>
-
-      {/* Drag & Drop Hero Box */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`relative group cursor-pointer rounded-2xl border-2 border-dashed transition-all duration-200 p-8 sm:p-12 text-center ${
-          isDragging
-            ? 'border-blue-500 bg-blue-100/60 scale-[1.01] shadow-md'
-            : 'border-blue-200 bg-blue-50/50 hover:bg-blue-50/90 shadow-sm'
-        }`}
-      >
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          multiple
-          accept=".jpg,.jpeg,.png,.webp,.avif,.heic,.heif,.svg,.bmp,.gif,image/*"
-          className="hidden"
-        />
-
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform duration-200 shadow-xs">
-              <Upload className="w-8 h-8 text-blue-600" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-1 rounded-full border-2 border-white shadow-xs">
-              <Zap className="w-3 h-3 fill-white" />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
-              Drop your images here, or{' '}
-              <span className="text-blue-600 underline decoration-blue-400 underline-offset-4 font-extrabold">
-                browse files
-              </span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              Free unlimited daily usage. No batch limits.
-            </p>
-          </div>
-
-          {/* Format Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
-            {supportedFormats.map((fmt) => (
-              <span
-                key={fmt.label}
-                className={`text-[11px] font-bold px-2.5 py-1 rounded-md border shadow-2xs ${fmt.bg}`}
-              >
-                {fmt.label}
-              </span>
-            ))}
-          </div>
-
-          {/* Privacy Guarantee Row */}
-          <div className="pt-4 border-t border-slate-200/80 w-full max-w-md mx-auto flex items-center justify-center space-x-6 text-xs text-slate-600">
-            <div className="flex items-center space-x-1.5 text-emerald-700 font-semibold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Zero Server Uploads</span>
-            </div>
-            <div className="flex items-center space-x-1.5 text-blue-700 font-semibold">
-              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-              <span>Instant Local Processing</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Presets Bar */}
-      {onQuickPresetSelect && (
-        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <span className="text-slate-600 font-semibold flex items-center space-x-1.5">
-            <FileImage className="w-4 h-4 text-blue-600" />
-            <span>Popular Quick Tasks:</span>
-          </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => {
-                onQuickPresetSelect('webp');
-                fileInputRef.current?.click();
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 font-semibold transition-colors shadow-2xs"
-            >
-              WEBP (Smallest Web Size)
-            </button>
-            <button
-              onClick={() => {
-                onQuickPresetSelect('avif');
-                fileInputRef.current?.click();
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 font-semibold transition-colors shadow-2xs"
-            >
-              AVIF (Next-Gen Speed)
-            </button>
-            <button
-              onClick={() => {
-                onQuickPresetSelect('jpg');
-                fileInputRef.current?.click();
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 font-semibold transition-colors shadow-2xs"
-            >
-              JPG (Standard Photo)
-            </button>
-            <button
-              onClick={() => {
-                onQuickPresetSelect('pdf');
-                fileInputRef.current?.click();
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 font-semibold transition-colors shadow-2xs"
-            >
-              PDF Document Export
-            </button>
-          </div>
-        </div>
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={cn(
+        "relative flex flex-col items-center justify-center w-full py-16 px-8 transition-all duration-200 border-2 border-dashed rounded-3xl cursor-pointer group bg-white dark:bg-[#303134]",
+        isDragActive 
+          ? "border-blue-500 bg-blue-50/20 dark:bg-[#8ab4f8]/10" 
+          : "border-blue-200 dark:border-[#3c4043] hover:border-blue-400 dark:hover:border-[#8ab4f8]"
       )}
+    >
+      <input
+        type="file"
+        multiple
+        accept="image/*,.heic"
+        onChange={handleChange}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <div className="flex flex-col items-center gap-6 pointer-events-none w-full max-w-2xl text-center">
+        {/* Icon Area */}
+        <div className="relative mb-2">
+          <div className="flex items-center justify-center w-20 h-20 rounded-[2rem] bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-[#1e293b] dark:to-[#28354f] text-blue-600 dark:text-[#8ab4f8] shadow-sm border border-blue-100/50 dark:border-[#384c6c]">
+            <Upload className="w-8 h-8" />
+          </div>
+          <div className="absolute -bottom-2 -right-2 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-white border-4 border-white dark:border-[#303134] shadow-sm">
+            <Zap className="w-4 h-4 fill-current" />
+          </div>
+        </div>
+        
+        {/* Text */}
+        <div>
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-neutral-800 dark:text-[#e8eaed] mb-3 tracking-tight">
+            Drop your images here, or <span className="text-blue-600 dark:text-[#8ab4f8] underline decoration-blue-200 dark:decoration-[#384c6c] hover:decoration-blue-400 underline-offset-4 transition-colors">browse files</span>
+          </h3>
+          <p className="text-base text-neutral-500 dark:text-[#9aa0a6] font-medium">
+            Free unlimited daily usage. No queue limits.
+          </p>
+        </div>
+
+        {/* Format Pills */}
+        <div className="flex flex-wrap justify-center gap-2 mt-2 max-w-md">
+          {['JPG', 'PNG', 'WEBP', 'AVIF', 'HEIC', 'SVG', 'BMP', 'PDF'].map(fmt => (
+            <span key={fmt} className="px-3 py-1 text-[11px] font-extrabold tracking-wider bg-neutral-100 dark:bg-[#202124] text-neutral-500 dark:text-[#9aa0a6] rounded-lg border border-neutral-200 dark:border-[#3c4043] uppercase">
+              {fmt}
+            </span>
+          ))}
+        </div>
+
+        {/* Features list */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-6 pt-6 border-t border-neutral-100 dark:border-[#3c4043] w-full max-w-md">
+          <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-[#81c995]">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Zero Server Uploads</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-[#8ab4f8]">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Instant Local Processing</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}
+

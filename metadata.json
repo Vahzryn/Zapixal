@@ -1,6 +1,6 @@
 {
-  "name": "PicPivot",
-  "description": "Fast, lightweight client-side batch image conversion and compression tool supporting WEBP, AVIF, JPG, PNG, BMP, ICO, and PDF.",
+  "name": "Static Batch Image Processor",
+  "description": "A high-performance, browser-native batch image converter that runs entirely client-side using Web Workers.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
