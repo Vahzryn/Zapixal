@@ -154,6 +154,8 @@ export async function convertSingleImage(
   convertedUrl: string;
 }> {
   const { targetFormat, quality, resize } = settings;
+  const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
+  const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
   // PDF export handling
   if (targetFormat === 'pdf') {
@@ -165,34 +167,46 @@ export async function convertSingleImage(
       resize.keepAspectRatio
     );
 
+    const canvasWidth = isRotated90or270 ? targetDim.height : targetDim.width;
+    const canvasHeight = isRotated90or270 ? targetDim.width : targetDim.height;
+
     const jsPDFModule = await import('jspdf');
     const jsPDF = jsPDFModule.jsPDF;
     const doc = new jsPDF({
-      orientation: targetDim.width > targetDim.height ? 'landscape' : 'portrait',
+      orientation: canvasWidth > canvasHeight ? 'landscape' : 'portrait',
       unit: 'px',
-      format: [targetDim.width, targetDim.height],
+      format: [canvasWidth, canvasHeight],
     });
 
     const canvas = document.createElement('canvas');
-    canvas.width = targetDim.width;
-    canvas.height = targetDim.height;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas context not available');
 
-    ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    if (effectiveRotation !== 0) {
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((effectiveRotation * Math.PI) / 180);
+      ctx.drawImage(loaded.img as CanvasImageSource, -targetDim.width / 2, -targetDim.height / 2, targetDim.width, targetDim.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    }
+
     if (loaded.img instanceof ImageBitmap) {
       loaded.img.close(); // Immediate memory release
     }
     const imgDataUrl = canvas.toDataURL('image/jpeg', Math.max(0.6, quality));
 
-    doc.addImage(imgDataUrl, 'JPEG', 0, 0, targetDim.width, targetDim.height);
+    doc.addImage(imgDataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
 
     return {
       blob: pdfBlob,
       convertedSize: pdfBlob.size,
-      dimensions: targetDim,
+      dimensions: { width: canvasWidth, height: canvasHeight },
       convertedUrl: pdfUrl,
     };
   }
@@ -205,6 +219,9 @@ export async function convertSingleImage(
     resize.enabled ? resize.maxHeight : undefined,
     resize.keepAspectRatio
   );
+
+  const canvasWidth = isRotated90or270 ? targetDim.height : targetDim.width;
+  const canvasHeight = isRotated90or270 ? targetDim.width : targetDim.height;
 
   let convertedBlob: Blob;
 
@@ -226,14 +243,15 @@ export async function convertSingleImage(
         id: item.id,
         imageBitmap: loaded.img,
         settings,
-        targetDim
+        targetDim,
+        rotation: effectiveRotation
       }, [loaded.img]); // Transfer ownership of ImageBitmap to worker for zero-copy
     });
   } else {
     // Fallback to Main Thread Canvas (for ICO or if OffscreenCanvas/ImageBitmap not supported)
     const canvas = document.createElement('canvas');
-    canvas.width = targetDim.width;
-    canvas.height = targetDim.height;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
@@ -245,10 +263,36 @@ export async function convertSingleImage(
 
     if (targetFormat === 'jpg' || targetFormat === 'bmp') {
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, targetDim.width, targetDim.height);
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
-    ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    if (effectiveRotation !== 0) {
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((effectiveRotation * Math.PI) / 180);
+      ctx.drawImage(loaded.img as CanvasImageSource, -targetDim.width / 2, -targetDim.height / 2, targetDim.width, targetDim.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+    }
+
+    if (settings.watermarkText && settings.watermarkText.trim()) {
+      const text = settings.watermarkText.trim();
+      const fontSize = Math.max(14, Math.round(canvasHeight * 0.04));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      
+      const padding = Math.max(12, Math.round(fontSize * 0.8));
+      const x = canvasWidth - padding;
+      const y = canvasHeight - padding;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillText(text, x + 1, y + 1);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.fillText(text, x, y);
+    }
+
     if (loaded.img instanceof ImageBitmap) {
       loaded.img.close(); // Immediate memory release
     }
@@ -266,7 +310,7 @@ export async function convertSingleImage(
     convertedBlob = await new Promise<Blob>((resolve, reject) => {
       if (targetFormat === 'ico') {
         const icoCanvas = document.createElement('canvas');
-        const icoDim = Math.min(256, Math.max(16, targetDim.width));
+        const icoDim = Math.min(256, Math.max(16, canvasWidth));
         icoCanvas.width = icoDim;
         icoCanvas.height = icoDim;
         const icoCtx = icoCanvas.getContext('2d');
@@ -303,6 +347,24 @@ export async function convertSingleImage(
         targetFormat === 'png' ? undefined : quality
       );
     });
+
+    if (settings.targetMaxKB && settings.targetMaxKB > 0 && convertedBlob) {
+      const maxBytes = settings.targetMaxKB * 1024;
+      if (convertedBlob.size > maxBytes) {
+        let currentQuality = quality;
+        let tempBlob = convertedBlob;
+        let step = 0;
+        while (tempBlob.size > maxBytes && currentQuality > 0.12 && step < 5) {
+          step++;
+          currentQuality = Math.max(0.1, currentQuality * 0.75);
+          const res = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob(resolve, mimeType, currentQuality);
+          });
+          if (res) tempBlob = res;
+        }
+        convertedBlob = tempBlob;
+      }
+    }
   }
 
   const convertedUrl = URL.createObjectURL(convertedBlob);
@@ -310,7 +372,7 @@ export async function convertSingleImage(
   return {
     blob: convertedBlob,
     convertedSize: convertedBlob.size,
-    dimensions: targetDim,
+    dimensions: { width: canvasWidth, height: canvasHeight },
     convertedUrl,
   };
 }
@@ -327,6 +389,9 @@ export async function generateCombinedPdf(
     const item = items[i];
     if (item.status !== 'success' && item.status !== 'pending') continue;
 
+    const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
+    const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
+
     const loaded = await loadImageElement(item.file);
     const dim = calculateTargetDimensions(
       loaded.dimensions,
@@ -335,29 +400,41 @@ export async function generateCombinedPdf(
       settings.resize.keepAspectRatio
     );
 
-    const orientation = dim.width > dim.height ? 'landscape' : 'portrait';
+    const canvasWidth = isRotated90or270 ? dim.height : dim.width;
+    const canvasHeight = isRotated90or270 ? dim.width : dim.height;
+
+    const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
 
     if (!doc) {
       doc = new jsPDF({
         orientation,
         unit: 'px',
-        format: [dim.width, dim.height],
+        format: [canvasWidth, canvasHeight],
       });
     } else {
-      doc.addPage([dim.width, dim.height], orientation);
+      doc.addPage([canvasWidth, canvasHeight], orientation);
     }
 
     const canvas = document.createElement('canvas');
-    canvas.width = dim.width;
-    canvas.height = dim.height;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
+      if (effectiveRotation !== 0) {
+        ctx.save();
+        ctx.translate(canvasWidth / 2, canvasHeight / 2);
+        ctx.rotate((effectiveRotation * Math.PI) / 180);
+        ctx.drawImage(loaded.img as CanvasImageSource, -dim.width / 2, -dim.height / 2, dim.width, dim.height);
+        ctx.restore();
+      } else {
+        ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
+      }
+
       if (loaded.img instanceof ImageBitmap) {
         loaded.img.close(); // Immediate memory release
       }
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      doc?.addImage(dataUrl, 'JPEG', 0, 0, dim.width, dim.height);
+      doc?.addImage(dataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
     }
   }
 

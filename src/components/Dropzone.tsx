@@ -84,9 +84,34 @@ export function Dropzone({ onFilesAdded }: DropzoneProps) {
           <h3 className="text-2xl sm:text-3xl font-extrabold text-neutral-800 dark:text-[#e8eaed] mb-3 tracking-tight">
             Drop your images here, or <span className="text-blue-600 dark:text-[#8ab4f8] underline decoration-blue-200 dark:decoration-[#384c6c] hover:decoration-blue-400 underline-offset-4 transition-colors">browse files</span>
           </h3>
-          <p className="text-base text-neutral-500 dark:text-[#9aa0a6] font-medium">
-            Free unlimited daily usage. No queue limits.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-base text-neutral-500 dark:text-[#9aa0a6] font-medium">
+            <span>Free unlimited daily usage.</span>
+            <span className="hidden sm:inline">•</span>
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const items = await navigator.clipboard.read();
+                  const files: File[] = [];
+                  for (const item of items) {
+                    for (const type of item.types) {
+                      if (type.startsWith('image/')) {
+                        const blob = await item.getType(type);
+                        files.push(new File([blob], `clipboard-image-${Date.now()}.${type.split('/')[1] || 'png'}`, { type }));
+                      }
+                    }
+                  }
+                  if (files.length > 0) onFilesAdded(files);
+                } catch (err) {
+                  console.warn('Clipboard direct read not permitted or empty:', err);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-blue-700 dark:text-[#8ab4f8] bg-blue-50 dark:bg-[#1e293b] hover:bg-blue-100 rounded-full border border-blue-200 dark:border-[#384c6c] transition-all cursor-pointer pointer-events-auto"
+            >
+              <span>📋 Paste from Clipboard (Ctrl+V)</span>
+            </button>
+          </div>
         </div>
 
         {/* Format Pills */}
