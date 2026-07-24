@@ -81,6 +81,10 @@ export function CompareModal({ item, onClose }: CompareModalProps) {
             <img
               src={item.convertedUrl}
               alt="Converted"
+              width="800"
+              height="500"
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
             />
             
@@ -90,30 +94,32 @@ export function CompareModal({ item, onClose }: CompareModalProps) {
             </div>
 
             {/* Original Image (Left side clipped) */}
-            <div
-              style={{ width: `${sliderPosition}%` }}
-              className="absolute top-0 left-0 bottom-0 overflow-hidden border-r-2 border-white dark:border-[#8ab4f8] shadow-2xl pointer-events-none"
+            <img
+              src={originalUrl}
+              alt="Original"
+              width="800"
+              height="500"
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+              style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+            />
+            
+            {/* Label Left - Original */}
+            <div 
+              className="absolute top-4 left-4 z-10 px-3 py-1.5 bg-neutral-900/90 text-white text-xs font-bold rounded-xl shadow-lg backdrop-blur-md"
+              style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             >
-              <img
-                src={originalUrl}
-                alt="Original"
-                className="absolute top-0 left-0 h-full max-w-none object-contain"
-                style={{
-                  width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%',
-                }}
-              />
-              {/* Label Left - Original */}
-              <div className="absolute top-4 left-4 z-10 px-3 py-1.5 bg-neutral-900/90 text-white text-xs font-bold rounded-xl shadow-lg backdrop-blur-md">
-                Original ({formatBytes(item.originalSize)})
-              </div>
+              Original ({formatBytes(item.originalSize)})
             </div>
 
             {/* Drag Handle Bar */}
             <div
               style={{ left: `${sliderPosition}%` }}
-              className="absolute top-0 bottom-0 z-20 -ml-4 w-8 flex items-center justify-center pointer-events-none"
+              className="absolute top-0 bottom-0 z-20 w-8 flex flex-col items-center justify-center pointer-events-none -ml-4"
             >
-              <div className="w-8 h-8 rounded-full bg-white dark:bg-[#202124] text-neutral-800 dark:text-[#8ab4f8] shadow-xl border-2 border-blue-500 flex items-center justify-center">
+              <div className="absolute top-0 bottom-0 w-0.5 bg-white dark:bg-[#8ab4f8] shadow-2xl" />
+              <div className="w-8 h-8 rounded-full bg-white dark:bg-[#202124] text-neutral-800 dark:text-[#8ab4f8] shadow-xl border-2 border-blue-500 flex items-center justify-center z-10">
                 <ArrowLeftRight className="w-4 h-4" />
               </div>
             </div>

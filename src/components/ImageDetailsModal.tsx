@@ -116,6 +116,10 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
             <img
               src={previewUrl}
               alt="Preview"
+              width="600"
+              height="300"
+              loading="lazy"
+              decoding="async"
               className="max-h-full max-w-full object-contain"
               style={{ transform: `rotate(${item.rotation || 0}deg)` }}
             />

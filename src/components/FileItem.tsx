@@ -108,6 +108,10 @@ export function FileItem({
           <img 
             src={URL.createObjectURL(item.file)} 
             alt={item.file.name}
+            width="56"
+            height="56"
+            loading="lazy"
+            decoding="async"
             className="block object-cover w-full h-full transition-transform duration-300 ease-out"
             style={{ transform: `rotate(${rotation}deg)` }}
             onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
