@@ -55,7 +55,7 @@ export function Dropzone({ onFilesAdded }: DropzoneProps) {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        "relative flex flex-col items-center justify-center w-full py-16 px-8 transition-all duration-200 border-2 border-dashed rounded-3xl cursor-pointer group bg-white dark:bg-[#303134]",
+        "dropzone-cls-guard min-h-[320px] sm:min-h-[380px] relative flex flex-col items-center justify-center w-full py-16 px-8 transition-all duration-200 border-2 border-dashed rounded-3xl cursor-pointer group bg-white dark:bg-[#303134]",
         isDragActive 
           ? "border-blue-500 bg-blue-50/20 dark:bg-[#8ab4f8]/10" 
           : "border-blue-200 dark:border-[#3c4043] hover:border-blue-400 dark:hover:border-[#8ab4f8]"

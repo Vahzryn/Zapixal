@@ -643,7 +643,7 @@ export default function App() {
       <main className="max-w-6xl px-6 py-16 mx-auto lg:py-24">
         
         {/* Hero Section */}
-        <div className="flex flex-col items-center mb-10 text-center">
+        <div className="hero-container-cls-guard min-h-[160px] sm:min-h-[200px] flex flex-col items-center mb-10 text-center">
           <Breadcrumbs items={seoData.breadcrumbs} onNavigate={handleNavigate} />
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-white mb-4 max-w-4xl leading-tight">
             {seoData.h1Title}

@@ -7,33 +7,96 @@
     <!-- Primary Meta Tags -->
     <title>Zapixal - Free Local Batch Image Converter & Compressor</title>
     <meta name="title" content="Zapixal - Free Local Batch Image Converter & Compressor" />
-    <meta name="description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser. Free and ad-supported with no limits." />
-    <meta name="keywords" content="batch image converter,compressor, heic to jpg, webp converter, avif converter, bulk image resize, free image converter, private image processing, local image converter, ad-supported" />
+    <meta name="description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser. Free with no limits." />
+    <meta name="keywords" content="batch image converter, image compressor, heic to jpg, webp converter, avif converter, bulk image resize, free image converter, private image processing, local image converter" />
     <meta name="author" content="Zapixal" />
     <meta name="robots" content="index, follow" />
+
+    <!-- Resource Hints & Preconnects for FCP / LCP Speedup -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+    <!-- Google Fonts with font-display: swap -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+    </noscript>
+
+    <!-- Critical Above-the-Fold Inline CSS (Prevents CLS & Speedup FCP/LCP) -->
+    <style>
+      /* Critical Layout Rules & Font Fallbacks */
+      :root {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #fcfcfd;
+        color: #171717;
+        min-height: 100vh;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #202124;
+          color: #e8eaed;
+        }
+      }
+      .dark body, body.dark {
+        background-color: #202124;
+        color: #e8eaed;
+      }
+      /* Prevent CLS for Main Above-The-Fold Hero & Dropzone Elements */
+      .hero-container-cls-guard {
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      @media (min-width: 640px) {
+        .hero-container-cls-guard {
+          min-height: 200px;
+        }
+      }
+      .dropzone-cls-guard {
+        min-height: 320px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      @media (min-width: 640px) {
+        .dropzone-cls-guard {
+          min-height: 380px;
+        }
+      }
+    </style>
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Zapixal - Free Local Batch Image Converter & Compressor" />
-    <meta property="og:description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser. Free and ad-supported with no limits." />
+    <meta property="og:description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser." />
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="Zapixal - Free Local Batch Image Converter & Compressor" />
-    <meta property="twitter:description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser. Free and ad-supported with no limits." />
+    <meta property="twitter:description" content="Lightning-fast, 100% private client-side batch image converter. Convert HEIC, PNG, JPG, WEBP, and AVIF locally in your browser." />
 
     <!-- Favicon & Apple Touch Icons -->
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo.png" />
     
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) - Defer & Async non-blocking load -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NDMNL4EPS3"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-NDMNL4EPS3');
     </script>
   </head>
