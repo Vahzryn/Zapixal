@@ -5,7 +5,6 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { FileItem } from './components/FileItem';
 import { Breadcrumbs } from './components/Breadcrumbs';
 import { parseSeoRoute, applySeoToHead, SeoRouteData } from './lib/seoEngine';
-import { convertSingleImage, generateCombinedPdf } from './lib/imageProcessor';
 import { Zap, DownloadCloud, Trash2, ShieldCheck, Activity, Image as ImageIcon, Heart, Moon, Sun, Loader2, X, Share2, Copy, Check, Sparkles } from 'lucide-react';
 import { cn, formatOutputFilename, formatBytes } from './lib/utils';
 
@@ -359,7 +358,8 @@ export default function App() {
     if (settings.targetFormat === 'pdf') {
       try {
         setIsProcessing(true);
-        const pdfBlob = await generateCombinedPdf(successFiles, settings);
+        const processor = await import('./lib/imageProcessor');
+        const pdfBlob = await processor.generateCombinedPdf(successFiles, settings);
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -451,6 +451,9 @@ export default function App() {
 
     let activeWorkers = 0;
     let currentIndex = 0;
+
+    const processor = await import('./lib/imageProcessor');
+    const convertSingleImage = processor.convertSingleImage;
 
     return new Promise<void>((resolve) => {
       const next = async () => {
