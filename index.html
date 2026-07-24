@@ -85,14 +85,54 @@
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo.webp" />
     
-    <!-- Google tag (gtag.js) - Defer & Async non-blocking load -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NDMNL4EPS3"></script>
-    <script defer>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-NDMNL4EPS3');
+    <!-- Google tag (gtag.js) - Delayed load to prevent reflows and render blocking -->
+    <script type="text/javascript">
+      let gtmLoaded = false;
+      function loadGTM() {
+        if (gtmLoaded) return;
+        gtmLoaded = true;
+        var script = document.createElement('script');
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-NDMNL4EPS3';
+        script.async = true;
+        document.head.appendChild(script);
+        
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-NDMNL4EPS3');
+      }
+      ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function(e) {
+        window.addEventListener(e, loadGTM, { once: true, passive: true });
+      });
+      setTimeout(loadGTM, 3000);
     </script>
+    <!-- Critical CSS to prevent FOIT and CLS -->
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .critical-hero {
+        text-align: center;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .critical-dropzone {
+        min-height: 320px;
+        border: 2px dashed #e5e7eb;
+        border-radius: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 2rem auto;
+      }
+      @media (min-width: 640px) {
+        .critical-dropzone {
+          min-height: 380px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
