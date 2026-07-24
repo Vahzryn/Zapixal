@@ -63,6 +63,8 @@ export function Dropzone({ onFilesAdded }: DropzoneProps) {
     >
       <input
         type="file"
+        id="file-upload-input"
+        aria-label="Upload image files or drop them here"
         multiple
         accept="image/*,.heic"
         onChange={handleChange}
@@ -81,9 +83,9 @@ export function Dropzone({ onFilesAdded }: DropzoneProps) {
         
         {/* Text */}
         <div>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-neutral-800 dark:text-[#e8eaed] mb-3 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-800 dark:text-[#e8eaed] mb-3 tracking-tight">
             Drop your images here, or <span className="text-blue-600 dark:text-[#8ab4f8] underline decoration-blue-200 dark:decoration-[#384c6c] hover:decoration-blue-400 underline-offset-4 transition-colors">browse files</span>
-          </h3>
+          </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-base text-neutral-500 dark:text-[#9aa0a6] font-medium">
             <span>Free unlimited daily usage.</span>
             <span className="hidden sm:inline">•</span>

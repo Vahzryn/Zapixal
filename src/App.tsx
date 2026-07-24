@@ -1,21 +1,22 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from './types';
 import { Dropzone } from './components/Dropzone';
 import { SettingsPanel } from './components/SettingsPanel';
 import { FileItem } from './components/FileItem';
-import { DonateModal } from './components/DonateModal';
-import { CompareModal } from './components/CompareModal';
-import { ImageDetailsModal } from './components/ImageDetailsModal';
-import { BatchStatsChart } from './components/BatchStatsChart';
-import { EmbedWidget } from './components/EmbedWidget';
 import { Breadcrumbs } from './components/Breadcrumbs';
-import { PseoContentGuide } from './components/PseoContentGuide';
-import { FooterLinkHub } from './components/FooterLinkHub';
 import { parseSeoRoute, applySeoToHead, SeoRouteData } from './lib/seoEngine';
 import { convertSingleImage, generateCombinedPdf } from './lib/imageProcessor';
 import { Zap, DownloadCloud, Trash2, ShieldCheck, Activity, Image as ImageIcon, Heart, Moon, Sun, Loader2, X, Share2, Copy, Check, Sparkles } from 'lucide-react';
-import JSZip from 'jszip';
 import { cn, formatOutputFilename, formatBytes } from './lib/utils';
+
+// Lazy load non-critical modals & lower-fold content to optimize LCP & FCP
+const DonateModal = React.lazy(() => import('./components/DonateModal').then(m => ({ default: m.DonateModal })));
+const CompareModal = React.lazy(() => import('./components/CompareModal').then(m => ({ default: m.CompareModal })));
+const ImageDetailsModal = React.lazy(() => import('./components/ImageDetailsModal').then(m => ({ default: m.ImageDetailsModal })));
+const BatchStatsChart = React.lazy(() => import('./components/BatchStatsChart').then(m => ({ default: m.BatchStatsChart })));
+const EmbedWidget = React.lazy(() => import('./components/EmbedWidget').then(m => ({ default: m.EmbedWidget })));
+const PseoContentGuide = React.lazy(() => import('./components/PseoContentGuide').then(m => ({ default: m.PseoContentGuide })));
+const FooterLinkHub = React.lazy(() => import('./components/FooterLinkHub').then(m => ({ default: m.FooterLinkHub })));
 
 export default function App() {
   const [files, setFiles] = useState<ImageFileItem[]>([]);
@@ -380,6 +381,8 @@ export default function App() {
       return;
     }
 
+    const JSZipModule = await import('jszip');
+    const JSZip = JSZipModule.default;
     const zip = new JSZip();
     const folder = zip.folder(`converted_images_${settings.targetFormat}`);
     const usedNames = new Set<string>();
@@ -584,6 +587,10 @@ export default function App() {
           <img 
             src="/logo.png" 
             alt="Zapixal Logo" 
+            width="40"
+            height="40"
+            decoding="async"
+            fetchPriority="high"
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain bg-white dark:bg-[#202124] shadow-sm border border-neutral-100 dark:border-[#3c4043]" 
           />
           <div className="flex flex-col">
@@ -849,7 +856,9 @@ export default function App() {
         )}
 
         {/* Recharts Summary Chart for Batch Size Savings */}
-        <BatchStatsChart files={files} />
+        <Suspense fallback={null}>
+          <BatchStatsChart files={files} />
+        </Suspense>
 
         {/* Success Real-time Stats Banner */}
         {successCount > 0 && (
@@ -900,33 +909,36 @@ export default function App() {
         )}
 
         {/* Embed Widget for Webmasters & SEO */}
-        <EmbedWidget />
+        <Suspense fallback={null}>
+          <EmbedWidget />
+        </Suspense>
 
         {/* Dynamic pSEO Content Guide & FAQ */}
-        <PseoContentGuide seoData={seoData} />
+        <Suspense fallback={null}>
+          <PseoContentGuide seoData={seoData} />
+        </Suspense>
       </main>
 
       {/* Dynamic pSEO Interlinking Footer Link Hub */}
-      <FooterLinkHub currentPath={currentPath} onNavigate={handleNavigate} />
-
-      <DonateModal 
-        isOpen={isDonateModalOpen} 
-        onClose={() => setIsDonateModalOpen(false)} 
-      />
-
-      {compareItem && (
-        <CompareModal
-          item={compareItem}
-          onClose={() => setCompareItem(null)}
+      <Suspense fallback={null}>
+        <FooterLinkHub currentPath={currentPath} onNavigate={handleNavigate} />
+        <DonateModal 
+          isOpen={isDonateModalOpen} 
+          onClose={() => setIsDonateModalOpen(false)} 
         />
-      )}
-
-      {inspectItem && (
-        <ImageDetailsModal
-          item={inspectItem}
-          onClose={() => setInspectItem(null)}
-        />
-      )}
+        {compareItem && (
+          <CompareModal
+            item={compareItem}
+            onClose={() => setCompareItem(null)}
+          />
+        )}
+        {inspectItem && (
+          <ImageDetailsModal
+            item={inspectItem}
+            onClose={() => setInspectItem(null)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
