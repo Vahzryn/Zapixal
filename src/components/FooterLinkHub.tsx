@@ -135,7 +135,12 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
 
         {/* Bottom Copyright & Sitemap Link */}
         <div className="pt-8 border-t border-neutral-100 dark:border-[#3c4043] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-neutral-500 dark:text-[#9aa0a6]">
-          <span>© 2026 Zapixal Core Engine. All rights reserved. 100% Private Client-Side Application.</span>
+          <span>
+            © 2026 Zapixal Core Engine. All rights reserved. 100% Private Client-Side Application.
+            <span className="block sm:inline sm:ml-2 mt-1 sm:mt-0">
+              Zapixal is open-source. <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 hover:underline dark:text-blue-400">Star on GitHub ⭐</a>
+            </span>
+          </span>
           <div className="flex items-center gap-4">
             <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:underline">
               XML Sitemap

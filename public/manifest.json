@@ -1,0 +1,24 @@
+{
+  "name": "Zapixal - Image Converter",
+  "short_name": "Zapixal",
+  "description": "Lightning-fast, 100% private client-side batch image converter.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "image/*": [".png", ".jpg", ".jpeg", ".heic", ".webp", ".avif"]
+      }
+    }
+  ]
+}

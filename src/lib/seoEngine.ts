@@ -243,6 +243,86 @@ export function parseSeoRoute(pathname: string): SeoRouteData {
     );
   }
 
+  // 4. Competitor Routes
+  const vsMatch = path.match(/^\/vs\/([a-z0-9]+)$/);
+  if (vsMatch) {
+    const competitor = vsMatch[1];
+    let compName = 'TinyPNG';
+    if (competitor === 'cloudconvert') compName = 'CloudConvert';
+    if (competitor === 'iloveimg') compName = 'iLoveIMG';
+
+    return {
+      path,
+      h1Title: `Zapixal vs ${compName} - Which is Better?`,
+      metaTitle: `Zapixal vs ${compName} | 100% Private Alternative`,
+      metaDescription: `Compare Zapixal and ${compName}. Discover why Zapixal's 100% local, offline, client-side engine is safer and faster than cloud-based converters.`,
+      canonicalUrl: fullUrl,
+      isIndexable: true,
+      pageCategory: 'use-case',
+      breadcrumbs: [
+        { name: 'Home', url: '/' },
+        { name: `Zapixal vs ${compName}`, url: path }
+      ],
+      guideContent: {
+        badge: 'Competitor Comparison',
+        section1Title: `Why Zapixal is the ultimate ${compName} alternative`,
+        section1Body: `Unlike ${compName} which requires uploading your sensitive files to remote cloud servers, Zapixal runs 100% inside your browser memory. This means zero upload times, no file limits, and absolute data privacy.`,
+        section2Title: 'Unmetered Batch Conversion',
+        section2Body: `Many cloud services artificially limit batch sizes or ask for paid subscriptions. Zapixal uses your device's raw compute power to process hundreds of files instantly for free.`,
+        steps: [
+          `Drag & drop files directly into the browser.`,
+          `Conversion happens on your local CPU (no network required).`,
+          `Instantly download the optimized ZIP without waiting for server transfers.`
+        ],
+        faqs: [
+          {
+            question: `Is Zapixal faster than ${compName}?`,
+            answer: 'Yes. Because Zapixal skips the upload/download phase entirely, conversion times are significantly faster, especially for large files or large batches.'
+          },
+          {
+            question: `Is it safer than ${compName}?`,
+            answer: 'Absolutely. Zapixal is 100% private. Your files never leave your device.'
+          }
+        ]
+      },
+      jsonLd: generateJsonLdSchemas(
+        `Zapixal vs ${compName}`,
+        `Compare Zapixal and ${compName}. Discover a faster, private alternative.`,
+        fullUrl,
+        [],
+        [
+          { name: 'Home', url: `${DOMAIN}/` },
+          { name: `Zapixal vs ${compName}`, url: fullUrl }
+        ]
+      )
+    };
+  }
+
+  // 5. Special Pages (Privacy Map, Calculator, Docs)
+  if (path === '/privacy-map') {
+    return createUseCaseSeo(
+      path, fullUrl, 'Interactive EXIF Privacy Map', 'Interactive EXIF Privacy Map & Remover',
+      'Visualize hidden GPS metadata in your photos on a map and securely scrub it locally.',
+      { stripExif: true }
+    );
+  }
+  
+  if (path === '/calculator') {
+    return createUseCaseSeo(
+      path, fullUrl, 'Bandwidth & Carbon Savings Calculator', 'Bandwidth & Carbon Savings Calculator',
+      'Calculate the bandwidth, money, and CO2 saved by adopting next-gen WebP & AVIF image formats.',
+      { toFormat: 'webp' }
+    );
+  }
+
+  if (path === '/docs/architecture') {
+    return createUseCaseSeo(
+      path, fullUrl, 'Technical Architecture', 'Technical Architecture | 100% Local WASM Sandbox',
+      'Detailed documentation on Zapixal\'s offline Service Workers, WebAssembly memory sandboxing, and EXIF stripping mechanics.',
+      { toFormat: 'webp' }
+    );
+  }
+
   if (path.includes('shopify') || path.includes('ecommerce')) {
     return createUseCaseSeo(
       path,

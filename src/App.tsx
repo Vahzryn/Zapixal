@@ -16,6 +16,9 @@ const BatchStatsChart = React.lazy(() => import('./components/BatchStatsChart').
 const EmbedWidget = React.lazy(() => import('./components/EmbedWidget').then(m => ({ default: m.EmbedWidget })));
 const PseoContentGuide = React.lazy(() => import('./components/PseoContentGuide').then(m => ({ default: m.PseoContentGuide })));
 const FooterLinkHub = React.lazy(() => import('./components/FooterLinkHub').then(m => ({ default: m.FooterLinkHub })));
+const PrivacyMap = React.lazy(() => import('./components/PrivacyMap').then(m => ({ default: m.PrivacyMap })));
+const Calculator = React.lazy(() => import('./components/Calculator').then(m => ({ default: m.Calculator })));
+const DocsArchitecture = React.lazy(() => import('./components/DocsArchitecture').then(m => ({ default: m.DocsArchitecture })));
 
 export default function App() {
   const [files, setFiles] = useState<ImageFileItem[]>([]);
@@ -617,6 +620,17 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          <a
+            href="https://github.com/Vahzryn/Zapixal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-neutral-700 dark:text-[#e8eaed] hover:bg-neutral-100 dark:hover:bg-[#3c4043] rounded-full transition-all"
+            title="Open Source on GitHub"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+            <span>Open Source</span>
+          </a>
+
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="p-2 text-neutral-500 hover:text-neutral-900 dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] hover:bg-neutral-100 dark:hover:bg-[#3c4043] rounded-full transition-colors"
@@ -663,11 +677,32 @@ export default function App() {
           </p>
         </div>
 
-        {/* Dropzone & Quick Tasks */}
-        <div className="flex flex-col gap-6 mb-16">
-          <Dropzone onFilesAdded={handleFilesAdded} />
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl shadow-sm">
+        {/* Main Content Router */}
+        {currentPath === '/privacy-map' ? (
+          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Privacy Map...</div>}>
+            <PrivacyMap />
+          </Suspense>
+        ) : currentPath === '/calculator' ? (
+          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Calculator...</div>}>
+            <Calculator />
+          </Suspense>
+        ) : currentPath === '/docs/architecture' ? (
+          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Architecture Docs...</div>}>
+            <DocsArchitecture />
+          </Suspense>
+        ) : (
+          <React.Fragment>
+            {/* Dropzone & Quick Tasks */}
+            <div className="flex flex-col gap-6 mb-16">
+              <Dropzone onFilesAdded={handleFilesAdded} />
+              <div className="text-center -mt-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[11px] font-bold uppercase tracking-wider rounded-full border border-green-200 dark:border-green-800/50">
+                  <Activity className="w-3.5 h-3.5" />
+                  0 KB Uploaded / 100% Local WASM Sandbox
+                </span>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl shadow-sm">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-700 dark:text-[#8ab4f8]">
               <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-50 dark:bg-[#1e293b]">
                 <Zap className="w-4 h-4 text-blue-600 dark:text-[#8ab4f8]" />
@@ -920,6 +955,8 @@ export default function App() {
         <Suspense fallback={null}>
           <PseoContentGuide seoData={seoData} />
         </Suspense>
+        </React.Fragment>
+        )}
       </main>
 
       {/* Dynamic pSEO Interlinking Footer Link Hub */}
