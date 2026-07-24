@@ -588,7 +588,7 @@ export default function App() {
       <nav className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-white dark:bg-[#303134] border-b border-neutral-200 dark:border-[#3c4043] sticky top-0 z-40 shadow-sm gap-4">
         <div className="flex items-center gap-3">
           <img 
-            src="/logo.webp" 
+            src="/logo.png" 
             alt="Zapixal Logo" 
             width="40"
             height="40"
