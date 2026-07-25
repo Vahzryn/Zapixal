@@ -226,7 +226,7 @@ class ZapixalBlogWidget extends HTMLElement {
           if (!window.heic2any) {
             await new Promise((resolve, reject) => {
               const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/heic2any.min.js';
+              script.src = '/vendor/heic2any.min.js';
               script.onload = resolve;
               script.onerror = reject;
               document.head.appendChild(script);
