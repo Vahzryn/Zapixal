@@ -1,0 +1,151 @@
+/**
+ * Architecture Note:
+ * Batch Object URLs and ImageBitmaps created during file processing 
+ * MUST be explicitly closed/revoked (e.g. `URL.revokeObjectURL()`, 
+ * `imageBitmap.close()`) after each conversion completes or errors out, 
+ * to prevent memory leaks and Out-of-Memory (OOM) crashes on large batches.
+ */
+import { detectHardwareCapabilities } from './hardwareCapabilities';
+
+export interface PooledWorker {
+  id: number;
+  worker: Worker;
+  active: boolean;
+}
+
+class WorkerPoolManager {
+  private conversionWorkers: PooledWorker[] = [];
+  private maxWorkers: number = 4;
+  private workerIdCounter = 0;
+  private pendingQueue: Array<{
+    resolve: (workerInfo: PooledWorker) => void;
+    reject: (reason?: any) => void;
+  }> = [];
+
+  private heicWorker: Worker | null = null;
+  private heicTaskId = 0;
+  private heicResolvers = new Map<number, { resolve: (b: Blob) => void; reject: (e: any) => void }>();
+
+  constructor() {
+    const hw = detectHardwareCapabilities();
+    this.maxWorkers = Math.max(1, hw.maxConcurrentWorkers);
+  }
+
+  public setMaxWorkers(max: number) {
+    this.maxWorkers = Math.max(1, max);
+  }
+
+  public getMaxWorkers(): number {
+    return this.maxWorkers;
+  }
+
+  /**
+   * Acquires an available conversion worker or queues until one becomes available.
+   */
+  public async acquireWorker(): Promise<PooledWorker> {
+    // Look for an idle worker
+    const idle = this.conversionWorkers.find((w) => !w.active);
+    if (idle) {
+      idle.active = true;
+      return idle;
+    }
+
+    // Spawn a new worker if under limit
+    if (this.conversionWorkers.length < this.maxWorkers) {
+      const id = ++this.workerIdCounter;
+      const worker = new Worker(new URL('../workers/conversionWorker.ts', import.meta.url), { type: 'module' });
+      const pooled: PooledWorker = { id, worker, active: true };
+      this.conversionWorkers.push(pooled);
+      return pooled;
+    }
+
+    // Wait in queue (backpressure control)
+    return new Promise<PooledWorker>((resolve, reject) => {
+      this.pendingQueue.push({ resolve, reject });
+    });
+  }
+
+  /**
+   * Releases an active worker back to the pool.
+   */
+  public releaseWorker(pooledWorker: PooledWorker) {
+    pooledWorker.active = false;
+    if (this.pendingQueue.length > 0) {
+      const next = this.pendingQueue.shift();
+      if (next) {
+        pooledWorker.active = true;
+        next.resolve(pooledWorker);
+      }
+    }
+  }
+
+  /**
+   * Decodes a HEIC file using dedicated HEIC worker thread.
+   */
+  public async decodeHeic(file: File): Promise<Blob> {
+    const worker = this.getHeicWorker();
+    const id = ++this.heicTaskId;
+
+    return new Promise<Blob>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        this.heicResolvers.delete(id);
+        reject(new Error('HEIC decoding worker timeout (15s)'));
+      }, 15000);
+
+      this.heicResolvers.set(id, {
+        resolve: (blob) => {
+          clearTimeout(timeoutId);
+          resolve(blob);
+        },
+        reject: (err) => {
+          clearTimeout(timeoutId);
+          reject(err);
+        },
+      });
+
+      worker.postMessage({ id, file });
+    });
+  }
+
+  private getHeicWorker(): Worker {
+    if (!this.heicWorker) {
+      this.heicWorker = new Worker(new URL('../workers/heicWorker.ts', import.meta.url), { type: 'module' });
+      this.heicWorker.onmessage = (e) => {
+        const { id, status, blob, error } = e.data;
+        const resolver = this.heicResolvers.get(id);
+        if (resolver) {
+          if (status === 'success') resolver.resolve(blob);
+          else resolver.reject(new Error(error || 'HEIC decoding error'));
+          this.heicResolvers.delete(id);
+        }
+      };
+    }
+    return this.heicWorker;
+  }
+
+  /**
+   * Terminates all active worker instances and resets state.
+   */
+  public terminateAll() {
+    if (this.heicWorker) {
+      this.heicWorker.terminate();
+      this.heicWorker = null;
+    }
+    this.heicResolvers.clear();
+
+    this.conversionWorkers.forEach((w) => w.worker.terminate());
+    this.conversionWorkers = [];
+    
+    this.pendingQueue.forEach((q) => q.reject(new Error('Worker pool terminated')));
+    this.pendingQueue = [];
+  }
+}
+
+let instance: WorkerPoolManager | null = null;
+
+export function getWorkerPool(): WorkerPoolManager {
+  if (!instance) {
+    instance = new WorkerPoolManager();
+  }
+  return instance;
+}

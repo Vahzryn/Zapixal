@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>100% Free Client-Side Batch Image Converter & Compressor — Zero Server Uploads & Instant WASM Speed</title>
+    <meta name="title" content="100% Free Client-Side Batch Image Converter & Compressor — Zero Server Uploads & Instant WASM Speed" />
+    <meta name="description" content="100% free, open-source & private client-side batch image converter & compressor. Convert HEIC, PNG, JPG, WebP, AVIF, and PDF instantly in browser memory using WASM with zero server uploads." />
+    <meta name="keywords" content="batch image converter, open source image converter, client-side image compressor, heic to jpg, webp converter, avif converter, bulk image resize, free image converter, private image processing, WASM image converter" />
+    <meta name="author" content="Zapixal" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://zapixal.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zapixal.com/" />
+    <meta property="og:title" content="100% Free Client-Side Batch Image Converter & Compressor — Zapixal" />
+    <meta property="og:description" content="100% free, open-source & private client-side batch image converter. Convert HEIC, PNG, JPG, WebP, AVIF in browser memory with zero server uploads." />
+    <meta property="og:image" content="https://zapixal.com/icon-512.png" />
+    <meta property="og:site_name" content="Zapixal" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://zapixal.com/" />
+    <meta name="twitter:title" content="100% Free Client-Side Batch Image Converter & Compressor — Zapixal" />
+    <meta name="twitter:description" content="100% free, open-source & private client-side batch image converter. Convert HEIC, PNG, JPG, WebP, AVIF in browser memory with zero server uploads." />
+    <meta name="twitter:image" content="https://zapixal.com/icon-512.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    <!-- Resource Hints & Preconnects for FCP / LCP Speedup -->
+
+    <!-- Critical Above-the-Fold Inline CSS (Prevents CLS & Speedup FCP/LCP) -->
+    <style>
+      /* Critical Layout Rules & Font Fallbacks */
+      :root {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      *, ::before, ::after {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: #fcfcfd;
+        color: #171717;
+        min-height: 100vh;
+      }
+      button, input, select, textarea, option {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      html.dark body, body.dark {
+        background-color: #202124;
+        color: #e8eaed;
+      }
+      /* Prevent CLS for Main Above-The-Fold Hero & Dropzone Elements */
+      .hero-container-cls-guard {
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      @media (min-width: 640px) {
+        .hero-container-cls-guard {
+          min-height: 120px;
+        }
+      }
+      .dropzone-cls-guard {
+        min-height: 280px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      @media (min-width: 640px) {
+        .dropzone-cls-guard {
+          min-height: 320px;
+        }
+      }
+    </style>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": ["SoftwareApplication", "WebApplication"],
+      "name": "Zapixal - 100% Client-Side Batch Image Converter & Compressor",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "All (Windows, macOS, Linux, iOS, Android)",
+      "browserRequirements": "Requires Modern Web Browser with WebAssembly (WASM) and Web Workers support",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "100% Client-Side In-Browser Image Processing",
+        "Zero Cloud Server Uploads & Total Privacy",
+        "Open-Source Transparency",
+        "WebAssembly (WASM) & Web Worker Multithreading Speed",
+        "HEIC to JPG/PNG Converter",
+        "PNG to WebP/AVIF Batch Compressor",
+        "PDF Document Export & Image Merging",
+        "Unlimited Batch File Processing",
+        "Offline Progressive Web App (PWA) Capability"
+      ],
+      "description": "Zapixal is a 100% free, open-source, client-side WebAssembly batch image converter and compressor. Converts HEIC, PNG, JPG, WebP, AVIF, and PDF locally in browser memory with zero server uploads."
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Zapixal free and open-source?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Zapixal is 100% free, open-source, and transparently privacy-focused. All source code executes locally inside your web browser without hidden paywalls or subscription limits."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Zapixal convert images privately without uploading to a server?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Zapixal utilizes WebAssembly (WASM) binaries and Web Worker multi-threading to decode, convert, and compress images directly inside your browser memory. Your image files never leave your device."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why is Zapixal better than single-image tools like Squoosh or cloud converters?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Unlike single-file tools like Squoosh or privacy-invading cloud converters that require slow server uploads, Zapixal processes unlimited batch files concurrently with multi-threaded WASM speed, zero queue wait times, and total data privacy."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Zapixal work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Zapixal is an offline-capable Progressive Web App (PWA). Once loaded in your browser, you can convert and compress images without an active internet connection."
+          }
+        }
+      ]
+    }
+    </script>
+    
+
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to Batch Convert and Compress Images Offline",
+      "description": "Learn how to easily convert HEIC, PNG, JPG, and WebP images locally in your browser using Zapixal's client-side converter without uploading any files to a server.",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Drop Images",
+          "text": "Drag and drop your images or click the upload area to select files from your device."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Select Format and Quality",
+          "text": "Choose your desired target format (JPG, PNG, WebP, etc.) and adjust the compression quality slider to balance file size and visual fidelity."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Convert & Download",
+          "text": "Click 'Convert All' and watch the multi-threaded WASM engine process your files instantly. Then download them individually or as a single ZIP archive."
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://zapixal.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Image Converter",
+          "item": "https://zapixal.com"
+        }
+      ]
+    }
+    </script>
+    <!-- Favicon & Apple Touch Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  </head>
+  <body>
+    <noscript>
+      <div style="font-family: sans-serif; padding: 2rem; text-align: center; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; margin: 2rem;">
+        <h3>JavaScript is Required</h3>
+        <p>Zapixal is a 100% client-side application. It requires JavaScript to process images securely in your browser without uploading them to a server. Please enable JavaScript to use this tool.</p>
+      </div>
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script src="/sw-register.js"></script>
+  </body>
+</html>
+

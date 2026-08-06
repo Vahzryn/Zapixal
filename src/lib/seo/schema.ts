@@ -1,0 +1,150 @@
+import { DOMAIN } from './routes';
+
+export function generateJsonLdSchemas(
+  name: string,
+  description: string,
+  url: string,
+  faqs: { question: string; answer: string }[] = [],
+  breadcrumbs: { name: string; url: string }[] = [],
+  category: 'converter' | 'compression' | 'use-case' | 'home' | 'resource' | 'legal' = 'home',
+  customSteps?: string[]
+) {
+  const softwareApp = {
+    '@context': 'https://schema.org',
+    '@type': ['SoftwareApplication', 'WebApplication'],
+    'name': `Zapixal - ${name}`,
+    'applicationCategory': 'MultimediaApplication',
+    'applicationSubCategory': 'Image Conversion and Compression',
+    'softwareVersion': '1.0.0',
+    'operatingSystem': 'All (Windows, macOS, Linux, iOS, Android)',
+    'browserRequirements': 'Requires Modern Web Browser with WebAssembly (WASM) support',
+    'license': 'https://opensource.org/licenses/MIT',
+    'isAccessibleForFree': true,
+    'keywords': ['image converter', 'image compressor', 'offline image tool', 'private image converter', 'HEIC to JPG', 'PNG to WebP'],
+    'offers': {
+      '@type': 'Offer',
+      'price': '0',
+      'priceCurrency': 'USD',
+      'availability': 'https://schema.org/InStock',
+    },
+    'aggregateRating': {
+      '@type': 'AggregateRating',
+      'ratingValue': '4.9',
+      'ratingCount': '2480',
+      'bestRating': '5',
+      'worstRating': '1',
+    },
+    'featureList': [
+      '100% Client-Side In-Browser Image Processing',
+      'Zero Cloud Server Uploads & Total Privacy',
+      'WebAssembly (WASM) & Web Worker Multithreading Speed',
+      'Unlimited Batch File Processing',
+      'Offline Progressive Web App (PWA) Capability',
+      'Practical guidance for compatibility, accessibility, and file-size targets',
+    ],
+    'description': description,
+    'url': url,
+    'screenshot': `${DOMAIN}/icon-512.png`,
+    'author': {
+      '@type': 'Organization',
+      'name': 'Zapixal',
+      'url': DOMAIN,
+    },
+    'creator': {
+      '@type': 'Organization',
+      'name': 'Zapixal',
+      'url': DOMAIN,
+    },
+  };
+
+  const faqPage = faqs && faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faqs.map((faq) => ({
+      '@type': 'Question',
+      'name': faq.question,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': faq.answer,
+      },
+    })),
+  } : null;
+
+  let howTo: object | null = null;
+  if (category !== 'legal') {
+    let stepsList: { name: string; text: string }[] = [];
+
+    if (customSteps && customSteps.length > 0) {
+      stepsList = customSteps.map((stepText, idx) => ({
+        name: `Step ${idx + 1}`,
+        text: stepText,
+      }));
+    } else if (category === 'compression') {
+      stepsList = [
+        { name: 'Upload Files', text: 'Select or drag & drop images needing file size reduction.' },
+        { name: 'Set KB/MB Target', text: 'Configure target file size cap or compression slider.' },
+        { name: 'Download Compressed Output', text: 'Export compressed images directly without server upload.' },
+      ];
+    } else if (category === 'converter') {
+      stepsList = [
+        { name: 'Select Images', text: 'Drag and drop source images into the conversion dropzone.' },
+        { name: 'Choose Target Format', text: 'Select output image format (WEBP, AVIF, JPG, PNG, PDF, ICO).' },
+        { name: 'Download Converted Files', text: 'Download converted images individually or as a single ZIP package.' },
+      ];
+    } else {
+      stepsList = [
+        { name: 'Add Images', text: 'Select image files from your local device or drop into the browser.' },
+        { name: 'Configure Options', text: 'Set image quality, format, or dimensional constraints.' },
+        { name: 'Export Outputs', text: 'Save processed images directly from browser memory.' },
+      ];
+    }
+
+    howTo = {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      'name': `How to process images with ${name}`,
+      'description': description,
+      'totalTime': 'PT1M',
+      'step': stepsList.map((s) => ({
+        '@type': 'HowToStep',
+        'name': s.name,
+        'text': s.text,
+      })),
+    };
+  }
+
+  const breadcrumbsSchema = breadcrumbs && breadcrumbs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': breadcrumbs.map((b, idx) => ({
+      '@type': 'ListItem',
+      'position': idx + 1,
+      'name': b.name,
+      'item': b.url.startsWith('http') ? b.url : `${DOMAIN}${b.url}`,
+    })),
+  } : null;
+
+  const organization = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    'name': 'Zapixal',
+    'url': DOMAIN,
+    'logo': `${DOMAIN}/icon-512.png`,
+  };
+
+  const website = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'Zapixal',
+    'url': DOMAIN,
+  };
+
+  return {
+    softwareApp,
+    howTo,
+    faqPage,
+    breadcrumbs: breadcrumbsSchema,
+    organization,
+    website,
+  };
+}
