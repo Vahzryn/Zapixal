@@ -54,11 +54,44 @@ const PRESETS = [
   },
 ];
 
-export function SettingsPanel({ settings, onChange, disabled }: SettingsPanelProps) {
+function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelProps) {
   const [showAdvanced, setShowAdvanced] = React.useState(true);
+  const [localQuality, setLocalQuality] = React.useState(settings.quality);
+  const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Synchronize localQuality when upstream settings.quality changes from outside (e.g. presets)
+  React.useEffect(() => {
+    setLocalQuality(settings.quality);
+  }, [settings.quality]);
+
+  // Clean up debounce timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const updateSettings = (updates: Partial<ConversionSettings>) => {
     onChange({ ...settings, ...updates });
+  };
+
+  const handleQualityChange = (val: number) => {
+    setLocalQuality(val);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      updateSettings({ quality: val });
+    }, 100);
+  };
+
+  const handleQualityCommit = (val: number) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    updateSettings({ quality: val });
   };
 
   const updateResize = (updates: Partial<ConversionSettings['resize']>) => {
@@ -160,7 +193,7 @@ export function SettingsPanel({ settings, onChange, disabled }: SettingsPanelPro
                     <h4 className="text-sm font-bold text-neutral-800 dark:text-[#e8eaed]">Compression Quality & Target Size</h4>
                   </div>
                   <span className="px-2.5 py-0.5 text-xs font-bold text-purple-700 dark:text-[#c58af9] bg-purple-100 dark:bg-[#3a1d48] rounded-full">
-                    {Math.round(settings.quality * 100)}% Quality
+                    {Math.round(localQuality * 100)}% Quality
                   </span>
                 </div>
                 <input
@@ -168,8 +201,10 @@ export function SettingsPanel({ settings, onChange, disabled }: SettingsPanelPro
                   min="0.1"
                   max="1"
                   step="0.05"
-                  value={settings.quality}
-                  onChange={(e) => updateSettings({ quality: parseFloat(e.target.value) })}
+                  value={localQuality}
+                  onChange={(e) => handleQualityChange(parseFloat(e.target.value))}
+                  onMouseUp={(e) => handleQualityCommit(parseFloat((e.target as HTMLInputElement).value))}
+                  onTouchEnd={(e) => handleQualityCommit(parseFloat((e.target as HTMLInputElement).value))}
                   className="w-full h-2.5 rounded-full appearance-none bg-neutral-200 dark:bg-[#303134] accent-purple-600 dark:accent-[#c58af9] cursor-pointer"
                 />
                 <div className="flex justify-between mt-1 text-[11px] font-semibold text-neutral-400 dark:text-[#9aa0a6]">
@@ -415,3 +450,6 @@ export function SettingsPanel({ settings, onChange, disabled }: SettingsPanelPro
     </div>
   );
 }
+
+export const SettingsPanel = React.memo(SettingsPanelComponent);
+

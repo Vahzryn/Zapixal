@@ -17,7 +17,7 @@ interface VirtualFileListProps {
 const ITEM_HEIGHT = 88;
 const OVERSCAN = 5;
 
-export const VirtualFileList: React.FC<VirtualFileListProps> = ({
+const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   files,
   selectedFileIds = new Set(),
   onToggleSelect,
@@ -108,3 +108,5 @@ export const VirtualFileList: React.FC<VirtualFileListProps> = ({
     </div>
   );
 };
+
+export const VirtualFileList = React.memo(VirtualFileListImpl);

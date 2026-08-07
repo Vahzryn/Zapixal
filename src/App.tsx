@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo, Suspense } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from './types';
 import { Dropzone } from './components/Dropzone';
 import { HeaderNavbar } from './components/HeaderNavbar';
@@ -8,21 +8,9 @@ import { GlobalControls } from './components/GlobalControls';
 import { Breadcrumbs } from './components/Breadcrumbs';
 import { VirtualFileList } from './components/VirtualFileList';
 import { FooterLinkHub } from './components/FooterLinkHub';
-import { PrivacyMap } from './components/PrivacyMap';
-import { Calculator } from './components/Calculator';
-import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { TermsOfService } from './components/TermsOfService';
-import { AboutPage } from './components/AboutPage';
-import { DonateModal } from './components/DonateModal';
-import { InstallModal } from './components/InstallModal';
 import { PwaBanner } from './components/PwaBanner';
-import { CompareModal } from './components/CompareModal';
-import { ImageDetailsModal } from './components/ImageDetailsModal';
-import { BatchStatsChart } from './components/BatchStatsChart';
 import { EmbedWidget } from './components/EmbedWidget';
 import { PseoContentGuide } from './components/PseoContentGuide';
-import { DocsArchitecture } from './components/DocsArchitecture';
-import { ToolsDirectory } from './components/ToolsDirectory';
 import { useAppRouting } from './hooks/useAppRouting';
 import { usePwaInstall } from './hooks/usePwaInstall';
 import { useShareActions } from './hooks/useShareActions';
@@ -30,6 +18,46 @@ import { useDarkMode } from './hooks/useDarkMode';
 import { Zap, DownloadCloud, Trash2, ShieldCheck, Activity, Image as ImageIcon, Heart, Moon, Sun, Loader2, X, Share2, Copy, Check, Sparkles, Lock } from 'lucide-react';
 import { detectHardwareCapabilities } from './lib/hardwareCapabilities';
 import { cn, formatOutputFilename, formatBytes } from './lib/utils';
+
+// Lazy-loaded components (loaded on-demand / after user interaction)
+const PrivacyMap = React.lazy(() => import('./components/PrivacyMap').then(m => ({ default: m.PrivacyMap })));
+const Calculator = React.lazy(() => import('./components/Calculator').then(m => ({ default: m.Calculator })));
+const PrivacyPolicy = React.lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = React.lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const AboutPage = React.lazy(() => import('./components/AboutPage').then(m => ({ default: m.AboutPage })));
+const DonateModal = React.lazy(() => import('./components/DonateModal').then(m => ({ default: m.DonateModal })));
+const InstallModal = React.lazy(() => import('./components/InstallModal').then(m => ({ default: m.InstallModal })));
+const CompareModal = React.lazy(() => import('./components/CompareModal').then(m => ({ default: m.CompareModal })));
+const ImageDetailsModal = React.lazy(() => import('./components/ImageDetailsModal').then(m => ({ default: m.ImageDetailsModal })));
+const BatchStatsChart = React.lazy(() => import('./components/BatchStatsChart').then(m => ({ default: m.BatchStatsChart })));
+const DocsArchitecture = React.lazy(() => import('./components/DocsArchitecture').then(m => ({ default: m.DocsArchitecture })));
+const ToolsDirectory = React.lazy(() => import('./components/ToolsDirectory').then(m => ({ default: m.ToolsDirectory })));
+
+// Fallback UI components for Suspense boundaries
+const PageLoadingFallback = () => (
+  <div className="flex flex-col items-center justify-center py-20 min-h-[400px] gap-3 text-neutral-500 dark:text-[#9aa0a6] animate-in fade-in duration-300">
+    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+    <span className="text-sm font-medium">Loading content...</span>
+  </div>
+);
+
+const ChartLoadingFallback = () => (
+  <div className="w-full h-64 bg-neutral-100 dark:bg-[#202124] rounded-2xl animate-pulse my-8 flex items-center justify-center border border-neutral-200 dark:border-[#3c4043]">
+    <div className="flex items-center gap-2 text-neutral-400 text-sm font-medium">
+      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+      Loading batch stats chart...
+    </div>
+  </div>
+);
+
+const ModalLoadingFallback = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="bg-white dark:bg-[#202124] p-6 rounded-2xl shadow-xl flex items-center gap-3 border border-neutral-200 dark:border-[#3c4043]">
+      <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+      <span className="text-sm font-medium text-neutral-700 dark:text-[#e8eaed]">Loading modal...</span>
+    </div>
+  </div>
+);
 
 interface AppProps {
   initialPath?: string;
@@ -812,19 +840,33 @@ export default function App({ initialPath }: AppProps = {}) {
             </div>
           </div>
         ) : currentPath === '/privacy-map' ? (
-          <PrivacyMap />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <PrivacyMap />
+          </Suspense>
         ) : currentPath === '/calculator' ? (
-          <Calculator />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Calculator />
+          </Suspense>
         ) : currentPath === '/docs/architecture' ? (
-          <DocsArchitecture />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <DocsArchitecture />
+          </Suspense>
         ) : currentPath === '/privacy' ? (
-          <PrivacyPolicy />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <PrivacyPolicy />
+          </Suspense>
         ) : currentPath === '/terms' ? (
-          <TermsOfService />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TermsOfService />
+          </Suspense>
         ) : currentPath === '/tools' ? (
-          <ToolsDirectory onNavigate={handleNavigate} />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <ToolsDirectory onNavigate={handleNavigate} />
+          </Suspense>
         ) : currentPath === '/about' ? (
-          <AboutPage />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <AboutPage />
+          </Suspense>
         ) : (
           <React.Fragment>
             {files.length === 0 ? (
@@ -1058,7 +1100,9 @@ export default function App({ initialPath }: AppProps = {}) {
             </section>
 
             {/* Recharts Summary Chart for Batch Size Savings */}
-            <BatchStatsChart files={files} />
+            <Suspense fallback={<ChartLoadingFallback />}>
+              <BatchStatsChart files={files} />
+            </Suspense>
 
             {/* Embed Widget for Webmasters & SEO */}
             <EmbedWidget />
@@ -1076,27 +1120,35 @@ export default function App({ initialPath }: AppProps = {}) {
         onOpenInstall={() => setIsInstallModalOpen(true)}
       />
       {compareItem && (
-        <CompareModal
-          item={compareItem}
-          onClose={() => setCompareItem(null)}
-        />
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <CompareModal
+            item={compareItem}
+            onClose={() => setCompareItem(null)}
+          />
+        </Suspense>
       )}
       {inspectItem && (
-        <ImageDetailsModal
-          item={inspectItem}
-          onClose={() => setInspectItem(null)}
-        />
+        <Suspense fallback={<ModalLoadingFallback />}>
+          <ImageDetailsModal
+            item={inspectItem}
+            onClose={() => setInspectItem(null)}
+          />
+        </Suspense>
       )}
 
-      <DonateModal 
-        isOpen={isDonateModalOpen} 
-        onClose={() => setIsDonateModalOpen(false)} 
-      />
-      <InstallModal
-        isOpen={isInstallModalOpen}
-        onClose={() => setIsInstallModalOpen(false)}
-        deferredPrompt={deferredPrompt}
-      />
+      <Suspense fallback={<ModalLoadingFallback />}>
+        <DonateModal 
+          isOpen={isDonateModalOpen} 
+          onClose={() => setIsDonateModalOpen(false)} 
+        />
+      </Suspense>
+      <Suspense fallback={<ModalLoadingFallback />}>
+        <InstallModal
+          isOpen={isInstallModalOpen}
+          onClose={() => setIsInstallModalOpen(false)}
+          deferredPrompt={deferredPrompt}
+        />
+      </Suspense>
       {hasConvertedInSession && !hasDismissedPwaBanner && (
         <PwaBanner
           deferredPrompt={deferredPrompt}

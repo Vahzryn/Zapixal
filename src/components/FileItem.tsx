@@ -22,7 +22,7 @@ interface FileItemProps {
   isDragging?: boolean;
 }
 
-export function FileItem({ 
+function FileItemComponent({ 
   item, 
   index,
   isSelected = false,
@@ -312,4 +312,7 @@ export function FileItem({
     </div>
   );
 }
+
+export const FileItem = React.memo(FileItemComponent);
+
 

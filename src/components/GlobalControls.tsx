@@ -14,7 +14,7 @@ interface GlobalControlsProps {
   pendingCount?: number;
 }
 
-export function GlobalControls({
+function GlobalControlsComponent({
   settings,
   onChange,
   disabled,
@@ -24,6 +24,37 @@ export function GlobalControls({
   isStopping = false,
   pendingCount = 0
 }: GlobalControlsProps) {
+  const [localQuality, setLocalQuality] = React.useState(settings.quality);
+  const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    setLocalQuality(settings.quality);
+  }, [settings.quality]);
+
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleQualityChange = (val: number) => {
+    setLocalQuality(val);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      onChange({ ...settings, quality: val });
+    }, 100);
+  };
+
+  const handleQualityCommit = (val: number) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    onChange({ ...settings, quality: val });
+  };
   return (
     <div className="flex flex-col gap-4 bg-white dark:bg-[#303134] p-4 sm:p-5 rounded-3xl border border-neutral-200 dark:border-[#3c4043] shadow-sm w-full relative z-30 min-h-[140px]">
       
@@ -60,7 +91,7 @@ export function GlobalControls({
           {/* Quality Slider */}
           <div className="flex flex-col gap-1.5 flex-1 min-w-[200px] w-full sm:w-auto mt-2 sm:mt-0">
             <label className="text-xs font-black text-neutral-500 dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap">
-              Quality: {Math.round(settings.quality * 100)}%
+              Quality: {Math.round(localQuality * 100)}%
             </label>
             <div className="flex items-center h-[52px]">
               <input
@@ -69,8 +100,10 @@ export function GlobalControls({
                 max="1"
                 step="0.05"
                 disabled={disabled}
-                value={settings.quality}
-                onChange={(e) => onChange({ ...settings, quality: parseFloat(e.target.value) })}
+                value={localQuality}
+                onChange={(e) => handleQualityChange(parseFloat(e.target.value))}
+                onMouseUp={(e) => handleQualityCommit(parseFloat((e.target as HTMLInputElement).value))}
+                onTouchEnd={(e) => handleQualityCommit(parseFloat((e.target as HTMLInputElement).value))}
                 className="w-full h-2.5 bg-neutral-200 dark:bg-[#3c4043] rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
@@ -154,3 +187,6 @@ export function GlobalControls({
     </div>
   );
 }
+
+export const GlobalControls = React.memo(GlobalControlsComponent);
+
