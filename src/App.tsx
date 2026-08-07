@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from './types';
 import { Dropzone } from './components/Dropzone';
 import { HeaderNavbar } from './components/HeaderNavbar';
@@ -8,27 +8,25 @@ import { GlobalControls } from './components/GlobalControls';
 import { Breadcrumbs } from './components/Breadcrumbs';
 import { VirtualFileList } from './components/VirtualFileList';
 import { FooterLinkHub } from './components/FooterLinkHub';
-const PrivacyMap = React.lazy(() => import('./components/PrivacyMap').then(m => ({ default: m.PrivacyMap })));
-const Calculator = React.lazy(() => import('./components/Calculator').then(m => ({ default: m.Calculator })));
-const PrivacyPolicy = React.lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
-const TermsOfService = React.lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
-const AboutPage = React.lazy(() => import('./components/AboutPage').then(m => ({ default: m.AboutPage })));
+import { PrivacyMap } from './components/PrivacyMap';
+import { Calculator } from './components/Calculator';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
+import { AboutPage } from './components/AboutPage';
+import { DonateModal } from './components/DonateModal';
+import { InstallModal } from './components/InstallModal';
+import { PwaBanner } from './components/PwaBanner';
+import { CompareModal } from './components/CompareModal';
+import { ImageDetailsModal } from './components/ImageDetailsModal';
+import { BatchStatsChart } from './components/BatchStatsChart';
+import { EmbedWidget } from './components/EmbedWidget';
+import { PseoContentGuide } from './components/PseoContentGuide';
+import { DocsArchitecture } from './components/DocsArchitecture';
+import { ToolsDirectory } from './components/ToolsDirectory';
 import { parseSeoRoute, applySeoToHead, SeoRouteData } from './lib/seoEngine';
 import { Zap, DownloadCloud, Trash2, ShieldCheck, Activity, Image as ImageIcon, Heart, Moon, Sun, Loader2, X, Share2, Copy, Check, Sparkles, Lock } from 'lucide-react';
 import { detectHardwareCapabilities } from './lib/hardwareCapabilities';
 import { cn, formatOutputFilename, formatBytes } from './lib/utils';
-
-const DonateModal = React.lazy(() => import('./components/DonateModal').then(m => ({ default: m.DonateModal })));
-const InstallModal = React.lazy(() => import('./components/InstallModal').then(m => ({ default: m.InstallModal })));
-const PwaBanner = React.lazy(() => import('./components/PwaBanner').then(m => ({ default: m.PwaBanner })));
-const CompareModal = React.lazy(() => import('./components/CompareModal').then(m => ({ default: m.CompareModal })));
-const ImageDetailsModal = React.lazy(() => import('./components/ImageDetailsModal').then(m => ({ default: m.ImageDetailsModal })));
-const BatchStatsChart = React.lazy(() => import('./components/BatchStatsChart').then(m => ({ default: m.BatchStatsChart })));
-const EmbedWidget = React.lazy(() => import('./components/EmbedWidget').then(m => ({ default: m.EmbedWidget })));
-
-const PseoContentGuide = React.lazy(() => import('./components/PseoContentGuide').then(m => ({ default: m.PseoContentGuide })));
-const DocsArchitecture = React.lazy(() => import('./components/DocsArchitecture').then(m => ({ default: m.DocsArchitecture })));
-const ToolsDirectory = React.lazy(() => import('./components/ToolsDirectory').then(m => ({ default: m.ToolsDirectory })));
 
 interface AppProps {
   initialPath?: string;
@@ -955,82 +953,21 @@ export default function App({ initialPath }: AppProps = {}) {
           </p>
         </div>
 
-        <section className="w-full max-w-5xl mx-auto mb-8 rounded-3xl border border-neutral-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-[#3c4043] dark:bg-[#303134]/90 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-600 dark:text-[#8ab4f8]">
-                Why people choose Zapixal
-              </p>
-              <h2 className="mt-2 text-lg font-black text-neutral-900 dark:text-white sm:text-xl">
-                A stronger image workflow for privacy, compatibility, and speed
-              </h2>
-            </div>
-            <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-[#2d523c] dark:bg-[#1e3427] dark:text-[#81c995]">
-              <ShieldCheck className="h-4 w-4" />
-              Zero uploads · 100% local
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-              <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-                <Lock className="h-4 w-4 text-emerald-600" />
-                Privacy-first by design
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-                Files stay in your browser, which lowers the risk of exposing metadata, documents, or personal content.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-              <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-                <Activity className="h-4 w-4 text-blue-600" />
-                Built for real workflows
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-                The app supports batch work, size targets, format changes, and accessible delivery for web, ecommerce, and documents.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-              <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-                <ImageIcon className="h-4 w-4 text-amber-600" />
-                Better output decisions
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-                The guidance explains when to use JPEG, PNG, WebP, AVIF, or a smaller target size so the results are practical, not just smaller.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Main Content Router */}
         {currentPath === '/privacy-map' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Privacy Map...</div>}>
-            <PrivacyMap />
-          </Suspense>
+          <PrivacyMap />
         ) : currentPath === '/calculator' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Calculator...</div>}>
-            <Calculator />
-          </Suspense>
+          <Calculator />
         ) : currentPath === '/docs/architecture' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Architecture Docs...</div>}>
-            <DocsArchitecture />
-          </Suspense>
+          <DocsArchitecture />
         ) : currentPath === '/privacy' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Privacy Policy...</div>}>
-            <PrivacyPolicy />
-          </Suspense>
+          <PrivacyPolicy />
         ) : currentPath === '/terms' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500">Loading Terms...</div>}>
-            <TermsOfService />
-          </Suspense>
+          <TermsOfService />
         ) : currentPath === '/tools' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500 min-h-[60vh]">Loading Tools...</div>}>
-            <ToolsDirectory onNavigate={handleNavigate} />
-          </Suspense>
+          <ToolsDirectory onNavigate={handleNavigate} />
         ) : currentPath === '/about' ? (
-          <Suspense fallback={<div className="text-center py-20 text-neutral-500 min-h-[60vh]">Loading About...</div>}>
-            <AboutPage />
-          </Suspense>
+          <AboutPage />
         ) : (
           <React.Fragment>
             {files.length === 0 ? (
@@ -1216,44 +1153,83 @@ export default function App({ initialPath }: AppProps = {}) {
               </div>
             )}
 
+            <section className="w-full max-w-5xl mx-auto mb-8 rounded-3xl border border-neutral-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-[#3c4043] dark:bg-[#303134]/90 sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="max-w-2xl">
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-blue-600 dark:text-[#8ab4f8]">
+                    Why people choose Zapixal
+                  </p>
+                  <h2 className="mt-2 text-lg font-black text-neutral-900 dark:text-white sm:text-xl">
+                    A stronger image workflow for privacy, compatibility, and speed
+                  </h2>
+                </div>
+                <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-[#2d523c] dark:bg-[#1e3427] dark:text-[#81c995]">
+                  <ShieldCheck className="h-4 w-4" />
+                  Zero uploads · 100% local
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+                  <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
+                    <Lock className="h-4 w-4 text-emerald-600" />
+                    Privacy-first by design
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+                    Files stay in your browser, which lowers the risk of exposing metadata, documents, or personal content.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+                  <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
+                    <Activity className="h-4 w-4 text-blue-600" />
+                    Built for real workflows
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+                    The app supports batch work, size targets, format changes, and accessible delivery for web, ecommerce, and documents.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+                  <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
+                    <ImageIcon className="h-4 w-4 text-amber-600" />
+                    Better output decisions
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+                    The guidance explains when to use JPEG, PNG, WebP, AVIF, or a smaller target size so the results are practical, not just smaller.
+                  </p>
+                </div>
+              </div>
+            </section>
+
             {/* Recharts Summary Chart for Batch Size Savings */}
-            <Suspense fallback={null}>
-              <BatchStatsChart files={files} />
-            </Suspense>
+            <BatchStatsChart files={files} />
 
             {/* Embed Widget for Webmasters & SEO */}
-            <Suspense fallback={null}>
-              <EmbedWidget />
-            </Suspense>
+            <EmbedWidget />
 
             {/* Dynamic pSEO Content Guide & FAQ */}
-            <Suspense fallback={null}>
-              <PseoContentGuide seoData={seoData} onNavigate={handleNavigate} />
-            </Suspense>
+            <PseoContentGuide seoData={seoData} onNavigate={handleNavigate} />
           </React.Fragment>
         )}
       </main>
 
       {/* Dynamic pSEO Interlinking Footer Link Hub */}
-      <Suspense fallback={null}>
-        <FooterLinkHub 
-          currentPath={currentPath} 
-          onNavigate={handleNavigate} 
-          onOpenInstall={() => setIsInstallModalOpen(true)}
+      <FooterLinkHub 
+        currentPath={currentPath} 
+        onNavigate={handleNavigate} 
+        onOpenInstall={() => setIsInstallModalOpen(true)}
+      />
+      {compareItem && (
+        <CompareModal
+          item={compareItem}
+          onClose={() => setCompareItem(null)}
         />
-        {compareItem && (
-          <CompareModal
-            item={compareItem}
-            onClose={() => setCompareItem(null)}
-          />
-        )}
-        {inspectItem && (
-          <ImageDetailsModal
-            item={inspectItem}
-            onClose={() => setInspectItem(null)}
-          />
-        )}
-      </Suspense>
+      )}
+      {inspectItem && (
+        <ImageDetailsModal
+          item={inspectItem}
+          onClose={() => setInspectItem(null)}
+        />
+      )}
 
       <DonateModal 
         isOpen={isDonateModalOpen} 

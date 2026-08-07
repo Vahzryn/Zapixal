@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zapixal-cache-v3';
+const CACHE_NAME = 'zapixal-cache-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -68,11 +68,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== location.origin) return;
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response && response.ok) {
-        return response;
-      }
-      return fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -80,7 +77,13 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return networkResponse;
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request).then((response) => {
+          if (response) {
+            return response;
+          }
+        });
+      })
   );
 });

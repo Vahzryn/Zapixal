@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DownloadCloud, Monitor, Smartphone, ShieldCheck, Zap, X, Check, Share, MoreVertical, PlusSquare } from 'lucide-react';
-const logoImg = '/logo-mark.svg';
+const logoImg = '/logo.svg';
 
 interface InstallModalProps {
   isOpen: boolean;

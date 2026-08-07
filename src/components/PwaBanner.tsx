@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, DownloadCloud, Monitor, Smartphone, Share, PlusSquare, MoreVertical } from 'lucide-react';
+import { X, DownloadCloud, Monitor, Smartphone, Share, PlusSquare, MoreVertical, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
-const logoImg = '/logo-mark.svg';
+const logoImg = '/logo.svg';
 
 interface PwaBannerProps {
   deferredPrompt: any;

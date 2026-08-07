@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DownloadCloud, Github, Moon, Sun, Heart, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
-const logoImg = '/logo-mark.svg';
+const logoImg = '/logo.svg';
 
 interface HeaderNavbarProps {
   currentPath: string;
@@ -67,20 +67,6 @@ export function HeaderNavbar({
             </button>
           </div>
 
-          <nav aria-label="Primary" className="hidden md:flex items-center gap-1.5 ml-2">
-            <button
-              onClick={() => onNavigate('/tools')}
-              className="rounded-full px-3 py-1.5 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#9aa0a6] dark:hover:bg-[#303134] dark:hover:text-white"
-            >
-              Tools
-            </button>
-            <button
-              onClick={() => onNavigate('/about')}
-              className="rounded-full px-3 py-1.5 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-[#9aa0a6] dark:hover:bg-[#303134] dark:hover:text-white"
-            >
-              About
-            </button>
-          </nav>
           
           {/* Dynamic Status Badge */}
           <div className={cn(

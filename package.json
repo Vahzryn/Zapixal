@@ -34,6 +34,7 @@
     "lucide-react": "^0.546.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-is": "^19.2.8",
     "recharts": "^3.10.0",
     "tailwind-merge": "^3.6.0",
     "upng-js": "^2.1.0",
@@ -50,7 +51,6 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
-    "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.6.0"
   }
 }

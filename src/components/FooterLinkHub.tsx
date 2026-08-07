@@ -3,10 +3,11 @@ import {
   ShieldCheck, 
   Lock, 
   ChevronDown, 
-  ChevronUp
+  ChevronUp,
+  Zap as ZapIcon
 } from 'lucide-react';
 import { PSEO_ROUTES_LIST } from '../lib/seoEngine';
-const logoImg = '/logo-mark.svg';
+const logoImg = '/logo.svg';
 
 interface FooterLinkHubProps {
   currentPath: string;
@@ -109,7 +110,7 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
           </div>
           <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3.5 dark:border-[#282a2e] dark:bg-[#18191c]/70">
             <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-              <Zap className="w-4 h-4 text-amber-500" />
+              <ZapIcon className="w-4 h-4 text-amber-500" />
               Practical output choices
             </div>
             <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
