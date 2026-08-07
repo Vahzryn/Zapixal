@@ -1,5 +1,3 @@
-import UPNG from 'upng-js';
-
 const wasmModuleCache = new Map<string, any>();
 
 
@@ -137,6 +135,12 @@ export async function encodePng(
     else cnum = 64;
 
     try {
+      let upngModule = wasmModuleCache.get('upng-js');
+      if (!upngModule) {
+        upngModule = await import('upng-js');
+        wasmModuleCache.set('upng-js', upngModule);
+      }
+      const UPNG = upngModule.default || upngModule;
       const upngBuf = UPNG.encode([imageData.data.buffer], imageData.width, imageData.height, cnum);
       return new Uint8Array(upngBuf);
     } catch (upngErr) {

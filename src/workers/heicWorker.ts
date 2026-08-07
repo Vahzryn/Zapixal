@@ -1,9 +1,10 @@
-import heic2any from 'heic2any';
-
 self.onmessage = async (e: MessageEvent) => {
   const { id, file } = e.data;
 
   try {
+    const heic2anyModule = await import('heic2any');
+    const heic2any = heic2anyModule.default || heic2anyModule;
+
     const result = await heic2any({
       blob: file,
       toType: 'image/jpeg',

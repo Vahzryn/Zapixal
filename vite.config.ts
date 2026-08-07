@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 import wasm from 'vite-plugin-wasm';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig(() => {
   return {
@@ -10,7 +11,8 @@ export default defineConfig(() => {
     plugins: [
       react(), 
       tailwindcss(),
-      wasm()
+      wasm(),
+      cssInjectedByJsPlugin()
     ],
     resolve: {
       alias: {

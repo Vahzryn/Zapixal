@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShieldCheck, Map as MapIcon, Download, Info } from 'lucide-react';
-import exifr from 'exifr';
 
 export const PrivacyMap = () => {
   const [gps, setGps] = React.useState<{ latitude: number, longitude: number } | null>(null);
@@ -13,6 +12,8 @@ export const PrivacyMap = () => {
     setFile(targetFile);
     setScrubbedUrl(null);
     try {
+      const exifrModule = await import('exifr');
+      const exifr = exifrModule.default || exifrModule;
       const parsed = await exifr.gps(targetFile);
       if (parsed) {
         setGps({ latitude: parsed.latitude, longitude: parsed.longitude });
