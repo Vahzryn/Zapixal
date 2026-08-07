@@ -1,3 +1,4 @@
+// Note: sitemap.xml is a generated build artifact produced in dist/ by this script; do not hand-edit or commit a static sitemap.xml under public/.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -35,6 +36,10 @@ async function runPrerender() {
 
   for (const routePath of uniquePaths) {
     const seoData = parseSeoRoute(routePath);
+    if (seoData.isNotFound) {
+      console.warn('Skipping not found route:', routePath);
+      continue;
+    }
     const fullUrl = `${DOMAIN}${routePath === '/' ? '' : routePath}`;
     sitemapUrls.push({
       url: fullUrl,

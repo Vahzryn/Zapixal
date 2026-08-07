@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from './types';
 import { Dropzone } from './components/Dropzone';
 import { HeaderNavbar } from './components/HeaderNavbar';
@@ -23,7 +23,10 @@ import { EmbedWidget } from './components/EmbedWidget';
 import { PseoContentGuide } from './components/PseoContentGuide';
 import { DocsArchitecture } from './components/DocsArchitecture';
 import { ToolsDirectory } from './components/ToolsDirectory';
-import { parseSeoRoute, applySeoToHead, SeoRouteData } from './lib/seoEngine';
+import { useAppRouting } from './hooks/useAppRouting';
+import { usePwaInstall } from './hooks/usePwaInstall';
+import { useShareActions } from './hooks/useShareActions';
+import { useDarkMode } from './hooks/useDarkMode';
 import { Zap, DownloadCloud, Trash2, ShieldCheck, Activity, Image as ImageIcon, Heart, Moon, Sun, Loader2, X, Share2, Copy, Check, Sparkles, Lock } from 'lucide-react';
 import { detectHardwareCapabilities } from './lib/hardwareCapabilities';
 import { cn, formatOutputFilename, formatBytes } from './lib/utils';
@@ -74,7 +77,6 @@ export default function App({ initialPath }: AppProps = {}) {
   const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const [showPrivacyBanner, setShowPrivacyBanner] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [hasDismissedPwaBanner, setHasDismissedPwaBanner] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('zapixal_pwa_banner_dismissed') === 'true';
@@ -82,57 +84,18 @@ export default function App({ initialPath }: AppProps = {}) {
     return false;
   });
   const [hasConvertedInSession, setHasConvertedInSession] = useState(false);
-  const [isCopiedShareLink, setIsCopiedShareLink] = useState(false);
   const [lastBatchDuration, setLastBatchDuration] = useState<string>('');
-  const [copiedSuccessImage, setCopiedSuccessImage] = useState(false);
   
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
   const [deletedHistory, setDeletedHistory] = useState<{ files: ImageFileItem[], indices: { id: string, index: number }[] }[]>([]);
 
-  // Dynamic pSEO Engine Routing
-  const [currentPath, setCurrentPath] = useState<string>(() => {
-    if (initialPath) return initialPath;
-    if (typeof window !== 'undefined') {
-      return window.location.pathname || '/';
-    }
-    return '/';
+  // Extracted Custom Hooks
+  const { currentPath, handleNavigate, seoData } = useAppRouting({ initialPath, setSettings });
+  const { isDarkMode, setIsDarkMode } = useDarkMode();
+  const { deferredPrompt, handleInstallPWA } = usePwaInstall({
+    onOpenInstallModal: () => setIsInstallModalOpen(true),
   });
-
-  const seoData: SeoRouteData = parseSeoRoute(currentPath);
-
-  useEffect(() => {
-    applySeoToHead(seoData);
-
-    setSettings(prev => {
-      const updated = { ...prev };
-      if (seoData.toFormat) {
-        updated.targetFormat = seoData.toFormat;
-      }
-      if (seoData.targetMaxKB !== undefined) {
-        updated.targetMaxKB = seoData.targetMaxKB;
-      }
-      if (seoData.stripExif !== undefined) {
-        updated.stripExif = seoData.stripExif;
-      }
-      if (seoData.presetResize) {
-        updated.resize = {
-          enabled: true,
-          keepAspectRatio: true,
-          maxWidth: seoData.presetResize.maxWidth,
-          maxHeight: seoData.presetResize.maxHeight
-        };
-      }
-      return updated;
-    });
-  }, [currentPath]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname || '/');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  const { isCopiedShareLink, copiedSuccessImage, handleShareApp, handleCopyConvertedToClipboard } = useShareActions({ files });
 
   useEffect(() => {
     if (!hasConvertedInSession && files.some(f => f.status === 'success')) {
@@ -147,120 +110,9 @@ export default function App({ initialPath }: AppProps = {}) {
     }
   }, []);
 
-  const handleNavigate = useCallback((newPath: string) => {
-    if (typeof window !== 'undefined') {
-      window.history.pushState(null, '', newPath);
-      setCurrentPath(newPath);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallPWA = async () => {
-    if (deferredPrompt) {
-      try {
-        deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === 'accepted') {
-          setDeferredPrompt(null);
-        }
-      } catch {
-        setIsInstallModalOpen(true);
-      }
-    } else {
-      setIsInstallModalOpen(true);
-    }
-  };
-
-  const handleShareApp = async () => {
-    const shareUrl = "https://www.zapixal.com";
-    const sharePayload = {
-      title: "Zapixal - Fast & Private Image Converter",
-      text: "Check out Zapixal! Free batch image converter that works 100% offline.",
-      url: shareUrl,
-    };
-
-        if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share(sharePayload);
-                setIsCopiedShareLink(true);
-        setTimeout(() => setIsCopiedShareLink(false), 2000);
-      } catch (err: any) {
-        // Smooth error handling: User closing/cancelling native share sheet triggers AbortError or NotAllowedError
-        if (err?.name !== 'AbortError' && err?.name !== 'NotAllowedError') {
-          try {
-            await navigator.clipboard.writeText(shareUrl);
-                        setIsCopiedShareLink(true);
-            setTimeout(() => setIsCopiedShareLink(false), 2000);
-          } catch (clipErr) {
-            console.error('Clipboard fallback error:', clipErr);
-          }
-        }
-      }
-    } else {
-      // Fallback for browsers without Web Share API
-      try {
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-          await navigator.clipboard.writeText(shareUrl);
-                    setIsCopiedShareLink(true);
-          setTimeout(() => setIsCopiedShareLink(false), 2000);
-        }
-      } catch (err) {
-        console.error('Clipboard copy error:', err);
-      }
-    }
-  };
-
-  const handleCopyConvertedToClipboard = async () => {
-    const successFiles = files.filter(f => f.status === 'success' && f.blob);
-    if (successFiles.length === 0) return;
-    const itemToCopy = successFiles[successFiles.length - 1]; // Latest converted item
-    try {
-      let pngBlob = itemToCopy.blob!;
-      if (pngBlob.type !== 'image/png') {
-        const img = new Image();
-        const url = URL.createObjectURL(pngBlob);
-        await new Promise((res) => { img.onload = res; img.src = url; });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        pngBlob = (await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), 'image/png')))!;
-        URL.revokeObjectURL(url);
-      }
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': pngBlob })
-      ]);
-      setCopiedSuccessImage(true);
-      setTimeout(() => setCopiedSuccessImage(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy image to clipboard:', err);
-    }
-  };
   const [compareItem, setCompareItem] = useState<ImageFileItem | null>(null);
   const [inspectItem, setInspectItem] = useState<ImageFileItem | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false); // default for hydration
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved) {
-        setIsDarkMode(saved === 'dark');
-      } else {
-        setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
-      }
-    }
-  }, []);
   const abortControllerRef = useRef<AbortController | null>(null);
   const batchStartTimeRef = useRef<number>(0);
   const completedBatchCountRef = useRef<number>(0);
@@ -316,16 +168,6 @@ export default function App({ initialPath }: AppProps = {}) {
 
     return () => clearInterval(interval);
   }, [isProcessing, updateEtaMetrics]);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     const config = detectHardwareCapabilities();
@@ -954,7 +796,22 @@ export default function App({ initialPath }: AppProps = {}) {
         </div>
 
         {/* Main Content Router */}
-        {currentPath === '/privacy-map' ? (
+        {seoData.isNotFound ? (
+          <div className="flex flex-col items-center justify-center gap-6 py-20 min-h-[400px]">
+            <h2 className="text-4xl font-black text-neutral-900 dark:text-white">Page Not Found</h2>
+            <p className="text-neutral-600 dark:text-[#9aa0a6] text-center max-w-md">
+              We couldn't find the page you're looking for. It might have been moved or doesn't exist.
+            </p>
+            <div className="flex gap-4">
+              <button onClick={() => handleNavigate('/')} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
+                Go to Home
+              </button>
+              <button onClick={() => handleNavigate('/tools')} className="px-6 py-3 bg-neutral-200 dark:bg-[#3c4043] text-neutral-900 dark:text-white font-bold rounded-xl hover:bg-neutral-300 dark:hover:bg-[#4a4d51] transition-colors">
+                View All Tools
+              </button>
+            </div>
+          </div>
+        ) : currentPath === '/privacy-map' ? (
           <PrivacyMap />
         ) : currentPath === '/calculator' ? (
           <Calculator />

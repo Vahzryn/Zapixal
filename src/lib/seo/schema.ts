@@ -27,13 +27,6 @@ export function generateJsonLdSchemas(
       'priceCurrency': 'USD',
       'availability': 'https://schema.org/InStock',
     },
-    'aggregateRating': {
-      '@type': 'AggregateRating',
-      'ratingValue': '4.9',
-      'ratingCount': '2480',
-      'bestRating': '5',
-      'worstRating': '1',
-    },
     'featureList': [
       '100% Client-Side In-Browser Image Processing',
       'Zero Cloud Server Uploads & Total Privacy',
@@ -140,7 +133,7 @@ export function generateJsonLdSchemas(
   };
 
   return {
-    softwareApp,
+    softwareApp: category === 'legal' ? null : softwareApp,
     howTo,
     faqPage,
     breadcrumbs: breadcrumbsSchema,

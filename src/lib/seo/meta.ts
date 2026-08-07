@@ -11,6 +11,7 @@ export interface SeoRouteData {
   canonicalUrl: string;
   isIndexable: boolean;
   pageCategory: 'converter' | 'compression' | 'use-case' | 'home' | 'resource';
+  isNotFound?: boolean;
   fromFormat?: string;
   toFormat?: TargetFormat;
   targetMaxKB?: number;
@@ -28,7 +29,7 @@ export interface SeoRouteData {
   };
   relatedRoutes?: Array<{ path: string; label: string }>;
   jsonLd: {
-    softwareApp: object;
+    softwareApp: object | null;
     howTo: object | null;
     faqPage: object | null;
     breadcrumbs: object | null;
@@ -168,49 +169,54 @@ export function parseSeoRoute(pathname: string): SeoRouteData {
   // 2. Convert pattern: /convert-[from]-to-[to] or /[from]-to-[to]
   const convertMatch = path.match(/^\/(?:convert-)?([a-z0-9]+)-to-([a-z0-9]+)$/);
   if (convertMatch) {
-    const fromFmt = convertMatch[1].toUpperCase();
+    const fromFmtRaw = convertMatch[1].toLowerCase();
     const toFmtRaw = convertMatch[2].toLowerCase();
-    const toFmtUpper = toFmtRaw.toUpperCase();
-    const toFormat: TargetFormat = (['jpg', 'png', 'webp', 'avif', 'ico', 'pdf'].includes(toFmtRaw) ? toFmtRaw : 'jpg') as TargetFormat;
-    const intel = getFormatPairIntelligence(fromFmt, toFmtUpper, toFormat);
+    const whitelist = ['heic', 'jpg', 'jpeg', 'png', 'webp', 'avif', 'ico', 'pdf', 'bmp', 'tiff', 'svg', 'gif'];
 
-    return {
-      path,
-      h1Title: `Free Offline Batch ${fromFmt} to ${toFmtUpper} Converter`,
-      metaTitle: `Convert ${fromFmt} to ${toFmtUpper} Offline | Private Batch Image Converter | Zapixal`,
-      metaDescription: `Convert ${fromFmt} to ${toFmtUpper} locally in your browser with Zapixal. The workflow stays private, supports batch work, and helps you choose a practical output format for web, sharing, or uploads.`,
-      canonicalUrl: fullUrl,
-      isIndexable: true,
-      pageCategory: 'converter',
-      fromFormat: convertMatch[1],
-      toFormat,
-      breadcrumbs: [
-        { name: 'Home', url: '/' },
-        { name: `${fromFmt} to ${toFmtUpper}`, url: path },
-      ],
-      guideContent: {
-        badge: intel.badge,
-        section1Title: intel.section1Title,
-        section1Body: intel.section1Body,
-        section2Title: intel.section2Title,
-        section2Body: intel.section2Body,
-        steps: intel.steps,
-        faqs: intel.faqs
-      },
-      jsonLd: generateJsonLdSchemas(
-        `Convert ${fromFmt} to ${toFmtUpper}`,
-        `Convert ${fromFmt} to ${toFmtUpper} free and privately in browser.`,
-        fullUrl,
-        intel.faqs,
-        [{ name: 'Home', url: '/' }, { name: `${fromFmt} to ${toFmtUpper}`, url: fullUrl }],
-        'converter',
-        [
-          `Drop your ${fromFmt} files into the converter area.`,
-          `Select your target format (${toFmtUpper}) and quality settings.`,
-          `Download your converted ${toFmtUpper} files instantly.`
-        ]
-      )
-    };
+    if (whitelist.includes(fromFmtRaw) && whitelist.includes(toFmtRaw)) {
+      const fromFmt = fromFmtRaw.toUpperCase();
+      const toFmtUpper = toFmtRaw.toUpperCase();
+      const toFormat: TargetFormat = (['jpg', 'png', 'webp', 'avif', 'ico', 'pdf'].includes(toFmtRaw) ? toFmtRaw : 'jpg') as TargetFormat;
+      const intel = getFormatPairIntelligence(fromFmt, toFmtUpper, toFormat);
+
+      return {
+        path,
+        h1Title: `Free Offline Batch ${fromFmt} to ${toFmtUpper} Converter`,
+        metaTitle: `Convert ${fromFmt} to ${toFmtUpper} Offline | Private Batch Image Converter | Zapixal`,
+        metaDescription: `Convert ${fromFmt} to ${toFmtUpper} locally in your browser with Zapixal. The workflow stays private, supports batch work, and helps you choose a practical output format for web, sharing, or uploads.`,
+        canonicalUrl: fullUrl,
+        isIndexable: true,
+        pageCategory: 'converter',
+        fromFormat: fromFmtRaw,
+        toFormat,
+        breadcrumbs: [
+          { name: 'Home', url: '/' },
+          { name: `${fromFmt} to ${toFmtUpper}`, url: path },
+        ],
+        guideContent: {
+          badge: intel.badge,
+          section1Title: intel.section1Title,
+          section1Body: intel.section1Body,
+          section2Title: intel.section2Title,
+          section2Body: intel.section2Body,
+          steps: intel.steps,
+          faqs: intel.faqs
+        },
+        jsonLd: generateJsonLdSchemas(
+          `Convert ${fromFmt} to ${toFmtUpper}`,
+          `Convert ${fromFmt} to ${toFmtUpper} free and privately in browser.`,
+          fullUrl,
+          intel.faqs,
+          [{ name: 'Home', url: '/' }, { name: `${fromFmt} to ${toFmtUpper}`, url: fullUrl }],
+          'converter',
+          [
+            `Drop your ${fromFmt} files into the converter area.`,
+            `Select your target format (${toFmtUpper}) and quality settings.`,
+            `Download your converted ${toFmtUpper} files instantly.`
+          ]
+        )
+      };
+    }
   }
 
   const educationalRoutes: Record<string, { title: string; metaTitle: string; metaDescription: string; guideContent: ReturnType<typeof getEducationalEditorialContent>; relatedRoutes: Array<{ path: string; label: string }> }> = {
@@ -579,10 +585,44 @@ export function parseSeoRoute(pathname: string): SeoRouteData {
     };
   }
 
+  if (!matchedListRoute) {
+    return {
+      path,
+      h1Title: 'Page Not Found',
+      metaTitle: 'Page Not Found | Zapixal',
+      metaDescription: 'The requested page could not be found.',
+      canonicalUrl: fullUrl,
+      isIndexable: false,
+      isNotFound: true,
+      pageCategory: 'use-case',
+      breadcrumbs: [
+        { name: 'Home', url: '/' },
+        { name: 'Not Found', url: path },
+      ],
+      guideContent: {
+        badge: '',
+        section1Title: '',
+        section1Body: '',
+        section2Title: '',
+        section2Body: '',
+        steps: [],
+        faqs: []
+      },
+      jsonLd: {
+        softwareApp: {},
+        howTo: null,
+        faqPage: null,
+        breadcrumbs: null,
+        organization: {},
+        website: {}
+      }
+    };
+  }
+
   // Generic fallback for any recognized list path
-  const titleName = matchedListRoute ? matchedListRoute.label : path.replace(/[-/]/g, ' ').trim();
+  const titleName = matchedListRoute.label;
   const formattedTitle = titleName.charAt(0).toUpperCase() + titleName.slice(1);
-  const routeCategory = matchedListRoute ? matchedListRoute.category : 'use-case';
+  const routeCategory = matchedListRoute.category;
 
   return {
     path,
