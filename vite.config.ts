@@ -20,20 +20,8 @@ export default defineConfig(() => {
       },
     },
     build: {
-      target: 'esnext',
-      sourcemap: "hidden" as const,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom'],
-            icons: ['lucide-react'],
-            chart: ['recharts'],
-            pdf: ['jspdf'],
-            exif: ['exifr'],
-            codecs: ['@jsquash/jpeg', 'imagequant', 'upng-js', 'heic2any']
-          }
-        }
-      }
+      target: 'es2022',
+      sourcemap: "hidden" as const
     },
     worker: {
       format: 'es' as const,

@@ -85,6 +85,7 @@ export function CompareModal({ item, onClose }: CompareModalProps) {
               height="500"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
             />
             
@@ -101,6 +102,7 @@ export function CompareModal({ item, onClose }: CompareModalProps) {
               height="500"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
               style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             />

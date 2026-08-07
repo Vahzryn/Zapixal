@@ -1,0 +1,37 @@
+{
+  "path": "/tools",
+  "h1Title": "Page Not Found",
+  "metaTitle": "Page Not Found | Zapixal",
+  "metaDescription": "The requested page could not be found.",
+  "canonicalUrl": "https://zapixal.com/tools",
+  "isIndexable": false,
+  "isNotFound": true,
+  "pageCategory": "use-case",
+  "breadcrumbs": [
+    {
+      "name": "Home",
+      "url": "/"
+    },
+    {
+      "name": "Not Found",
+      "url": "/tools"
+    }
+  ],
+  "guideContent": {
+    "badge": "",
+    "section1Title": "",
+    "section1Body": "",
+    "section2Title": "",
+    "section2Body": "",
+    "steps": [],
+    "faqs": []
+  },
+  "jsonLd": {
+    "softwareApp": {},
+    "howTo": null,
+    "faqPage": null,
+    "breadcrumbs": null,
+    "organization": {},
+    "website": {}
+  }
+}

@@ -53,9 +53,9 @@ self.onmessage = async (e: MessageEvent) => {
       ctx.fillText(text, x, y);
     }
 
-    // Explicitly close ImageBitmap to release GPU/CPU memory immediately
-    if (typeof imageBitmap.close === 'function') {
-      imageBitmap.close();
+    // Close early if possible to free GPU/CPU memory
+    if (imageBitmap && typeof imageBitmap.close === 'function') {
+      try { imageBitmap.close(); } catch (e) {}
     }
 
     let blob: Blob;
@@ -138,6 +138,14 @@ self.onmessage = async (e: MessageEvent) => {
     (self as any).postMessage({ id, status: 'success', buffer, mimeType: blob.type, originalFallback }, [buffer]);
   } catch (error: any) {
     (self as any).postMessage({ id, status: 'error', error: error?.message || 'Conversion error' });
+  } finally {
+    if (imageBitmap && typeof imageBitmap.close === 'function') {
+      try {
+        imageBitmap.close();
+      } catch (closeErr) {
+        console.warn('Failed to close imageBitmap in worker finally:', closeErr);
+      }
+    }
   }
 };
 

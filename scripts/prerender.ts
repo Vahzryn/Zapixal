@@ -101,7 +101,15 @@ async function runPrerender() {
       React.createElement(App, { initialPath: routePath } as any)
     );
 
-    html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
+    const embeddedPayload = `<script id="seo-data-payload" type="application/json">${escapeJson(seoData)}</script>`;
+    
+    const rootStart = html.indexOf('<div id="root">');
+    const scriptStart = html.indexOf('<script type="module"');
+    if (rootStart !== -1 && scriptStart !== -1 && scriptStart > rootStart) {
+      html = html.substring(0, rootStart) + `<div id="root">${appHtml}</div>\n    ${embeddedPayload}\n    ` + html.substring(scriptStart);
+    } else {
+      html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>\n    ${embeddedPayload}`);
+    }
 
     // Write file
     if (routePath === '/') {

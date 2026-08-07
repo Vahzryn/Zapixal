@@ -120,6 +120,7 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
               height="300"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
               className="max-h-full max-w-full object-contain"
               style={{ transform: `rotate(${item.rotation || 0}deg)` }}
             />

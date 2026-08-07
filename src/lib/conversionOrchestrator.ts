@@ -188,7 +188,8 @@ export async function generateThumbnail(file: File, maxDim: number = 200): Promi
 
 export async function convertSingleImage(
   item: ImageFileItem,
-  settings: ConversionSettings
+  settings: ConversionSettings,
+  signal?: AbortSignal
 ): Promise<{
   blob: Blob;
   convertedSize: number;
@@ -196,6 +197,10 @@ export async function convertSingleImage(
   convertedUrl: string;
   originalFallback?: boolean;
 }> {
+  if (signal?.aborted) {
+    throw new DOMException('The operation was aborted.', 'AbortError');
+  }
+
   const { targetFormat, quality, resize } = settings;
   const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
   const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
@@ -204,6 +209,10 @@ export async function convertSingleImage(
   if (targetFormat === 'pdf') {
     const loaded = await loadImageElement(item.file);
     try {
+      if (signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
+
       const targetDim = calculateTargetDimensions(
       loaded.dimensions,
       resize.maxWidth,
@@ -221,6 +230,10 @@ export async function convertSingleImage(
       unit: 'px',
       format: [canvasWidth, canvasHeight],
     });
+
+    if (signal?.aborted) {
+      throw new DOMException('The operation was aborted.', 'AbortError');
+    }
 
     const canvas = document.createElement('canvas');
     canvas.width = canvasWidth;
@@ -261,6 +274,10 @@ export async function convertSingleImage(
   let loaded = await loadImageElement(item.file);
   let fallbackLoaded = null;
   try {
+  if (signal?.aborted) {
+    throw new DOMException('The operation was aborted.', 'AbortError');
+  }
+
   const targetDim = calculateTargetDimensions(
     loaded.dimensions,
     resize.enabled ? resize.maxWidth : undefined,
@@ -279,6 +296,10 @@ export async function convertSingleImage(
     let pooledWorker: PooledWorker | undefined;
     try {
       pooledWorker = await getWorkerPool().acquireWorker();
+      if (signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
+
       const workerInstance = pooledWorker.worker;
       const result = await new Promise<{ buffer: ArrayBuffer; mimeType: string; originalFallback?: boolean }>(
         (resolve, reject) => {
@@ -286,10 +307,26 @@ export async function convertSingleImage(
             reject(new Error('Worker conversion timeout (25s)'));
           }, 25000);
 
+          const onAbort = () => {
+            clearTimeout(timeoutId);
+            workerInstance.removeEventListener('message', onMsg);
+            workerInstance.removeEventListener('error', onErr);
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          };
+
+          if (signal) {
+            if (signal.aborted) {
+              onAbort();
+              return;
+            }
+            signal.addEventListener('abort', onAbort);
+          }
+
           const onMsg = (e: MessageEvent) => {
             if (e.data.id !== item.id) return;
             workerInstance.removeEventListener('message', onMsg);
             workerInstance.removeEventListener('error', onErr);
+            if (signal) signal.removeEventListener('abort', onAbort);
             clearTimeout(timeoutId);
 
             if (e.data.status === 'success') {
@@ -306,6 +343,7 @@ export async function convertSingleImage(
           const onErr = (err: ErrorEvent) => {
             workerInstance.removeEventListener('message', onMsg);
             workerInstance.removeEventListener('error', onErr);
+            if (signal) signal.removeEventListener('abort', onAbort);
             clearTimeout(timeoutId);
             reject(err instanceof Error ? err : new Error('Worker script error'));
           };
@@ -329,13 +367,28 @@ export async function convertSingleImage(
 
       convertedBlob = new Blob([result.buffer], { type: result.mimeType });
       originalFallback = !!result.originalFallback;
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        if (pooledWorker) {
+          getWorkerPool().terminateWorker(pooledWorker);
+          pooledWorker = undefined;
+        }
+        throw err;
+      }
       console.warn('Worker conversion failed or timed out, using main-thread fallback:', err);
+      if (pooledWorker) {
+        getWorkerPool().terminateWorker(pooledWorker);
+        pooledWorker = undefined;
+      }
     } finally {
       if (pooledWorker) {
         getWorkerPool().releaseWorker(pooledWorker);
       }
     }
+  }
+
+  if (signal?.aborted) {
+    throw new DOMException('The operation was aborted.', 'AbortError');
   }
 
   // Main thread fallback (if worker path was skipped or failed)

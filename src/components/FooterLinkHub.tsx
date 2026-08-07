@@ -7,7 +7,7 @@ import {
   Zap as ZapIcon
 } from 'lucide-react';
 import { PSEO_ROUTES_LIST } from '../lib/seoEngine';
-const logoImg = '/logo.svg';
+const logoImg = '/assets/logo.webp';
 
 interface FooterLinkHubProps {
   currentPath: string;
@@ -66,6 +66,7 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
                 height="32"
                 decoding="async"
                 loading="lazy"
+                referrerPolicy="no-referrer"
                 className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-[#1a1b1e] p-1 border border-slate-200/80 dark:border-[#32353a]"
               />
               <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">

@@ -144,6 +144,7 @@ function FileItemComponent({
               height="52"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
               onError={() => setHasImgError(true)}
               className="block object-cover w-full h-full transition-transform duration-300 ease-out"
               style={{ transform: `rotate(${rotation}deg)` }}
@@ -217,6 +218,7 @@ function FileItemComponent({
               onClick={(e) => { e.stopPropagation(); onRotate(item.id, -90); }}
               className="p-1.5 transition-all rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-indigo-600 dark:hover:text-[#a8b1ff] shrink-0 cursor-pointer"
               title="Rotate Left (-90°)"
+              aria-label="Rotate image 90 degrees counter-clockwise"
             >
               <RotateCcw className="w-4 h-4 shrink-0" />
             </button>
@@ -224,6 +226,7 @@ function FileItemComponent({
               onClick={(e) => { e.stopPropagation(); onRotate(item.id, 90); }}
               className="p-1.5 transition-all rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-indigo-600 dark:hover:text-[#a8b1ff] shrink-0 cursor-pointer"
               title="Rotate Right (+90°)"
+              aria-label="Rotate image 90 degrees clockwise"
             >
               <RotateCw className="w-4 h-4 shrink-0" />
             </button>
@@ -236,6 +239,7 @@ function FileItemComponent({
             onClick={(e) => { e.stopPropagation(); onInspectDetails(item); }}
             className="p-1.5 transition-all rounded-xl text-neutral-400 hover:bg-indigo-50 dark:hover:bg-[#21243a] hover:text-indigo-600 dark:hover:text-[#a8b1ff] shrink-0 cursor-pointer"
             title="Inspect Dimensions, Spec & Color Palette"
+            aria-label="Inspect image dimensions, specifications, and color palette"
           >
             <Info className="w-4 h-4 shrink-0" />
           </button>
@@ -247,6 +251,7 @@ function FileItemComponent({
             onClick={(e) => { e.stopPropagation(); handleCopyToClipboard(); }}
             className="p-1.5 transition-all rounded-xl text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-neutral-800 dark:hover:text-[#e8eaed] shrink-0 cursor-pointer"
             title={isCopied ? "Copied to Clipboard!" : "Copy Image to Clipboard"}
+            aria-label={isCopied ? "Image successfully copied to clipboard" : "Copy image to clipboard"}
           >
             {isCopied ? (
               <Check className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -267,6 +272,7 @@ function FileItemComponent({
                 onClick={(e) => { e.stopPropagation(); onCompare(item); }}
                 className="p-1.5 transition-all rounded-xl text-neutral-400 hover:bg-blue-50 dark:hover:bg-[#1e293b] hover:text-blue-600 dark:hover:text-[#8ab4f8] shrink-0 cursor-pointer"
                 title="Compare Original vs Converted Quality"
+                aria-label="Compare original and converted image quality side-by-side"
               >
                 <Eye className="w-4 h-4 shrink-0" />
               </button>
@@ -275,6 +281,7 @@ function FileItemComponent({
               onClick={(e) => { e.stopPropagation(); onDownload(item); }}
               className="p-1.5 transition-all rounded-xl text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-neutral-800 dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] shrink-0 cursor-pointer"
               title="Download"
+              aria-label="Download converted image file"
             >
               <Download className="w-4 h-4 shrink-0" />
             </button>
@@ -287,6 +294,7 @@ function FileItemComponent({
             onClick={(e) => { e.stopPropagation(); onRetry(item.id); }}
             className="p-1.5 transition-all rounded-xl text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-blue-600 dark:hover:text-[#8ab4f8] shrink-0 cursor-pointer"
             title="Retry Conversion"
+            aria-label="Retry converting this image"
           >
             <RefreshCw className="w-4 h-4 shrink-0" />
           </button>
@@ -304,6 +312,7 @@ function FileItemComponent({
               isComplete ? "min-[520px]:opacity-0 min-[520px]:group-hover:opacity-100 text-neutral-400 hover:bg-red-50 dark:hover:bg-[#3c1e1e] hover:text-red-600 dark:hover:text-[#f28b82]" : "text-neutral-400 hover:bg-red-50 dark:hover:bg-[#3c1e1e] hover:text-red-600 dark:hover:text-[#f28b82]"
             )}
             title="Remove"
+            aria-label="Remove this image from the batch list"
           >
             <Trash2 className="w-4 h-4 shrink-0" />
           </button>

@@ -1,0 +1,200 @@
+{
+  "path": "/what-is-exif",
+  "h1Title": "What Is EXIF",
+  "metaTitle": "What Is EXIF: Metadata in Camera Photos and Why It Matters",
+  "metaDescription": "Learn what EXIF data is, what it can reveal, and how to remove it when you want more privacy or cleaner uploads.",
+  "canonicalUrl": "https://zapixal.com/what-is-exif",
+  "isIndexable": true,
+  "pageCategory": "resource",
+  "breadcrumbs": [
+    {
+      "name": "Home",
+      "url": "/"
+    },
+    {
+      "name": "What Is EXIF",
+      "url": "/what-is-exif"
+    }
+  ],
+  "guideContent": {
+    "badge": "Metadata awareness guide",
+    "section1Title": "Why EXIF metadata is often more important than people expect",
+    "section1Body": "EXIF data is embedded metadata that can include camera details, timestamps, GPS coordinates, and sometimes device-specific information. That metadata can be useful for photographers and archive workflows, but it can also create privacy concerns or clutter upload forms.",
+    "section2Title": "When stripping metadata helps",
+    "section2Body": "Removing EXIF data is often a smart step before sharing an image publicly, posting it online, or sending it to a portal that only needs the visible pixels. The decision depends on whether the metadata adds value or creates risk.",
+    "steps": [
+      "Check whether the image needs the original metadata for your workflow.",
+      "Strip metadata when privacy, minimal uploads, or cleaner sharing matter more.",
+      "Keep the original file if you might need the metadata later for archival work."
+    ],
+    "faqs": [
+      {
+        "question": "What is EXIF data?",
+        "answer": "It is embedded metadata stored with the image file, often including camera settings, timestamps, and sometimes location information."
+      },
+      {
+        "question": "Should I remove EXIF data?",
+        "answer": "It is often a good idea before sharing or uploading images publicly or to portals that do not need the metadata."
+      },
+      {
+        "question": "Can I remove EXIF metadata locally?",
+        "answer": "Yes. Local processing keeps the task private and simple."
+      }
+    ]
+  },
+  "relatedRoutes": [
+    {
+      "path": "/strip-exif",
+      "label": "Strip EXIF Metadata"
+    },
+    {
+      "path": "/exif-metadata-remover",
+      "label": "EXIF Metadata Remover"
+    },
+    {
+      "path": "/remove-exif-data-for-reddit",
+      "label": "Remove EXIF Data for Reddit"
+    },
+    {
+      "path": "/remove-gps-from-photo-offline",
+      "label": "Remove GPS from Photo"
+    }
+  ],
+  "jsonLd": {
+    "softwareApp": {
+      "@context": "https://schema.org",
+      "@type": [
+        "SoftwareApplication",
+        "WebApplication"
+      ],
+      "name": "Zapixal - What Is EXIF",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Image Conversion and Compression",
+      "softwareVersion": "1.0.0",
+      "operatingSystem": "All (Windows, macOS, Linux, iOS, Android)",
+      "browserRequirements": "Requires Modern Web Browser with WebAssembly (WASM) support",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "keywords": [
+        "image converter",
+        "image compressor",
+        "offline image tool",
+        "private image converter",
+        "HEIC to JPG",
+        "PNG to WebP"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "100% Client-Side In-Browser Image Processing",
+        "Zero Cloud Server Uploads & Total Privacy",
+        "WebAssembly (WASM) & Web Worker Multithreading Speed",
+        "Unlimited Batch File Processing",
+        "Offline Progressive Web App (PWA) Capability",
+        "Practical guidance for compatibility, accessibility, and file-size targets"
+      ],
+      "description": "Learn what EXIF data is, what it can reveal, and how to remove it when you want more privacy or cleaner uploads.",
+      "url": "https://zapixal.com/what-is-exif",
+      "screenshot": "https://zapixal.com/icon-512.png",
+      "author": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      }
+    },
+    "howTo": {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to process images with What Is EXIF",
+      "description": "Learn what EXIF data is, what it can reveal, and how to remove it when you want more privacy or cleaner uploads.",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Add Images",
+          "text": "Select image files from your local device or drop into the browser."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Configure Options",
+          "text": "Set image quality, format, or dimensional constraints."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Export Outputs",
+          "text": "Save processed images directly from browser memory."
+        }
+      ]
+    },
+    "faqPage": {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is EXIF data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is embedded metadata stored with the image file, often including camera settings, timestamps, and sometimes location information."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I remove EXIF data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is often a good idea before sharing or uploading images publicly or to portals that do not need the metadata."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I remove EXIF metadata locally?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Local processing keeps the task private and simple."
+          }
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://zapixal.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "What Is EXIF",
+          "item": "https://zapixal.com/what-is-exif"
+        }
+      ]
+    },
+    "organization": {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Zapixal",
+      "url": "https://zapixal.com",
+      "logo": "https://zapixal.com/icon-512.png"
+    },
+    "website": {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Zapixal",
+      "url": "https://zapixal.com"
+    }
+  }
+}

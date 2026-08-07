@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DownloadCloud, Github, Moon, Sun, Heart, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
-const logoImg = '/logo.svg';
+const logoImg = '/assets/logo.webp';
 
 interface HeaderNavbarProps {
   currentPath: string;
@@ -52,8 +52,12 @@ export function HeaderNavbar({
               <img 
                 src={logoImg} 
                 alt="Zapixal Logo" 
+                width="36"
+                height="36"
                 loading="eager"
+                fetchPriority="high"
                 decoding="async"
+                referrerPolicy="no-referrer"
                 className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-contain group-hover:scale-105 transition-transform shadow-2xs" 
               />
               <span className="flex flex-col items-start leading-none">

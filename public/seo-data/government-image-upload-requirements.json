@@ -1,0 +1,200 @@
+{
+  "path": "/government-image-upload-requirements",
+  "h1Title": "Government Image Upload Requirements",
+  "metaTitle": "Government Image Upload Requirements: How to Prepare Images for Forms and Portals",
+  "metaDescription": "Understand common government image upload requirements and how to prepare files that meet size, format, and quality expectations.",
+  "canonicalUrl": "https://zapixal.com/government-image-upload-requirements",
+  "isIndexable": true,
+  "pageCategory": "resource",
+  "breadcrumbs": [
+    {
+      "name": "Home",
+      "url": "/"
+    },
+    {
+      "name": "Government Image Upload Requirements",
+      "url": "/government-image-upload-requirements"
+    }
+  ],
+  "guideContent": {
+    "badge": "Submission-ready image guide",
+    "section1Title": "Why government forms often require tighter image rules",
+    "section1Body": "Government portals frequently limit file size, resolution, and sometimes format. The practical goal is to keep the image readable, technically compliant, and free of unnecessary extras. That requires attention to file size, dimensions, and visual clarity.",
+    "section2Title": "How to prepare files for submission workflows",
+    "section2Body": "The best approach is to understand the exact portal instructions first, then prepare the image so it fits both the technical limits and the readability expectation. This avoids resubmissions, delays, and avoidable quality loss.",
+    "steps": [
+      "Review the portal instructions before resizing or converting the image.",
+      "Keep the file within the required size, dimensions, and format constraints.",
+      "Test the final output in the same way the portal will receive it."
+    ],
+    "faqs": [
+      {
+        "question": "Why do government portals have strict image requirements?",
+        "answer": "Because they need consistent file sizes, readable documents, and a manageable workflow for large volumes of submissions."
+      },
+      {
+        "question": "What should I optimize first?",
+        "answer": "Start with the required size limit, then focus on clarity and the correct dimensions."
+      },
+      {
+        "question": "Can I prepare these files locally?",
+        "answer": "Yes. A local workflow helps protect sensitive images and keeps the process private."
+      }
+    ]
+  },
+  "relatedRoutes": [
+    {
+      "path": "/compress-image-under-100kb",
+      "label": "Compress Image Under 100KB"
+    },
+    {
+      "path": "/compress-image-under-50kb",
+      "label": "Compress Image Under 50KB"
+    },
+    {
+      "path": "/passport-photo-compressor",
+      "label": "Passport Photo Compressor"
+    },
+    {
+      "path": "/compress-image-to-100kb",
+      "label": "Compress Image to 100KB"
+    }
+  ],
+  "jsonLd": {
+    "softwareApp": {
+      "@context": "https://schema.org",
+      "@type": [
+        "SoftwareApplication",
+        "WebApplication"
+      ],
+      "name": "Zapixal - Government Image Upload Requirements",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Image Conversion and Compression",
+      "softwareVersion": "1.0.0",
+      "operatingSystem": "All (Windows, macOS, Linux, iOS, Android)",
+      "browserRequirements": "Requires Modern Web Browser with WebAssembly (WASM) support",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "keywords": [
+        "image converter",
+        "image compressor",
+        "offline image tool",
+        "private image converter",
+        "HEIC to JPG",
+        "PNG to WebP"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "100% Client-Side In-Browser Image Processing",
+        "Zero Cloud Server Uploads & Total Privacy",
+        "WebAssembly (WASM) & Web Worker Multithreading Speed",
+        "Unlimited Batch File Processing",
+        "Offline Progressive Web App (PWA) Capability",
+        "Practical guidance for compatibility, accessibility, and file-size targets"
+      ],
+      "description": "Understand common government image upload requirements and how to prepare files that meet size, format, and quality expectations.",
+      "url": "https://zapixal.com/government-image-upload-requirements",
+      "screenshot": "https://zapixal.com/icon-512.png",
+      "author": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      }
+    },
+    "howTo": {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to process images with Government Image Upload Requirements",
+      "description": "Understand common government image upload requirements and how to prepare files that meet size, format, and quality expectations.",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Add Images",
+          "text": "Select image files from your local device or drop into the browser."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Configure Options",
+          "text": "Set image quality, format, or dimensional constraints."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Export Outputs",
+          "text": "Save processed images directly from browser memory."
+        }
+      ]
+    },
+    "faqPage": {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Why do government portals have strict image requirements?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Because they need consistent file sizes, readable documents, and a manageable workflow for large volumes of submissions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What should I optimize first?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Start with the required size limit, then focus on clarity and the correct dimensions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I prepare these files locally?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. A local workflow helps protect sensitive images and keeps the process private."
+          }
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://zapixal.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Government Image Upload Requirements",
+          "item": "https://zapixal.com/government-image-upload-requirements"
+        }
+      ]
+    },
+    "organization": {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Zapixal",
+      "url": "https://zapixal.com",
+      "logo": "https://zapixal.com/icon-512.png"
+    },
+    "website": {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Zapixal",
+      "url": "https://zapixal.com"
+    }
+  }
+}

@@ -80,6 +80,35 @@ class WorkerPoolManager {
   }
 
   /**
+   * Explicitly terminates a specific worker and removes it from the pool.
+   * This is useful if a worker has hung, timed out, or been aborted, ensuring we don't reuse it.
+   */
+  public terminateWorker(pooledWorker: PooledWorker) {
+    try {
+      pooledWorker.worker.terminate();
+    } catch (err) {
+      console.warn('Error terminating pooled worker:', err);
+    }
+    this.conversionWorkers = this.conversionWorkers.filter((w) => w.id !== pooledWorker.id);
+    
+    // If there's pending work in the queue, spawn a new worker to keep the pool size consistent
+    if (this.pendingQueue.length > 0 && this.conversionWorkers.length < this.maxWorkers) {
+      const id = ++this.workerIdCounter;
+      try {
+        const worker = new Worker(new URL('../workers/conversionWorker.ts', import.meta.url), { type: 'module' });
+        const pooled: PooledWorker = { id, worker, active: true };
+        this.conversionWorkers.push(pooled);
+        const next = this.pendingQueue.shift();
+        if (next) {
+          next.resolve(pooled);
+        }
+      } catch (err) {
+        console.error('Failed to spawn replacement worker in pool:', err);
+      }
+    }
+  }
+
+  /**
    * Decodes a HEIC file using dedicated HEIC worker thread.
    */
   public async decodeHeic(file: File): Promise<Blob> {
@@ -89,6 +118,12 @@ class WorkerPoolManager {
     return new Promise<Blob>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         this.heicResolvers.delete(id);
+        if (this.heicWorker) {
+          try {
+            this.heicWorker.terminate();
+          } catch (e) {}
+          this.heicWorker = null; // Forces recreating a fresh worker next time
+        }
         reject(new Error('HEIC decoding worker timeout (15s)'));
       }, 15000);
 
@@ -111,11 +146,15 @@ class WorkerPoolManager {
     if (!this.heicWorker) {
       this.heicWorker = new Worker(new URL('../workers/heicWorker.ts', import.meta.url), { type: 'module' });
       this.heicWorker.onmessage = (e) => {
-        const { id, status, blob, error } = e.data;
+        const { id, status, buffer, mimeType, error } = e.data;
         const resolver = this.heicResolvers.get(id);
         if (resolver) {
-          if (status === 'success') resolver.resolve(blob);
-          else resolver.reject(new Error(error || 'HEIC decoding error'));
+          if (status === 'success') {
+            const decodedBlob = new Blob([buffer], { type: mimeType || 'image/jpeg' });
+            resolver.resolve(decodedBlob);
+          } else {
+            resolver.reject(new Error(error || 'HEIC decoding error'));
+          }
           this.heicResolvers.delete(id);
         }
       };

@@ -1,0 +1,200 @@
+{
+  "path": "/image-dpi-guide",
+  "h1Title": "Image DPI Guide",
+  "metaTitle": "Image DPI Guide: What DPI Means and When It Matters",
+  "metaDescription": "Understand image DPI, how it differs from pixel dimensions, and which workflows actually depend on it.",
+  "canonicalUrl": "https://zapixal.com/image-dpi-guide",
+  "isIndexable": true,
+  "pageCategory": "resource",
+  "breadcrumbs": [
+    {
+      "name": "Home",
+      "url": "/"
+    },
+    {
+      "name": "Image DPI Guide",
+      "url": "/image-dpi-guide"
+    }
+  ],
+  "guideContent": {
+    "badge": "Print and display fundamentals",
+    "section1Title": "Why DPI is often misunderstood",
+    "section1Body": "DPI is often confused with image quality, but it is really a print-related measurement. The more important practical question is usually whether the image has enough pixel dimensions for the final output size and the intended display medium.",
+    "section2Title": "How to use DPI correctly",
+    "section2Body": "For web work, pixel dimensions usually matter more than DPI. For print, the combination of pixel dimensions and intended print size can matter a great deal. A clear workflow tests the file where it will be used instead of assuming a number alone is enough.",
+    "steps": [
+      "Identify whether the image is for screen use or print before changing its settings.",
+      "For web, focus on pixel dimensions and file size.",
+      "For print, check the output size and resolution together before you export."
+    ],
+    "faqs": [
+      {
+        "question": "Is DPI the same as image quality?",
+        "answer": "No. DPI is a print-related measure, while visual quality also depends on pixel dimensions, compression, and the viewing context."
+      },
+      {
+        "question": "Does a higher DPI always make an image better?",
+        "answer": "Not necessarily. It can help for print, but it does not automatically improve a screen-based image."
+      },
+      {
+        "question": "How do I choose the right settings?",
+        "answer": "Match the image to the destination, then test the output to see whether it looks right at the intended size."
+      }
+    ]
+  },
+  "relatedRoutes": [
+    {
+      "path": "/image-resizer-online",
+      "label": "Image Resizer Online"
+    },
+    {
+      "path": "/resize-image-to-1920x1080",
+      "label": "Resize Image to 1920x1080"
+    },
+    {
+      "path": "/compress-image",
+      "label": "Compress Image Size"
+    },
+    {
+      "path": "/website-image-optimizer",
+      "label": "Website Image Optimizer"
+    }
+  ],
+  "jsonLd": {
+    "softwareApp": {
+      "@context": "https://schema.org",
+      "@type": [
+        "SoftwareApplication",
+        "WebApplication"
+      ],
+      "name": "Zapixal - Image DPI Guide",
+      "applicationCategory": "MultimediaApplication",
+      "applicationSubCategory": "Image Conversion and Compression",
+      "softwareVersion": "1.0.0",
+      "operatingSystem": "All (Windows, macOS, Linux, iOS, Android)",
+      "browserRequirements": "Requires Modern Web Browser with WebAssembly (WASM) support",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "keywords": [
+        "image converter",
+        "image compressor",
+        "offline image tool",
+        "private image converter",
+        "HEIC to JPG",
+        "PNG to WebP"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "100% Client-Side In-Browser Image Processing",
+        "Zero Cloud Server Uploads & Total Privacy",
+        "WebAssembly (WASM) & Web Worker Multithreading Speed",
+        "Unlimited Batch File Processing",
+        "Offline Progressive Web App (PWA) Capability",
+        "Practical guidance for compatibility, accessibility, and file-size targets"
+      ],
+      "description": "Understand image DPI, how it differs from pixel dimensions, and which workflows actually depend on it.",
+      "url": "https://zapixal.com/image-dpi-guide",
+      "screenshot": "https://zapixal.com/icon-512.png",
+      "author": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Zapixal",
+        "url": "https://zapixal.com"
+      }
+    },
+    "howTo": {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to process images with Image DPI Guide",
+      "description": "Understand image DPI, how it differs from pixel dimensions, and which workflows actually depend on it.",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Add Images",
+          "text": "Select image files from your local device or drop into the browser."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Configure Options",
+          "text": "Set image quality, format, or dimensional constraints."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Export Outputs",
+          "text": "Save processed images directly from browser memory."
+        }
+      ]
+    },
+    "faqPage": {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is DPI the same as image quality?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. DPI is a print-related measure, while visual quality also depends on pixel dimensions, compression, and the viewing context."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does a higher DPI always make an image better?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not necessarily. It can help for print, but it does not automatically improve a screen-based image."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I choose the right settings?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Match the image to the destination, then test the output to see whether it looks right at the intended size."
+          }
+        }
+      ]
+    },
+    "breadcrumbs": {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://zapixal.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Image DPI Guide",
+          "item": "https://zapixal.com/image-dpi-guide"
+        }
+      ]
+    },
+    "organization": {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Zapixal",
+      "url": "https://zapixal.com",
+      "logo": "https://zapixal.com/icon-512.png"
+    },
+    "website": {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Zapixal",
+      "url": "https://zapixal.com"
+    }
+  }
+}

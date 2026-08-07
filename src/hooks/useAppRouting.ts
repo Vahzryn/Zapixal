@@ -1,10 +1,24 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ConversionSettings } from '../types';
 import { parseSeoRoute, applySeoToHead, SeoRouteData } from '../lib/seoEngine';
 
 interface UseAppRoutingOptions {
   initialPath?: string;
   setSettings: React.Dispatch<React.SetStateAction<ConversionSettings>>;
+}
+
+function getEmbeddedSeoData(): SeoRouteData | null {
+  if (typeof document !== 'undefined') {
+    const el = document.getElementById('seo-data-payload');
+    if (el) {
+      try {
+        return JSON.parse(el.textContent || '') as SeoRouteData;
+      } catch (e) {
+        console.error('Failed to parse embedded SEO data:', e);
+      }
+    }
+  }
+  return null;
 }
 
 export function useAppRouting({ initialPath, setSettings }: UseAppRoutingOptions) {
@@ -16,11 +30,50 @@ export function useAppRouting({ initialPath, setSettings }: UseAppRoutingOptions
     return '/';
   });
 
-  const seoData: SeoRouteData = useMemo(() => parseSeoRoute(currentPath), [currentPath]);
+  const [seoData, setSeoData] = useState<SeoRouteData>(() => {
+    const embedded = getEmbeddedSeoData();
+    if (embedded && embedded.path === currentPath) {
+      return embedded;
+    }
+    return parseSeoRoute(currentPath);
+  });
 
+  // Handle path transitions & fetch async full SEO JSON
   useEffect(() => {
-    applySeoToHead(seoData);
+    const embedded = getEmbeddedSeoData();
+    if (embedded && embedded.path === currentPath) {
+      setSeoData(embedded);
+      applySeoToHead(embedded);
+    } else {
+      // Set lightweight details immediately
+      const lightSeo = parseSeoRoute(currentPath);
+      setSeoData(lightSeo);
+      applySeoToHead(lightSeo);
 
+      // Async fetch full SEO JSON data (including guideContent and jsonLd)
+      const slug = currentPath === '/' ? 'home' : currentPath.slice(1).replace(/\//g, '-');
+      fetch(`/seo-data/${slug}.json`)
+        .then(res => {
+          if (!res.ok) throw new Error(`Not found: ${res.status}`);
+          return res.json();
+        })
+        .then((fullSeo: SeoRouteData) => {
+          setSeoData(prev => {
+            if (prev.path === fullSeo.path) {
+              applySeoToHead(fullSeo);
+              return fullSeo;
+            }
+            return prev;
+          });
+        })
+        .catch(err => {
+          console.warn('Could not fetch full SEO payload asynchronously, using light version:', err);
+        });
+    }
+  }, [currentPath]);
+
+  // Handle setting updates when seoData changes
+  useEffect(() => {
     setSettings(prev => {
       const updated = { ...prev };
       if (seoData.toFormat) {
@@ -42,7 +95,7 @@ export function useAppRouting({ initialPath, setSettings }: UseAppRoutingOptions
       }
       return updated;
     });
-  }, [currentPath, seoData, setSettings]);
+  }, [seoData, setSettings]);
 
   useEffect(() => {
     const handlePopState = () => {

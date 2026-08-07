@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, DownloadCloud, Monitor, Smartphone, Share, PlusSquare, MoreVertical, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
-const logoImg = '/logo.svg';
+const logoImg = '/assets/logo.webp';
 
 interface PwaBannerProps {
   deferredPrompt: any;
@@ -80,7 +80,16 @@ export function PwaBanner({ deferredPrompt, onClose }: PwaBannerProps) {
 
         <div className="flex gap-4">
           <div className="shrink-0 flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-inner">
-            <img src={logoImg} alt="Zapixal" className="w-7 h-7 object-contain" />
+            <img 
+              src={logoImg} 
+              alt="Zapixal" 
+              width="28"
+              height="28"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              className="w-7 h-7 object-contain" 
+            />
           </div>
           
           <div className="flex-1 min-w-0 pr-4">

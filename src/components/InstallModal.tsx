@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DownloadCloud, Monitor, Smartphone, ShieldCheck, Zap, X, Check, Share, MoreVertical, PlusSquare } from 'lucide-react';
-const logoImg = '/logo.svg';
+const logoImg = '/assets/logo.webp';
 
 interface InstallModalProps {
   isOpen: boolean;
@@ -63,7 +63,16 @@ export function InstallModal({ isOpen, onClose, deferredPrompt, onInstallSuccess
 
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
-              <img src={logoImg} alt="Zapixal" className="w-10 h-10 object-contain rounded-xl" />
+              <img 
+                src={logoImg} 
+                alt="Zapixal" 
+                width="40"
+                height="40"
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="w-10 h-10 object-contain rounded-xl" 
+              />
             </div>
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider mb-1">

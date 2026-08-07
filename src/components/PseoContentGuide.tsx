@@ -24,6 +24,30 @@ export function PseoContentGuide({ seoData, onNavigate }: PseoContentGuideProps)
         .filter((r, i, arr) => arr.findIndex(t => t.path === r.path) === i)
         .slice(0, 8);
 
+  if (!guideContent) {
+    return (
+      <div className="w-full max-w-4xl mx-auto my-16 px-4 font-sans animate-pulse">
+        {/* Header Badge Skeleton */}
+        <div className="flex justify-center mb-8">
+          <div className="h-6 w-40 bg-neutral-200 dark:bg-neutral-800 rounded-full" />
+        </div>
+
+        {/* Main Content Card Skeleton */}
+        <div className="bg-white dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-3xl p-6 sm:p-10 shadow-xs space-y-10">
+          <div className="space-y-4">
+            <div className="h-6 w-2/3 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-4 w-full bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-4 w-5/6 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          </div>
+          <div className="p-6 bg-blue-50/40 dark:bg-slate-800/40 border border-blue-100 dark:border-slate-700 rounded-2xl space-y-3">
+            <div className="h-6 w-1/2 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-4 w-full bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto my-16 px-4 font-sans">
       {/* Header Badge */}
