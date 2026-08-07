@@ -31,6 +31,19 @@ Zapixal is a 100% client-side, privacy-first web utility for image compression a
 - Over 25+ programmatic SEO (pSEO) routes are generated statically for specific long-tail keywords (e.g., `/compress/image-under-100kb`).
 - Each route injects specific HTML `<title>`, `<meta name="description">`, and extensive Schema.org JSON-LD structured data (`WebApplication`, `FAQPage`, `HowTo`) targeting low-competition search terms.
 
+## 6. Fallback & Recovery Matrix
+
+Zapixal is built with progressive enhancement in mind. Below is the fallback and recovery matrix implemented across the pipeline to handle older browsers, constrained hardware tiers, and sandboxed environments:
+
+| Native Capability / API | Fallback Mechanism | Triggering Condition | Failure Outcome (If Fallback Fails) |
+| :--- | :--- | :--- | :--- |
+| **OffscreenCanvas** | Standard `<canvas>` on the main thread | Browser lacks `OffscreenCanvas` support (older engines). | Processing falls back to main thread `<canvas>`; UI rendering may experience minor frame stutters during massive batches. |
+| **`createImageBitmap`** | Legacy `Image()` constructor with onload/onerror callbacks | Failure or error during direct bitmap generation. | Image fails to decode, setting file status to `'error'`. |
+| **AVIF Encoding (WASM)** | WebP Encoding fallback | Heavy AVIF WASM loader fails or is blocked by runtime constraints. | Image encodes as high-quality WebP. If WebP is unsupported, falls back to native JPEG. |
+| **WASM JPEG/PNG Encoders** | Native Canvas encoding (`canvas.toBlob`) | WASM binary fails to fetch, instantiate, or exceeds thread limit. | Image encodes via browser's native canvas encoder; output sizes are slightly larger but the file succeeds. |
+| **HEIC Decoder Worker** | Direct Object URL / Native engine decode | HEIC worker crashes or fails to instantiate. | Falls back to native object URL rendering. If browser lacks HEIC codecs natively, status is marked `'error'`. |
+| **Concurrent Workers** | Sequential single-thread processing | Low-end hardware tier detected (concurrency = 1) or Eco-Mode active. | Batch processing is processed sequentially to prevent CPU bottlenecks, memory spikes, and browser page crashes. |
+
 ---
 
 

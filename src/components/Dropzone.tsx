@@ -192,7 +192,7 @@ export function Dropzone({ onFilesAdded, fromFormat }: DropzoneProps) {
 
           {/* Format Badges */}
           <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mt-1 sm:mt-2 mb-2">
-            {(fromFormat ? [fromFormat.toUpperCase()] : ['HEIC', 'PNG', 'JPG', 'WebP', 'AVIF', 'PDF']).map((fmt) => (
+            {(fromFormat ? [fromFormat.toUpperCase()] : ['HEIC', 'PNG', 'JPG', 'WebP', 'AVIF']).map((fmt) => (
               <span key={fmt} className="px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-100/80 dark:bg-[#202124] border border-neutral-200/80 dark:border-[#3c4043] rounded-lg uppercase tracking-wider shadow-2xs">
                 {fmt}
               </span>
@@ -208,7 +208,7 @@ export function Dropzone({ onFilesAdded, fromFormat }: DropzoneProps) {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-base text-neutral-500 dark:text-[#9aa0a6] font-medium mt-1">
-            <span>Free unlimited usage</span>
+            <span>Free local conversion (Up to 100 files, 150MB limit)</span>
             <span className="hidden sm:inline">•</span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-blue-700 dark:text-[#8ab4f8] bg-blue-50 dark:bg-[#1e293b] rounded-full border border-blue-200 dark:border-[#384c6c]">
               <span>📋 Paste Image (Ctrl+V / Cmd+V)</span>

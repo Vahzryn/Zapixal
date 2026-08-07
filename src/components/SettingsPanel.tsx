@@ -74,7 +74,10 @@ function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelP
   }, []);
 
   const updateSettings = (updates: Partial<ConversionSettings>) => {
-    onChange({ ...settings, ...updates });
+    const targetFormatMode = updates.targetFormatMode !== undefined 
+      ? updates.targetFormatMode 
+      : (updates.targetFormat ? 'unified' : settings.targetFormatMode || 'per-original');
+    onChange({ ...settings, ...updates, targetFormatMode });
   };
 
   const handleQualityChange = (val: number) => {
@@ -133,6 +136,19 @@ function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelP
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <button
+            onClick={() => {
+              updateSettings({ targetFormatMode: 'per-original' });
+            }}
+            className={cn(
+              "px-3 py-2.5 text-sm font-bold rounded-xl transition-all border-2 cursor-pointer col-span-2 sm:col-span-3",
+              settings.targetFormatMode === 'per-original'
+                ? "border-emerald-600 bg-emerald-600 text-white dark:bg-[#81c995] dark:text-[#202124] dark:border-[#81c995] shadow-sm"
+                : "border-transparent bg-neutral-100 dark:bg-[#202124] text-neutral-600 dark:text-[#9aa0a6] hover:bg-neutral-200 dark:hover:bg-[#3c4043]"
+            )}
+          >
+            Original Format (Auto-Match & Compress)
+          </button>
           {FORMATS.map((format) => (
             <button
               key={format.value}
@@ -142,11 +158,11 @@ function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelP
                 if (format.value === 'avif' && newQuality > 0.70) {
                   newQuality = 0.70;
                 }
-                updateSettings({ targetFormat: format.value, quality: newQuality });
+                updateSettings({ targetFormat: format.value, quality: newQuality, targetFormatMode: 'unified' });
               }}
               className={cn(
                 "px-3 py-2.5 text-sm font-bold rounded-xl transition-all border-2 cursor-pointer",
-                settings.targetFormat === format.value
+                settings.targetFormatMode === 'unified' && settings.targetFormat === format.value
                   ? "border-blue-600 bg-blue-600 text-white dark:bg-[#8ab4f8] dark:text-[#202124] dark:border-[#8ab4f8] shadow-sm"
                   : "border-transparent bg-neutral-100 dark:bg-[#202124] text-neutral-600 dark:text-[#9aa0a6] hover:bg-neutral-200 dark:hover:bg-[#3c4043]"
               )}

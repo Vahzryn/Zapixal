@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../types';
 import { detectHardwareCapabilities } from '../lib/hardwareCapabilities';
-import { formatBytes } from '../lib/utils';
+import { formatBytes, formatOutputFilename, getExtensionFromMime } from '../lib/utils';
+import { safeRandomUUID } from '../lib/capabilities';
 
 interface UseBatchConversionProps {
   settings: ConversionSettings;
@@ -18,6 +19,116 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const [hasConvertedInSession, setHasConvertedInSession] = useState(false);
   const [lastBatchDuration, setLastBatchDuration] = useState<string>('');
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
+  const [showLowTierWarning, setShowLowTierWarning] = useState(false);
+  const [stalledResetMessage, setStalledResetMessage] = useState<string | null>(null);
+
+  // Global unhandled promise rejection listener integration
+  useEffect(() => {
+    const handleGlobalRejection = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const errorMsg = customEvent.detail?.message || '';
+      
+      setFiles(prev => {
+        let matched = false;
+        const nextFiles = prev.map(f => {
+          if (f.status === 'processing') {
+            const matchesName = errorMsg && f.file.name && errorMsg.includes(f.file.name);
+            if (matchesName) {
+              matched = true;
+              return {
+                ...f,
+                status: 'error' as const,
+                error: 'Unhandled operation failure'
+              };
+            }
+          }
+          return f;
+        });
+        
+        if (!matched) {
+          const firstProcessing = prev.find(f => f.status === 'processing');
+          if (firstProcessing) {
+            return prev.map(f => f.id === firstProcessing.id ? {
+              ...f,
+              status: 'error' as const,
+              error: 'Operation failed unexpectedly'
+            } : f);
+          }
+        }
+        return nextFiles as ImageFileItem[];
+      });
+    };
+
+    window.addEventListener('zapixal-unhandled-rejection' as any, handleGlobalRejection);
+    return () => {
+      window.removeEventListener('zapixal-unhandled-rejection' as any, handleGlobalRejection);
+    };
+  }, []);
+
+  // Watchdog timer to detect stalled processing
+  useEffect(() => {
+    if (!isProcessing) return;
+
+    const processingStartedAt = Date.now();
+    let lastProgressAt = Date.now();
+    let lastCompletedCount = completedBatchCountRef.current;
+
+    const intervalId = setInterval(() => {
+      const now = Date.now();
+      const currentCompleted = completedBatchCountRef.current;
+
+      if (currentCompleted !== lastCompletedCount) {
+        lastCompletedCount = currentCompleted;
+        lastProgressAt = now;
+      }
+
+      const totalElapsed = now - processingStartedAt;
+      const noProgressElapsed = now - lastProgressAt;
+
+      // Watchdog conditions: total processing > 45s AND no progress for > 20s
+      if (totalElapsed > 45000 && noProgressElapsed > 20000) {
+        console.warn('Watchdog: Batch processing has stalled. Resetting in-progress files.');
+        
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+
+        setFiles(prev =>
+          prev.map(f =>
+            f.status === 'processing'
+              ? {
+                  ...f,
+                  status: 'pending' as const,
+                  progress: 0,
+                  error: undefined,
+                }
+              : f
+          )
+        );
+
+        setIsProcessing(false);
+        setIsStopping(false);
+        setStalledResetMessage('Conversion stalled and was reset — you can try converting again.');
+
+        import('../lib/imageProcessor').then(m => {
+          m.terminateWorkers();
+        }).catch(e => {
+          console.error('Failed to terminate workers in watchdog:', e);
+        });
+
+        clearInterval(intervalId);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isProcessing]);
+
+  const isProcessingRef = useRef(false);
+  useEffect(() => {
+    isProcessingRef.current = isProcessing;
+  }, [isProcessing]);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const batchStartTimeRef = useRef<number>(0);
@@ -83,8 +194,13 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
   useEffect(() => {
     const config = detectHardwareCapabilities();
-    const cores = typeof navigator !== 'undefined' ? (navigator.hardwareConcurrency || 4) : 4;
-    setConcurrencyProfile(`Optimized (${cores}-core: ${config.maxConcurrentWorkers} workers)${config.mode === 'ECO' ? ' (Eco Mode)' : ''}`);
+    if (config.tier === 'LOW') {
+      setConcurrencyProfile('Optimized for this device (entry-level — sequential processing)');
+    } else if (config.tier === 'MID') {
+      setConcurrencyProfile(`Optimized for this device (balanced — up to ${config.maxConcurrentWorkers} parallel processes)`);
+    } else {
+      setConcurrencyProfile(`Optimized for this device (performance-tier — up to ${config.maxConcurrentWorkers} parallel processes)`);
+    }
   }, []);
 
   const thumbnailQueue = useRef<{ id: string; file: File }[]>([]);
@@ -98,7 +214,16 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       const { generateThumbnail } = await import('../lib/imageProcessor');
       
       while (thumbnailQueue.current.length > 0) {
-        const batch = thumbnailQueue.current.splice(0, 5);
+        if (isProcessingRef.current) {
+          // Pause and wait before pulling items from the queue
+          await new Promise(resolve => setTimeout(resolve, 250));
+          continue;
+        }
+
+        const hw = detectHardwareCapabilities();
+        const batchSize = hw.thumbnailBatchSize;
+        const batch = thumbnailQueue.current.splice(0, batchSize);
+        
         const results = await Promise.all(batch.map(async (item) => {
           try {
             const url = await generateThumbnail(item.file, 120);
@@ -168,7 +293,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
         }
 
         newItems.push({
-          id: crypto.randomUUID(),
+          id: safeRandomUUID(),
           file,
           previewUrl: '',
           originalSize: file.size,
@@ -228,6 +353,27 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           return {
             ...file,
             rotation: newRotation,
+            status: 'pending',
+            blob: undefined,
+            convertedSize: undefined,
+            convertedUrl: undefined,
+          };
+        }
+        return file;
+      })
+    );
+  }, []);
+
+  const handleUpdateFileFormat = useCallback((id: string, format: TargetFormat | undefined) => {
+    setFiles(prev =>
+      prev.map(file => {
+        if (file.id === id) {
+          if (file.convertedUrl) {
+            URL.revokeObjectURL(file.convertedUrl);
+          }
+          return {
+            ...file,
+            customTargetFormat: format,
             status: 'pending',
             blob: undefined,
             convertedSize: undefined,
@@ -326,16 +472,13 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     const a = document.createElement('a');
     a.href = file.convertedUrl;
     
-    let extension = settings.targetFormat.toLowerCase();
-    if (extension === 'jpeg') extension = 'jpg';
-    
-    const baseName = file.file.name.substring(0, file.file.name.lastIndexOf('.')) || file.file.name;
-    const finalName = `${baseName}.${extension}`;
+    const idx = files.findIndex(f => f.id === file.id);
+    const finalName = formatOutputFilename(file, idx !== -1 ? idx : 0, settings);
     a.download = finalName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [settings.targetFormat]);
+  }, [files, settings]);
 
   const handleDownloadAll = useCallback(async () => {
     const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
@@ -343,39 +486,16 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     if (settings.targetFormat === 'pdf') {
       try {
-        const { default: jsPDF } = await import('jspdf');
-        const pdf = new jsPDF();
-        
-        for (let i = 0; i < successfulFiles.length; i++) {
-          const file = successfulFiles[i];
-          if (i > 0) pdf.addPage();
-          
-          const imgData = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file.blob!);
-          });
-          
-          const imgProps = pdf.getImageProperties(imgData);
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = pdf.internal.pageSize.getHeight();
-          const imgRatio = imgProps.width / imgProps.height;
-          const pdfRatio = pdfWidth / pdfHeight;
-          
-          let w = pdfWidth;
-          let h = pdfHeight;
-          if (imgRatio > pdfRatio) {
-            h = pdfWidth / imgRatio;
-          } else {
-            w = pdfHeight * imgRatio;
-          }
-          const x = (pdfWidth - w) / 2;
-          const y = (pdfHeight - h) / 2;
-          
-          pdf.addImage(imgData, 'JPEG', x, y, w, h);
-        }
-        
-        pdf.save('converted-documents.pdf');
+        const { generateCombinedPdf } = await import('../lib/conversionOrchestrator');
+        const pdfBlob = await generateCombinedPdf(successfulFiles, settings);
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zapixal-converted-documents.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       } catch (err) {
         console.error('Failed to generate PDF:', err);
       }
@@ -390,15 +510,26 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     try {
       const JSZip = (await import('jszip')).default;
       const zip = new JSZip();
+      const usedNames = new Set<string>();
       
-      successfulFiles.forEach(file => {
-        let extension = settings.targetFormat.toLowerCase();
-        if (extension === 'jpeg') extension = 'jpg';
+      for (let i = 0; i < successfulFiles.length; i++) {
+        const file = successfulFiles[i];
+        const idx = files.findIndex(f => f.id === file.id);
+        let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
         
-        const baseName = file.file.name.substring(0, file.file.name.lastIndexOf('.')) || file.file.name;
-        const finalName = `${baseName}.${extension}`;
-        zip.file(finalName, file.blob!);
-      });
+        if (usedNames.has(fileName)) {
+          const dotIdx = fileName.lastIndexOf('.');
+          const namePart = dotIdx >= 0 ? fileName.substring(0, dotIdx) : fileName;
+          const extPart = dotIdx >= 0 ? fileName.substring(dotIdx) : '';
+          let counter = 1;
+          while (usedNames.has(`${namePart}_${counter}${extPart}`)) {
+            counter++;
+          }
+          fileName = `${namePart}_${counter}${extPart}`;
+        }
+        usedNames.add(fileName);
+        zip.file(fileName, file.blob!);
+      }
 
       const content = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(content);
@@ -412,7 +543,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     } catch (err) {
       console.error('Failed to generate ZIP:', err);
     }
-  }, [files, settings.targetFormat, handleDownloadSingle]);
+  }, [files, settings, handleDownloadSingle]);
 
   const handleDownloadDirect = useCallback(async () => {
     const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
@@ -432,30 +563,177 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     }
   }, [isProcessing, isStopping]);
 
-  const processFiles = useCallback(async () => {
+  const processFiles = useCallback(async (options?: { forceAll?: boolean; chunked?: boolean }) => {
     if (isProcessing) return;
     
+    setStalledResetMessage(null);
     const pendingFiles = files.filter(f => f.status === 'pending' || f.status === 'error');
     if (pendingFiles.length === 0) return;
+
+    const hw = detectHardwareCapabilities();
+    const totalSize = pendingFiles.reduce((sum, f) => sum + f.originalSize, 0);
+
+    // Trigger warning on LOW tier for batches > 20 or > 300MB
+    if (hw.tier === 'LOW' && (pendingFiles.length > 20 || totalSize > 300 * 1024 * 1024) && !options?.forceAll && !options?.chunked) {
+      setShowLowTierWarning(true);
+      return;
+    }
 
     setIsProcessing(true);
     setIsStopping(false);
     
     abortControllerRef.current = new AbortController();
-    batchStartTimeRef.current = Date.now();
-    completedBatchCountRef.current = 0;
-    totalBatchCountRef.current = pendingFiles.length;
-    setEtaText('Calculating...');
+    
+    const processor = await import('../lib/imageProcessor');
+    const maxConcurrent = hw.maxConcurrentWorkers;
+
+    // Split pendingFiles into chunks of 15 if chunked processing is selected
+    const chunkSize = 15;
+    const chunks: ImageFileItem[][] = [];
+    if (options?.chunked) {
+      for (let i = 0; i < pendingFiles.length; i += chunkSize) {
+        chunks.push(pendingFiles.slice(i, i + chunkSize));
+      }
+    } else {
+      chunks.push(pendingFiles);
+    }
+
+    try {
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        if (abortControllerRef.current?.signal.aborted) break;
+        
+        const currentChunk = chunks[chunkIndex];
+        completedBatchCountRef.current = 0;
+        totalBatchCountRef.current = currentChunk.length;
+        batchStartTimeRef.current = Date.now();
+        setEtaText(options?.chunked ? `Chunk ${chunkIndex + 1} of ${chunks.length}...` : 'Calculating...');
+
+        // Update files in current chunk to 'processing'
+        setFiles(prev => prev.map(f => {
+          if (currentChunk.some(p => p.id === f.id)) {
+            return { ...f, status: 'processing', progress: 0, error: undefined };
+          }
+          return f;
+        }));
+
+        let currentIndex = 0;
+        let activeWorkers = 0;
+
+        await new Promise<void>((resolveChunk) => {
+          const next = () => {
+            if (abortControllerRef.current?.signal.aborted) {
+              if (activeWorkers === 0) {
+                resolveChunk();
+              }
+              return;
+            }
+
+            while (activeWorkers < maxConcurrent && currentIndex < currentChunk.length) {
+              const item = currentChunk[currentIndex++];
+              activeWorkers++;
+
+              processor.convertSingleImage(item, settings, abortControllerRef.current?.signal)
+                .then(result => {
+                  if (abortControllerRef.current?.signal.aborted) {
+                    if (result.convertedUrl) {
+                      try { URL.revokeObjectURL(result.convertedUrl); } catch (e) {}
+                    }
+                    return;
+                  }
+                  setFiles(prev => prev.map(f => f.id === item.id ? {
+                    ...f,
+                    status: 'success',
+                    blob: result.blob,
+                    convertedSize: result.convertedSize,
+                    convertedUrl: result.convertedUrl,
+                    dimensions: result.dimensions,
+                    originalFallback: result.originalFallback,
+                    progress: 100
+                  } : f));
+                })
+                .catch(err => {
+                  if (abortControllerRef.current?.signal.aborted) return;
+                  setFiles(prev => prev.map(f => f.id === item.id ? {
+                    ...f,
+                    status: 'error',
+                    error: err.message || 'Conversion failed'
+                  } : f));
+                })
+                .finally(() => {
+                  activeWorkers--;
+                  completedBatchCountRef.current++;
+                  updateEtaMetrics();
+                  
+                  if (typeof (globalThis as any).scheduler?.yield === 'function') {
+                    (globalThis as any).scheduler.yield().then(next);
+                  } else {
+                    setTimeout(next, 0);
+                  }
+                });
+            }
+
+            if (activeWorkers === 0 && (currentIndex >= currentChunk.length || abortControllerRef.current?.signal.aborted)) {
+              if (abortControllerRef.current?.signal.aborted) {
+                setFiles(prev => prev.map(f => f.status === 'processing' ? { ...f, status: 'pending' } : f));
+              }
+              resolveChunk();
+            }
+          };
+          
+          next();
+        });
+      }
+    } finally {
+      setIsProcessing(false);
+      setIsStopping(false);
+      processor.terminateWorkers();
+    }
+  }, [files, isProcessing, settings, updateEtaMetrics]);
+
+  const pendingCount = files.filter(f => f.status === 'pending' || f.status === 'error').length;
+  const successCount = files.filter(f => f.status === 'success').length;
+  const totalCount = files.length;
+  const processedCount = files.filter(f => f.status === 'success' || f.status === 'error').length;
+  const progressPercent = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
+
+  const setFormat = useCallback((format: TargetFormat) => {
+    setSettings(prev => ({ ...prev, targetFormat: format }));
+  }, [setSettings]);
+
+  const handleReformatItems = useCallback(async (ids: string[], newFormat: TargetFormat) => {
+    if (isProcessing) return;
+    const itemsToReformat = files.filter(f => ids.includes(f.id));
+    if (itemsToReformat.length === 0) return;
+
+    setIsProcessing(true);
+    setIsStopping(false);
+
+    abortControllerRef.current = new AbortController();
+    setEtaText('Reformatting...');
+
+    // Set files to processing, update customTargetFormat, and revoke old URLs
+    setFiles(prev =>
+      prev.map(f => {
+        if (ids.includes(f.id)) {
+          if (f.convertedUrl) {
+            try { URL.revokeObjectURL(f.convertedUrl); } catch (e) {}
+          }
+          return {
+            ...f,
+            status: 'processing',
+            customTargetFormat: newFormat,
+            progress: 0,
+            blob: undefined,
+            convertedSize: undefined,
+            convertedUrl: undefined,
+            error: undefined,
+          };
+        }
+        return f;
+      })
+    );
 
     const processor = await import('../lib/imageProcessor');
-    
-    setFiles(prev => prev.map(f => {
-      if (pendingFiles.some(p => p.id === f.id)) {
-        return { ...f, status: 'processing', progress: 0, error: undefined };
-      }
-      return f;
-    }));
-
     const hardware = detectHardwareCapabilities();
     const maxConcurrent = hardware.maxConcurrentWorkers;
 
@@ -473,11 +751,16 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           return;
         }
 
-        while (activeWorkers < maxConcurrent && currentIndex < pendingFiles.length) {
-          const item = pendingFiles[currentIndex++];
+        while (activeWorkers < maxConcurrent && currentIndex < itemsToReformat.length) {
+          const item = itemsToReformat[currentIndex++];
           activeWorkers++;
 
-          processor.convertSingleImage(item, settings, abortControllerRef.current?.signal)
+          const itemSettings = {
+            ...settings,
+            targetFormat: newFormat,
+          };
+
+          processor.convertSingleImage({ ...item, customTargetFormat: newFormat }, itemSettings, abortControllerRef.current?.signal)
             .then(result => {
               if (abortControllerRef.current?.signal.aborted) {
                 if (result.convertedUrl) {
@@ -501,14 +784,11 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
               setFiles(prev => prev.map(f => f.id === item.id ? {
                 ...f,
                 status: 'error',
-                error: err.message || 'Conversion failed'
+                error: err.message || 'Reformat failed'
               } : f));
             })
             .finally(() => {
               activeWorkers--;
-              completedBatchCountRef.current++;
-              updateEtaMetrics();
-              
               if (typeof (globalThis as any).scheduler?.yield === 'function') {
                 (globalThis as any).scheduler.yield().then(next);
               } else {
@@ -517,33 +797,20 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
             });
         }
 
-        if (activeWorkers === 0 && (currentIndex >= pendingFiles.length || abortControllerRef.current?.signal.aborted)) {
-          if (abortControllerRef.current?.signal.aborted) {
-            setFiles(prev => prev.map(f => f.status === 'processing' ? { ...f, status: 'pending' } : f));
-          }
+        if (activeWorkers === 0 && (currentIndex >= itemsToReformat.length || abortControllerRef.current?.signal.aborted)) {
           setIsProcessing(false);
           setIsStopping(false);
           resolve();
         }
       };
-      
+
       next();
     }).then(() => {
       setIsProcessing(false);
       setIsStopping(false);
       processor.terminateWorkers();
     });
-  }, [files, isProcessing, settings, updateEtaMetrics]);
-
-  const pendingCount = files.filter(f => f.status === 'pending' || f.status === 'error').length;
-  const successCount = files.filter(f => f.status === 'success').length;
-  const totalCount = files.length;
-  const processedCount = files.filter(f => f.status === 'success' || f.status === 'error').length;
-  const progressPercent = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
-
-  const setFormat = useCallback((format: TargetFormat) => {
-    setSettings(prev => ({ ...prev, targetFormat: format }));
-  }, [setSettings]);
+  }, [files, isProcessing, settings]);
 
   return {
     files,
@@ -563,6 +830,8 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     setFormat,
     handleFilesAdded,
     handleRotateItem,
+    handleUpdateFileFormat,
+    handleReformatItems,
     handleRetryFile,
     handleRemoveFile,
     handleClearAll,
@@ -572,5 +841,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     handleDownloadDirect,
     stopProcessing,
     processFiles,
+    showLowTierWarning,
+    setShowLowTierWarning,
+    stalledResetMessage,
+    setStalledResetMessage,
   };
 }

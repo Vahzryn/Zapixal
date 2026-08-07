@@ -1,4 +1,5 @@
-import { ImageFileItem, ConversionSettings, ImageDimensions } from '../types';
+import { ImageFileItem, ConversionSettings, ImageDimensions, TargetFormat } from '../types';
+import { formatBytes } from './utils';
 import { getWorkerPool, PooledWorker } from './workerPool';
 import { validateMagicBytes, encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco } from './codecs';
 import { detectHardwareCapabilities } from './hardwareCapabilities';
@@ -11,6 +12,14 @@ export async function loadImageElement(file: File): Promise<{
   let objectUrl: string;
   let targetFile: File | Blob = file;
   const extension = file.name.split('.').pop()?.toLowerCase() || '';
+
+  // Check TIFF support (only native in Safari)
+  if (extension === 'tiff' || extension === 'tif' || file.type.includes('tiff')) {
+    const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (!isSafari) {
+      throw new Error(`TIFF decoding is not natively supported by this browser. Please convert the TIFF file to PNG or JPEG first, or use Safari.`);
+    }
+  }
 
   // Validate magic bytes first
   try {
@@ -28,64 +37,99 @@ export async function loadImageElement(file: File): Promise<{
     try {
       targetFile = await getWorkerPool().decodeHeic(file);
       objectUrl = URL.createObjectURL(targetFile);
-    } catch (e) {
-      console.warn('HEIC worker decoding failed, falling back to direct object URL:', e);
-      objectUrl = URL.createObjectURL(file);
+    } catch (e: any) {
+      console.error('HEIC worker decoding failed:', e);
+      throw new Error(`Failed to decode HEIC/HEIF file. Ensure the file is not corrupted or try a different HEIC encoder.`);
     }
   } else {
     objectUrl = URL.createObjectURL(file);
   }
 
+  // Helper to construct highly informative error messages
+  const getHelpfulError = (): Error => {
+    if (extension === 'avif') {
+      return new Error(`Failed to decode AVIF. Your browser or operating system may not support AVIF image decoding.`);
+    }
+    if (extension === 'webp') {
+      return new Error(`Failed to decode WebP. Ensure the WebP image is valid and not corrupted.`);
+    }
+    if (extension === 'svg') {
+      return new Error(`Failed to decode SVG. Ensure the SVG file is valid and contains standard XML elements.`);
+    }
+    if (extension === 'gif') {
+      return new Error(`Failed to decode GIF. Ensure the file is valid. Note that animated GIFs are flattened to their first frame.`);
+    }
+    return new Error(`Unsupported or corrupted image file format (${extension.toUpperCase()}).`);
+  };
+
   // Downscale at decode time if hardware caps or settings specify max dimensions
   const hw = detectHardwareCapabilities();
 
-  try {
-    let imgBitmap = await createImageBitmap(targetFile);
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      let imgBitmap = await createImageBitmap(targetFile);
 
-    if (imgBitmap.width > hw.maxCanvasDimension || imgBitmap.height > hw.maxCanvasDimension) {
-      const scale = Math.min(
-        hw.maxCanvasDimension / imgBitmap.width,
-        hw.maxCanvasDimension / imgBitmap.height
-      );
-      const resizeWidth = Math.max(1, Math.round(imgBitmap.width * scale));
-      const resizeHeight = Math.max(1, Math.round(imgBitmap.height * scale));
+      if (imgBitmap.width > hw.maxCanvasDimension || imgBitmap.height > hw.maxCanvasDimension) {
+        const scale = Math.min(
+          hw.maxCanvasDimension / imgBitmap.width,
+          hw.maxCanvasDimension / imgBitmap.height
+        );
+        const resizeWidth = Math.max(1, Math.round(imgBitmap.width * scale));
+        const resizeHeight = Math.max(1, Math.round(imgBitmap.height * scale));
 
-      try {
-        const resizedBitmap = await createImageBitmap(targetFile, {
-          resizeWidth,
-          resizeHeight,
-          resizeQuality: 'high',
-        });
-        imgBitmap.close();
-        imgBitmap = resizedBitmap;
-      } catch (resizeErr) {
-        console.warn('createImageBitmap with resize options failed, keeping unscaled bitmap:', resizeErr);
+        try {
+          const resizedBitmap = await createImageBitmap(targetFile, {
+            resizeWidth,
+            resizeHeight,
+            resizeQuality: 'high',
+          });
+          imgBitmap.close();
+          imgBitmap = resizedBitmap;
+        } catch (resizeErr) {
+          console.warn('createImageBitmap with resize options failed, keeping unscaled bitmap:', resizeErr);
+        }
       }
-    }
 
-    return {
-      img: imgBitmap,
-      dimensions: { width: imgBitmap.width, height: imgBitmap.height },
-      objectUrl,
-    };
-  } catch (err) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        resolve({
-          img,
-          dimensions: { width: img.naturalWidth, height: img.naturalHeight },
-          objectUrl,
-        });
+      return {
+        img: imgBitmap,
+        dimensions: { width: imgBitmap.width, height: imgBitmap.height },
+        objectUrl,
       };
-      img.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        reject(new Error(`Failed to load image: ${file.name}`));
-      };
-      img.src = objectUrl;
-    });
+    } catch (err) {
+      console.warn(`createImageBitmap attempt ${attempt} failed:`, err);
+      if (attempt < maxAttempts) {
+        // Yield to the event loop
+        if (typeof (window as any).scheduler?.yield === 'function') {
+          await (window as any).scheduler.yield();
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+        continue;
+      }
+
+      // If we reach here, we've exhausted all attempts of createImageBitmap.
+      // Now fall back to the Image() method EXACTLY once.
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          resolve({
+            img,
+            dimensions: { width: img.naturalWidth, height: img.naturalHeight },
+            objectUrl,
+          });
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(getHelpfulError());
+        };
+        img.src = objectUrl;
+      });
+    }
   }
+
+  // Fallback return just in case
+  throw getHelpfulError();
 }
 
 export function calculateTargetDimensions(
@@ -201,8 +245,50 @@ export async function convertSingleImage(
     throw new DOMException('The operation was aborted.', 'AbortError');
   }
 
-  const { targetFormat, quality, resize } = settings;
-  const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
+  let derivedFormat: TargetFormat = 'jpg';
+  if (settings.targetFormatMode === 'per-original') {
+    try {
+      const headerBuffer = await item.file.slice(0, 16).arrayBuffer();
+      const validation = validateMagicBytes(headerBuffer);
+      if (validation.valid && validation.format) {
+        if (validation.format === 'jpg' || validation.format === 'png' || validation.format === 'webp' || validation.format === 'bmp' || validation.format === 'ico') {
+          derivedFormat = validation.format as TargetFormat;
+        } else {
+          derivedFormat = 'jpg';
+        }
+      } else {
+        const ext = item.file.name.split('.').pop()?.toLowerCase();
+        if (ext === 'jpg' || ext === 'jpeg') derivedFormat = 'jpg';
+        else if (ext === 'png') derivedFormat = 'png';
+        else if (ext === 'webp') derivedFormat = 'webp';
+        else if (ext === 'bmp') derivedFormat = 'bmp';
+        else if (ext === 'ico') derivedFormat = 'ico';
+        else derivedFormat = 'jpg';
+      }
+    } catch (e) {
+      const ext = item.file.name.split('.').pop()?.toLowerCase();
+      if (ext === 'jpg' || ext === 'jpeg') derivedFormat = 'jpg';
+      else if (ext === 'png') derivedFormat = 'png';
+      else if (ext === 'webp') derivedFormat = 'webp';
+      else if (ext === 'bmp') derivedFormat = 'bmp';
+      else if (ext === 'ico') derivedFormat = 'ico';
+      else derivedFormat = 'jpg';
+    }
+  } else {
+    derivedFormat = settings.targetFormat;
+  }
+
+  if (item.customTargetFormat) {
+    derivedFormat = item.customTargetFormat;
+  }
+
+  const effectiveSettings: ConversionSettings = {
+    ...settings,
+    targetFormat: derivedFormat,
+  };
+
+  const { targetFormat, quality, resize } = effectiveSettings;
+  const effectiveRotation = (((effectiveSettings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
   const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
   // PDF Export
@@ -355,7 +441,7 @@ export async function convertSingleImage(
             {
               id: item.id,
               imageBitmap: loaded.img,
-              settings,
+              settings: effectiveSettings,
               targetDim,
               rotation: effectiveRotation,
               originalSize: item.originalSize,
@@ -421,8 +507,8 @@ export async function convertSingleImage(
       ctx.drawImage(fallbackLoaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
     }
 
-    if (settings.watermarkText && settings.watermarkText.trim()) {
-      const text = settings.watermarkText.trim();
+    if (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim()) {
+      const text = effectiveSettings.watermarkText.trim();
       const fontSize = Math.max(14, Math.round(canvasHeight * 0.04));
       ctx.font = `bold ${fontSize}px sans-serif`;
       ctx.textAlign = 'right';
@@ -463,16 +549,87 @@ export async function convertSingleImage(
     } else {
       convertedBlob = await encodeWebp(canvas, quality);
     }
+
+    // targetMaxKB reduction loop if required on main thread
+    if (effectiveSettings.targetMaxKB && effectiveSettings.targetMaxKB > 0 && targetFormat !== 'ico') {
+      const maxBytes = effectiveSettings.targetMaxKB * 1024;
+      let currentQuality = quality;
+      let step = 0;
+
+      // 1. First degrade quality
+      while (convertedBlob.size > maxBytes && currentQuality > 0.12 && step < 10) {
+        step++;
+        currentQuality = Math.max(0.1, currentQuality * 0.75);
+        if (targetFormat === 'jpg') {
+          const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+          const bytes = await encodeJpeg(imgData, currentQuality, canvas);
+          convertedBlob = new Blob([bytes.buffer], { type: 'image/jpeg' });
+        } else if (targetFormat === 'png') {
+          const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+          const bytes = await encodePng(imgData, currentQuality, item.originalSize, canvas);
+          convertedBlob = new Blob([bytes.buffer], { type: 'image/png' });
+        } else if (targetFormat === 'webp') {
+          convertedBlob = await encodeWebp(canvas, currentQuality);
+        } else if (targetFormat === 'avif') {
+          convertedBlob = await encodeAvif(canvas, currentQuality);
+        } else {
+          break;
+        }
+      }
+
+      // 2. Then scale down dimensions if still too big
+      let currentCanvas: any = canvas;
+      let scale = 0.85;
+      while (convertedBlob.size > maxBytes && scale > 0.15 && step < 15) {
+        step++;
+        const w = Math.max(16, Math.round(canvasWidth * scale));
+        const h = Math.max(16, Math.round(canvasHeight * scale));
+        
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = w;
+        scaledCanvas.height = h;
+        const sCtx = scaledCanvas.getContext('2d');
+        if (sCtx) {
+          sCtx.drawImage(currentCanvas, 0, 0, w, h);
+          if (targetFormat === 'jpg') {
+            const imgData = sCtx.getImageData(0, 0, w, h);
+            const bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
+            convertedBlob = new Blob([bytes.buffer], { type: 'image/jpeg' });
+          } else if (targetFormat === 'png') {
+            const imgData = sCtx.getImageData(0, 0, w, h);
+            const bytes = await encodePng(imgData, currentQuality, item.originalSize, scaledCanvas);
+            convertedBlob = new Blob([bytes.buffer], { type: 'image/png' });
+          } else if (targetFormat === 'webp') {
+            convertedBlob = await encodeWebp(scaledCanvas, currentQuality);
+          } else if (targetFormat === 'avif') {
+            convertedBlob = await encodeAvif(scaledCanvas, currentQuality);
+          } else if (targetFormat === 'bmp') {
+            convertedBlob = await encodeBmp(scaledCanvas);
+          }
+          currentCanvas = scaledCanvas;
+        }
+        scale *= 0.8;
+      }
+
+      if (convertedBlob.size > maxBytes) {
+        throw new Error(`target not reached (final size: ${formatBytes(convertedBlob.size)})`);
+      }
+    }
   }
 
   const hasTransformations =
     effectiveRotation !== 0 ||
-    (settings.resize && settings.resize.enabled) ||
-    (settings.watermarkText && settings.watermarkText.trim() !== '');
+    (effectiveSettings.resize && effectiveSettings.resize.enabled) ||
+    (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim() !== '');
 
-  if (convertedBlob.size > item.originalSize && !hasTransformations && targetFormat !== 'ico') {
+  const isStripExif = effectiveSettings.stripExif !== false;
+  if (convertedBlob.size > item.originalSize && !hasTransformations && targetFormat !== 'ico' && !isStripExif) {
     convertedBlob = item.file;
     originalFallback = true;
+  } else if (originalFallback && !isStripExif) {
+    convertedBlob = item.file;
+  } else {
+    originalFallback = false;
   }
 
   const convertedUrl = URL.createObjectURL(convertedBlob);
@@ -509,61 +666,65 @@ export async function generateCombinedPdf(
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (item.status !== 'success' && item.status !== 'pending') continue;
+    if (item.status !== 'success') continue;
 
-    const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
-    const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
-
-    const loaded = await loadImageElement(item.file);
     try {
-      const dim = calculateTargetDimensions(
-      loaded.dimensions,
-      settings.resize.maxWidth,
-      settings.resize.maxHeight,
-      settings.resize.keepAspectRatio
-    );
+      const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
+      const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
-    const canvasWidth = isRotated90or270 ? dim.height : dim.width;
-    const canvasHeight = isRotated90or270 ? dim.width : dim.height;
-    const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
+      const loaded = await loadImageElement(item.file);
+      try {
+        const dim = calculateTargetDimensions(
+          loaded.dimensions,
+          settings.resize.maxWidth,
+          settings.resize.maxHeight,
+          settings.resize.keepAspectRatio
+        );
 
-    if (!doc) {
-      doc = new jsPDF({
-        orientation,
-        unit: 'px',
-        format: [canvasWidth, canvasHeight],
-      });
-    } else {
-      doc.addPage([canvasWidth, canvasHeight], orientation);
-    }
+        const canvasWidth = isRotated90or270 ? dim.height : dim.width;
+        const canvasHeight = isRotated90or270 ? dim.width : dim.height;
+        const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
 
-    const canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      if (effectiveRotation !== 0) {
-        ctx.save();
-        ctx.translate(canvasWidth / 2, canvasHeight / 2);
-        ctx.rotate((effectiveRotation * Math.PI) / 180);
-        ctx.drawImage(loaded.img as CanvasImageSource, -dim.width / 2, -dim.height / 2, dim.width, dim.height);
-        ctx.restore();
-      } else {
-        ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
+        if (!doc) {
+          doc = new jsPDF({
+            orientation,
+            unit: 'px',
+            format: [canvasWidth, canvasHeight],
+          });
+        } else {
+          doc.addPage([canvasWidth, canvasHeight], orientation);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          if (effectiveRotation !== 0) {
+            ctx.save();
+            ctx.translate(canvasWidth / 2, canvasHeight / 2);
+            ctx.rotate((effectiveRotation * Math.PI) / 180);
+            ctx.drawImage(loaded.img as CanvasImageSource, -dim.width / 2, -dim.height / 2, dim.width, dim.height);
+            ctx.restore();
+          } else {
+            ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
+          }
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          doc.addImage(dataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
+        }
+      } finally {
+        if (loaded.img instanceof ImageBitmap) {
+          try { loaded.img.close(); } catch(e) {}
+        }
+        URL.revokeObjectURL(loaded.objectUrl);
       }
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      doc.addImage(dataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
-    }
-    } finally {
-      if (loaded.img instanceof ImageBitmap) {
-        try { loaded.img.close(); } catch(e) {}
-      }
-      URL.revokeObjectURL(loaded.objectUrl);
+    } catch (itemErr) {
+      console.error(`Skipping failed image ${item.file.name} in combined PDF generation:`, itemErr);
     }
   }
 
-  if (!doc) throw new Error('No images available for PDF compile');
+  if (!doc) throw new Error('No images successfully compiled into PDF');
   return doc.output('blob');
 }
 

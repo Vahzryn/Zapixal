@@ -1,35 +1,63 @@
 export interface HardwareConfig {
   mode: 'STANDARD' | 'ECO';
+  tier: 'LOW' | 'MID' | 'HIGH';
   maxConcurrentWorkers: number;
   maxCanvasDimension: number;
+  thumbnailBatchSize: number;
 }
+
+// Threshold constants for hardware tier classification
+const MEMORY_LOW_THRESHOLD = 2; // GB of RAM
+const CONCURRENCY_LOW_THRESHOLD = 2; // CPU logical cores
+const MEMORY_HIGH_THRESHOLD = 8; // GB of RAM
+const CONCURRENCY_HIGH_THRESHOLD = 8; // CPU logical cores
 
 export function detectHardwareCapabilities(): HardwareConfig {
   const isBrowser = typeof navigator !== 'undefined';
   const hardwareConcurrency = isBrowser ? (navigator.hardwareConcurrency || 2) : 2;
   // @ts-ignore - deviceMemory is non-standard but supported in Chromium
   const deviceMemory = isBrowser ? ((navigator as any).deviceMemory || 4) : 4; // GB
+  
+  // Guard Chromium-only navigator.connection API
+  const isSaveDataActive = isBrowser && !!(navigator as any).connection?.saveData;
 
-  // Default to Standard Mode
-  let config: HardwareConfig = {
-    mode: 'STANDARD',
-    maxConcurrentWorkers: Math.max(1, hardwareConcurrency - 1),
-    maxCanvasDimension: 8192, // High resolution support
-  };
+  // Determine Tier
+  let tier: 'LOW' | 'MID' | 'HIGH' = 'MID';
 
-  // Eco-mode trigger conditions
-  const isLowMemory = deviceMemory <= 4;
-  const isLowCore = hardwareConcurrency <= 4;
-
-  if (isLowMemory || isLowCore) {
-    config = {
-      mode: 'ECO',
-      maxConcurrentWorkers: 1, // Sequential processing
-      maxCanvasDimension: 2560, // Downscale to save memory
-    };
+  if (deviceMemory <= MEMORY_LOW_THRESHOLD || hardwareConcurrency <= CONCURRENCY_LOW_THRESHOLD || isSaveDataActive) {
+    tier = 'LOW';
+  } else if (deviceMemory >= MEMORY_HIGH_THRESHOLD && hardwareConcurrency >= CONCURRENCY_HIGH_THRESHOLD) {
+    tier = 'HIGH';
+  } else {
+    tier = 'MID';
   }
 
-  return config;
+  // Derive config based on tier
+  if (tier === 'LOW') {
+    return {
+      mode: 'ECO',
+      tier: 'LOW',
+      maxConcurrentWorkers: 1,
+      maxCanvasDimension: 2048,
+      thumbnailBatchSize: 1,
+    };
+  } else if (tier === 'MID') {
+    return {
+      mode: 'STANDARD',
+      tier: 'MID',
+      maxConcurrentWorkers: Math.max(1, Math.min(3, hardwareConcurrency - 1)),
+      maxCanvasDimension: 4096, // High resolution support for MID tier
+      thumbnailBatchSize: 2,
+    };
+  } else {
+    return {
+      mode: 'STANDARD',
+      tier: 'HIGH',
+      maxConcurrentWorkers: Math.max(1, Math.min(6, hardwareConcurrency - 1)),
+      maxCanvasDimension: 8192,
+      thumbnailBatchSize: 3,
+    };
+  }
 }
 
 // Battery Status API requires async setup if used, but we can do a quick check
@@ -38,11 +66,13 @@ export async function checkBatteryThrottling(config: HardwareConfig): Promise<Ha
     try {
       const battery = await (navigator as any).getBattery();
       if (!battery.charging && battery.level < 0.2) {
-        console.warn('Low battery detected, switching to ECO mode.');
+        console.warn('Low battery detected, switching to ECO/LOW mode.');
         return {
           mode: 'ECO',
+          tier: 'LOW',
           maxConcurrentWorkers: 1,
-          maxCanvasDimension: 2560,
+          maxCanvasDimension: 2048,
+          thumbnailBatchSize: 1,
         };
       }
     } catch (e) {

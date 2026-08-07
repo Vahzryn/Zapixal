@@ -2,7 +2,7 @@ import React from 'react';
 import { Trash2, Loader2, Zap } from 'lucide-react';
 import { GlobalControls } from '../GlobalControls';
 import { VirtualFileList } from '../VirtualFileList';
-import { ImageFileItem, ConversionSettings } from '../../types';
+import { ImageFileItem, ConversionSettings, TargetFormat } from '../../types';
 import { cn } from '../../lib/utils';
 
 interface QueueSectionProps {
@@ -28,6 +28,10 @@ interface QueueSectionProps {
   onRotateItem: (id: string, delta: number) => void;
   onCompare: (item: ImageFileItem) => void;
   onInspectDetails: (item: ImageFileItem) => void;
+  onUpdateFileFormat?: (id: string, format: TargetFormat | undefined) => void;
+  onReformatItems?: (ids: string[], format: TargetFormat) => void;
+  onReformatItem?: (id: string, format: TargetFormat) => void;
+  concurrencyProfile?: string;
 }
 
 export const QueueSection = React.memo<QueueSectionProps>(function QueueSection({
@@ -53,6 +57,10 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
   onRotateItem,
   onCompare,
   onInspectDetails,
+  onUpdateFileFormat,
+  onReformatItems,
+  onReformatItem,
+  concurrencyProfile,
 }) {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
@@ -71,6 +79,11 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 dark:bg-neutral-800/50">
           <div className="flex items-center gap-3">
             <span className="font-extrabold text-neutral-900 dark:text-white text-lg">Queue ({files.length})</span>
+            {concurrencyProfile && (
+              <span className="text-xs font-semibold text-neutral-400 dark:text-[#9aa0a6] hidden sm:inline" id="hw-tier-badge">
+                • {concurrencyProfile}
+              </span>
+            )}
             {isProcessing && etaText && (
               <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-100 dark:bg-[#1e293b] text-blue-700 dark:text-[#8ab4f8] shadow-sm border border-blue-200 dark:border-[#384c6c] flex items-center gap-1.5">
                 <span>⏱️ {etaText}</span>
@@ -85,6 +98,41 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
             <Trash2 className="w-4 h-4" /> Clear
           </button>
         </div>
+
+        {selectedFileIds.size > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3 border-b border-blue-100 dark:border-blue-900/30 bg-blue-50/30 dark:bg-blue-950/20 text-sm font-bold">
+            <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs rounded-full bg-blue-600 text-white dark:bg-[#8ab4f8] dark:text-neutral-900">
+                {selectedFileIds.size}
+              </span>
+              <span>selected</span>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-xs text-neutral-400 dark:text-[#9aa0a6]">Bulk Reformat:</span>
+              <select
+                disabled={isProcessing}
+                value=""
+                onChange={(e) => {
+                  const format = e.target.value as TargetFormat;
+                  if (format && onReformatItems) {
+                    onReformatItems(Array.from(selectedFileIds), format);
+                  }
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold border-2 rounded-xl bg-white dark:bg-[#202124] border-blue-200 dark:border-[#384c6c] text-blue-700 dark:text-[#8ab4f8] focus:outline-none focus:border-blue-500 cursor-pointer"
+              >
+                <option value="" disabled>Select Format...</option>
+                <option value="webp">WebP (Recommended)</option>
+                <option value="avif">AVIF</option>
+                <option value="jpg">JPEG</option>
+                <option value="png">PNG (Lossless)</option>
+                <option value="pdf">PDF Document</option>
+                <option value="bmp">BMP</option>
+                <option value="ico">ICO</option>
+              </select>
+            </div>
+          </div>
+        )}
         
         {/* Screen reader aria-live progress region */}
         <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -106,6 +154,8 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
             onRotate={onRotateItem}
             onCompare={onCompare}
             onInspectDetails={onInspectDetails}
+            onUpdateFormat={onUpdateFileFormat}
+            onReformatItem={onReformatItem}
           />
         </div>
       </div>

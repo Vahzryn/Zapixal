@@ -15,6 +15,29 @@ export function formatBytes(bytes: number, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
+export function getExtensionFromMime(mimeType: string): string {
+  switch (mimeType) {
+    case 'image/jpeg':
+    case 'image/jpg':
+      return 'jpg';
+    case 'image/png':
+      return 'png';
+    case 'image/webp':
+      return 'webp';
+    case 'image/avif':
+      return 'avif';
+    case 'image/bmp':
+      return 'bmp';
+    case 'image/x-icon':
+    case 'image/vnd.microsoft.icon':
+      return 'ico';
+    case 'application/pdf':
+      return 'pdf';
+    default:
+      return 'jpg';
+  }
+}
+
 export function formatOutputFilename(
   item: ImageFileItem,
   index: number,
@@ -22,7 +45,17 @@ export function formatOutputFilename(
 ): string {
   const originalName = item.file.name.substring(0, item.file.name.lastIndexOf('.')) || item.file.name;
   const originalExt = item.file.name.split('.').pop()?.toLowerCase() || '';
-  const ext = item.originalFallback && originalExt ? originalExt : settings.targetFormat;
+  
+  let ext: string = settings.targetFormat;
+  if (item.blob) {
+    ext = getExtensionFromMime(item.blob.type) as any;
+  } else if (item.originalFallback && originalExt) {
+    ext = originalExt as any;
+  } else if (item.customTargetFormat) {
+    ext = item.customTargetFormat;
+  }
+  
+  if (ext === 'jpeg') ext = 'jpg';
 
   if (settings.renamePattern && settings.renamePattern.trim()) {
     const pattern = settings.renamePattern.trim();

@@ -15,14 +15,23 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
     item.dimensions || null
   );
 
-  const previewUrl = React.useMemo(() => {
-    return item.convertedUrl || URL.createObjectURL(item.file);
+  const [previewUrl, setPreviewUrl] = useState<string>(item.convertedUrl || '');
+
+  useEffect(() => {
+    if (item.convertedUrl) {
+      setPreviewUrl(item.convertedUrl);
+      return;
+    }
+    const url = URL.createObjectURL(item.file);
+    setPreviewUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
   }, [item.convertedUrl, item.file]);
 
   // Extract color palette & verify exact natural dimensions
   useEffect(() => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.src = previewUrl;
 
     img.onload = () => {

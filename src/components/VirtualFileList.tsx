@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ImageFileItem } from '../types';
+import { ImageFileItem, TargetFormat } from '../types';
 import { FileItem } from './FileItem';
 
 interface VirtualFileListProps {
@@ -12,6 +12,8 @@ interface VirtualFileListProps {
   onRotate?: (id: string, deltaDegrees: number) => void;
   onCompare?: (item: ImageFileItem) => void;
   onInspectDetails?: (item: ImageFileItem) => void;
+  onUpdateFormat?: (id: string, format: TargetFormat | undefined) => void;
+  onReformatItem?: (id: string, format: TargetFormat) => void;
 }
 
 const ITEM_HEIGHT = 88;
@@ -27,9 +29,12 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   onRotate,
   onCompare,
   onInspectDetails,
+  onUpdateFormat,
+  onReformatItem,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
+  const [columnCount, setColumnCount] = useState(1);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,6 +46,39 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
     if (el) {
       el.addEventListener('scroll', handleScroll, { passive: true });
       return () => el.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  useEffect(() => {
+    const smQuery = window.matchMedia('(min-width: 640px)');
+    const lgQuery = window.matchMedia('(min-width: 1024px)');
+
+    const updateColumns = () => {
+      if (lgQuery.matches) {
+        setColumnCount(3);
+      } else if (smQuery.matches) {
+        setColumnCount(2);
+      } else {
+        setColumnCount(1);
+      }
+    };
+
+    updateColumns();
+
+    if (smQuery.addEventListener) {
+      smQuery.addEventListener('change', updateColumns);
+      lgQuery.addEventListener('change', updateColumns);
+      return () => {
+        smQuery.removeEventListener('change', updateColumns);
+        lgQuery.removeEventListener('change', updateColumns);
+      };
+    } else {
+      smQuery.addListener(updateColumns);
+      lgQuery.addListener(updateColumns);
+      return () => {
+        smQuery.removeListener(updateColumns);
+        lgQuery.removeListener(updateColumns);
+      };
     }
   }, []);
 
@@ -60,6 +98,8 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
             onRotate={onRotate}
             onCompare={onCompare}
             onInspectDetails={onInspectDetails}
+            onUpdateFormat={onUpdateFormat}
+            onReformatItem={onReformatItem}
           />
         ))}
       </div>
@@ -67,16 +107,20 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   }
 
   const containerHeight = 500;
-  const totalHeight = files.length * ITEM_HEIGHT;
+  const rowCount = Math.ceil(files.length / columnCount);
+  const totalHeight = rowCount * ITEM_HEIGHT;
 
-  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
-  const endIndex = Math.min(
-    files.length - 1,
+  const startRow = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
+  const endRow = Math.min(
+    rowCount - 1,
     Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT) + OVERSCAN
   );
 
+  const startIndex = startRow * columnCount;
+  const endIndex = Math.min(files.length - 1, (endRow + 1) * columnCount - 1);
+
   const visibleItems = files.slice(startIndex, endIndex + 1);
-  const offsetY = startIndex * ITEM_HEIGHT;
+  const offsetY = startRow * ITEM_HEIGHT;
 
   return (
     <div
@@ -101,6 +145,8 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
               onRotate={onRotate}
               onCompare={onCompare}
               onInspectDetails={onInspectDetails}
+              onUpdateFormat={onUpdateFormat}
+              onReformatItem={onReformatItem}
             />
           ))}
         </div>

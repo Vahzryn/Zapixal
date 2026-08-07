@@ -38,64 +38,19 @@ export function useAppRouting({ initialPath, setSettings }: UseAppRoutingOptions
     return parseSeoRoute(currentPath);
   });
 
-  // Handle path transitions & fetch async full SEO JSON
+  // Handle path transitions
   useEffect(() => {
     const embedded = getEmbeddedSeoData();
     if (embedded && embedded.path === currentPath) {
       setSeoData(embedded);
       applySeoToHead(embedded);
     } else {
-      // Set lightweight details immediately
-      const lightSeo = parseSeoRoute(currentPath);
-      setSeoData(lightSeo);
-      applySeoToHead(lightSeo);
-
-      // Async fetch full SEO JSON data (including guideContent and jsonLd)
-      const slug = currentPath === '/' ? 'home' : currentPath.slice(1).replace(/\//g, '-');
-      fetch(`/seo-data/${slug}.json`)
-        .then(res => {
-          if (!res.ok) throw new Error(`Not found: ${res.status}`);
-          return res.json();
-        })
-        .then((fullSeo: SeoRouteData) => {
-          setSeoData(prev => {
-            if (prev.path === fullSeo.path) {
-              applySeoToHead(fullSeo);
-              return fullSeo;
-            }
-            return prev;
-          });
-        })
-        .catch(err => {
-          console.warn('Could not fetch full SEO payload asynchronously, using light version:', err);
-        });
+      // Set details immediately
+      const seo = parseSeoRoute(currentPath);
+      setSeoData(seo);
+      applySeoToHead(seo);
     }
   }, [currentPath]);
-
-  // Handle setting updates when seoData changes
-  useEffect(() => {
-    setSettings(prev => {
-      const updated = { ...prev };
-      if (seoData.toFormat) {
-        updated.targetFormat = seoData.toFormat;
-      }
-      if (seoData.targetMaxKB !== undefined) {
-        updated.targetMaxKB = seoData.targetMaxKB;
-      }
-      if (seoData.stripExif !== undefined) {
-        updated.stripExif = seoData.stripExif;
-      }
-      if (seoData.presetResize) {
-        updated.resize = {
-          enabled: true,
-          keepAspectRatio: true,
-          maxWidth: seoData.presetResize.maxWidth,
-          maxHeight: seoData.presetResize.maxHeight
-        };
-      }
-      return updated;
-    });
-  }, [seoData, setSettings]);
 
   useEffect(() => {
     const handlePopState = () => {

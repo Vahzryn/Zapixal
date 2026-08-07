@@ -7,6 +7,7 @@ export type TargetFormat = 'webp' | 'avif' | 'jpg' | 'png' | 'bmp' | 'ico' | 'pd
 
 export interface ConversionSettings {
   targetFormat: TargetFormat;
+  targetFormatMode?: 'per-original' | 'unified';
   quality: number; // 0 to 1
   targetMaxKB?: number; // Target size under X KB
   resize: {
@@ -31,6 +32,7 @@ export interface ImageFileItem {
   status: 'pending' | 'processing' | 'success' | 'error';
   progress: number;
   rotation?: number; // 0, 90, 180, 270
+  customTargetFormat?: TargetFormat;
   blob?: Blob;
   convertedSize?: number;
   dimensions?: ImageDimensions;

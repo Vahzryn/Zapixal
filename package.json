@@ -14,14 +14,12 @@
   "author": "Zapixal",
   "license": "MIT",
   "scripts": {
-    "predev": "tsx scripts/generate-seo-json.ts",
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "prebuild": "tsx scripts/generate-seo-json.ts",
-    "build": "vite build && tsx scripts/prerender.ts",
+    "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/test-codecs.ts"
+    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts"
   },
   "dependencies": {
     "@jsquash/jpeg": "^1.6.0",
@@ -45,9 +43,12 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/serve-handler": "^6.1.4",
     "@types/upng-js": "^2.1.5",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "puppeteer": "^25.5.0",
+    "serve-handler": "^6.1.7",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

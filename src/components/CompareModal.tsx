@@ -13,7 +13,15 @@ export function CompareModal({ item, onClose }: CompareModalProps) {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const originalUrl = React.useMemo(() => URL.createObjectURL(item.file), [item.file]);
+  const [originalUrl, setOriginalUrl] = useState<string>('');
+
+  React.useEffect(() => {
+    const url = URL.createObjectURL(item.file);
+    setOriginalUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [item.file]);
 
   const handleMove = (clientX: number) => {
     if (!containerRef.current) return;

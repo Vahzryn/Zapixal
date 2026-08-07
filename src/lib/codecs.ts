@@ -185,48 +185,43 @@ export async function encodeAvif(
   canvas: OffscreenCanvas | HTMLCanvasElement,
   quality: number
 ): Promise<Blob> {
+  let blob: Blob;
   if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-    try {
-      return await canvas.convertToBlob({ type: 'image/avif', quality });
-    } catch {
-      return await canvas.convertToBlob({ type: 'image/webp', quality });
-    }
+    blob = await canvas.convertToBlob({ type: 'image/avif', quality });
+  } else {
+    blob = await new Promise<Blob>((resolve, reject) => {
+      (canvas as HTMLCanvasElement).toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('AVIF export failed'))),
+        'image/avif',
+        quality
+      );
+    });
   }
-  return new Promise<Blob>((resolve, reject) => {
-    (canvas as HTMLCanvasElement).toBlob(
-      (b) => {
-        if (b) resolve(b);
-        else {
-          (canvas as HTMLCanvasElement).toBlob(
-            (fallbackBlob) => (fallbackBlob ? resolve(fallbackBlob) : reject(new Error('AVIF export failed'))),
-            'image/webp',
-            quality
-          );
-        }
-      },
-      'image/avif',
-      quality
-    );
-  });
+  if (blob.type !== 'image/avif') {
+    throw new Error('AVIF encoding is not supported by this browser');
+  }
+  return blob;
 }
 
 /**
  * Encodes canvas to BMP Blob.
  */
 export async function encodeBmp(canvas: OffscreenCanvas | HTMLCanvasElement): Promise<Blob> {
+  let blob: Blob;
   if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-    try {
-      return await canvas.convertToBlob({ type: 'image/bmp' });
-    } catch {
-      return await canvas.convertToBlob({ type: 'image/png' });
-    }
+    blob = await canvas.convertToBlob({ type: 'image/bmp' });
+  } else {
+    blob = await new Promise<Blob>((resolve, reject) => {
+      (canvas as HTMLCanvasElement).toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('BMP export failed'))),
+        'image/bmp'
+      );
+    });
   }
-  return new Promise<Blob>((resolve, reject) => {
-    (canvas as HTMLCanvasElement).toBlob(
-      (b) => (b ? resolve(b) : (canvas as HTMLCanvasElement).toBlob((fb) => (fb ? resolve(fb) : reject(new Error('BMP export failed'))), 'image/png')),
-      'image/bmp'
-    );
-  });
+  if (blob.type !== 'image/bmp') {
+    throw new Error('BMP encoding is not supported by this browser');
+  }
+  return blob;
 }
 
 /**

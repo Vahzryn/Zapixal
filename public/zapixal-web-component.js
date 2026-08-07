@@ -314,7 +314,9 @@ class ZapixalBlogWidget extends HTMLElement {
               const script = document.createElement('script');
               script.src = '/vendor/heic2any.min.js';
               script.onload = resolve;
-              script.onerror = reject;
+              script.onerror = () => {
+                reject(new Error('HEIC library failed to load. Please ensure /vendor/heic2any.min.js is available on your server, or use the full application at https://zapixal.com.'));
+              };
               document.head.appendChild(script);
             });
           }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImageFileItem } from '../types';
+import { ImageFileItem, TargetFormat } from '../types';
 import { formatBytes } from '../lib/utils';
 import { CheckCircle2, AlertCircle, Loader2, Download, Trash2, ArrowRight, Eye, GripVertical, RotateCcw, RotateCw, Copy, Check, Info, Image as ImageIcon, RefreshCw } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -15,6 +15,8 @@ interface FileItemProps {
   onRotate?: (id: string, deltaDegrees: number) => void;
   onCompare?: (item: ImageFileItem) => void;
   onInspectDetails?: (item: ImageFileItem) => void;
+  onUpdateFormat?: (id: string, format: TargetFormat | undefined) => void;
+  onReformatItem?: (id: string, format: TargetFormat) => void;
   onDragStart?: (e: React.DragEvent, index: number) => void;
   onDragOver?: (e: React.DragEvent, index: number) => void;
   onDrop?: (e: React.DragEvent, index: number) => void;
@@ -33,6 +35,8 @@ function FileItemComponent({
   onRotate,
   onCompare,
   onInspectDetails,
+  onUpdateFormat,
+  onReformatItem,
   onDragStart,
   onDragOver,
   onDrop,
@@ -169,6 +173,55 @@ function FileItemComponent({
           <span className="text-sm font-bold truncate text-neutral-800 dark:text-[#e8eaed] mb-0.5" title={item.file.name}>
             {item.file.name}
           </span>
+          
+          {onUpdateFormat && !isProcessing && !isComplete && (
+            <div className="flex items-center gap-1 mb-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <span className="text-[10px] font-bold text-neutral-400 dark:text-[#9aa0a6] select-none">To:</span>
+              <select
+                value={item.customTargetFormat || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  onUpdateFormat(item.id, val ? (val as TargetFormat) : undefined);
+                }}
+                className="px-1 py-0.5 text-[10px] font-bold border rounded-md bg-neutral-50 dark:bg-[#202124] border-neutral-200 dark:border-[#3c4043] text-neutral-700 dark:text-[#e8eaed] focus:outline-none focus:border-blue-500 cursor-pointer font-sans"
+              >
+                <option value="">Auto (Match Original/Global)</option>
+                <option value="webp">WebP (Recommended)</option>
+                <option value="avif">AVIF</option>
+                <option value="jpg">JPEG</option>
+                <option value="png">PNG (Lossless)</option>
+                <option value="pdf">PDF Document</option>
+                <option value="bmp">BMP</option>
+                <option value="ico">ICO</option>
+              </select>
+            </div>
+          )}
+
+          {onReformatItem && isComplete && !isProcessing && (
+            <div className="flex items-center gap-1 mb-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-[#81c995] select-none">Reformat:</span>
+              <select
+                value={item.customTargetFormat || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    onReformatItem(item.id, val as TargetFormat);
+                  }
+                }}
+                className="px-1 py-0.5 text-[10px] font-bold border rounded-md bg-emerald-50 dark:bg-[#1a2c20]/50 border-emerald-200 dark:border-[#2d523c] text-emerald-800 dark:text-[#81c995] focus:outline-none focus:border-emerald-500 cursor-pointer font-sans"
+              >
+                <option value="" disabled>Change Format</option>
+                <option value="webp">WebP (Recommended)</option>
+                <option value="avif">AVIF</option>
+                <option value="jpg">JPEG</option>
+                <option value="png">PNG (Lossless)</option>
+                <option value="pdf">PDF Document</option>
+                <option value="bmp">BMP</option>
+                <option value="ico">ICO</option>
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-[#9aa0a6]">
             <span className="shrink-0">{formatBytes(item.originalSize)}</span>
             {rotation !== 0 && (

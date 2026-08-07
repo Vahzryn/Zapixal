@@ -11,6 +11,11 @@ function shouldCache(request, response) {
   const url = new URL(request.url);
   const path = url.pathname.toLowerCase();
 
+  // Only handle HTTP/HTTPS protocols (avoid blob: or data: URLs)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return false;
+  }
+
   // Only handle GET requests
   if (request.method !== 'GET') {
     return false;
@@ -85,6 +90,27 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
   const path = url.pathname.toLowerCase();
+
+  // Navigation Fallback for SPA routing
+  // If the request is for a webpage navigation, try the network first.
+  // If the network is unavailable (offline), fall back to the cached index.html shell.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && shouldCache(event.request, networkResponse)) {
+            const responseClone = networkResponse.clone();
+            // Cache the index.html for future offline navigation fallback
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('/index.html') || caches.match('/');
+        })
+    );
+    return;
+  }
 
   // App Shell & Code Strategy: Network-First (Falling back to Cache if offline)
   // This guarantees that online users always receive the latest JavaScript and HTML deployments.

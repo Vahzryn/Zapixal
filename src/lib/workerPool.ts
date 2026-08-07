@@ -6,6 +6,7 @@
  * to prevent memory leaks and Out-of-Memory (OOM) crashes on large batches.
  */
 import { detectHardwareCapabilities } from './hardwareCapabilities';
+import { hasWebWorkers } from './capabilities';
 
 export interface PooledWorker {
   id: number;
@@ -25,10 +26,16 @@ class WorkerPoolManager {
   private heicWorker: Worker | null = null;
   private heicTaskId = 0;
   private heicResolvers = new Map<number, { resolve: (b: Blob) => void; reject: (e: any) => void }>();
+  private workersSupported: boolean = true;
 
   constructor() {
     const hw = detectHardwareCapabilities();
     this.maxWorkers = Math.max(1, hw.maxConcurrentWorkers);
+    this.workersSupported = hasWebWorkers();
+  }
+
+  public isSupported(): boolean {
+    return this.workersSupported;
   }
 
   public setMaxWorkers(max: number) {
@@ -43,6 +50,10 @@ class WorkerPoolManager {
    * Acquires an available conversion worker or queues until one becomes available.
    */
   public async acquireWorker(): Promise<PooledWorker> {
+    if (!this.workersSupported) {
+      throw new Error('Web Workers are not supported in this browser environment');
+    }
+
     // Look for an idle worker
     const idle = this.conversionWorkers.find((w) => !w.active);
     if (idle) {
@@ -53,10 +64,16 @@ class WorkerPoolManager {
     // Spawn a new worker if under limit
     if (this.conversionWorkers.length < this.maxWorkers) {
       const id = ++this.workerIdCounter;
-      const worker = new Worker(new URL('../workers/conversionWorker.ts', import.meta.url), { type: 'module' });
-      const pooled: PooledWorker = { id, worker, active: true };
-      this.conversionWorkers.push(pooled);
-      return pooled;
+      try {
+        const worker = new Worker(new URL('../workers/conversionWorker.ts', import.meta.url), { type: 'module' });
+        const pooled: PooledWorker = { id, worker, active: true };
+        this.conversionWorkers.push(pooled);
+        return pooled;
+      } catch (err) {
+        console.warn('Failed to spawn a new Web Worker, disabling workers:', err);
+        this.workersSupported = false;
+        throw new Error('Web Worker spawning failed');
+      }
     }
 
     // Wait in queue (backpressure control)
@@ -112,6 +129,9 @@ class WorkerPoolManager {
    * Decodes a HEIC file using dedicated HEIC worker thread.
    */
   public async decodeHeic(file: File): Promise<Blob> {
+    if (!this.workersSupported) {
+      throw new Error('Web Workers are not supported or are disabled in this environment.');
+    }
     const worker = this.getHeicWorker();
     const id = ++this.heicTaskId;
 
@@ -143,21 +163,30 @@ class WorkerPoolManager {
   }
 
   private getHeicWorker(): Worker {
+    if (!this.workersSupported) {
+      throw new Error('Web Workers are not supported or are disabled in this environment.');
+    }
     if (!this.heicWorker) {
-      this.heicWorker = new Worker(new URL('../workers/heicWorker.ts', import.meta.url), { type: 'module' });
-      this.heicWorker.onmessage = (e) => {
-        const { id, status, buffer, mimeType, error } = e.data;
-        const resolver = this.heicResolvers.get(id);
-        if (resolver) {
-          if (status === 'success') {
-            const decodedBlob = new Blob([buffer], { type: mimeType || 'image/jpeg' });
-            resolver.resolve(decodedBlob);
-          } else {
-            resolver.reject(new Error(error || 'HEIC decoding error'));
+      try {
+        this.heicWorker = new Worker(new URL('../workers/heicWorker.ts', import.meta.url), { type: 'module' });
+        this.heicWorker.onmessage = (e) => {
+          const { id, status, buffer, mimeType, error } = e.data;
+          const resolver = this.heicResolvers.get(id);
+          if (resolver) {
+            if (status === 'success') {
+              const decodedBlob = new Blob([buffer], { type: mimeType || 'image/jpeg' });
+              resolver.resolve(decodedBlob);
+            } else {
+              resolver.reject(new Error(error || 'HEIC decoding error'));
+            }
+            this.heicResolvers.delete(id);
           }
-          this.heicResolvers.delete(id);
-        }
-      };
+        };
+      } catch (err) {
+        console.warn('Failed to spawn HEIC worker, disabling workers:', err);
+        this.workersSupported = false;
+        throw new Error('Web Worker spawning failed');
+      }
     }
     return this.heicWorker;
   }
