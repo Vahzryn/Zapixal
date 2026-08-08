@@ -14,6 +14,7 @@ interface VirtualFileListProps {
   onInspectDetails?: (item: ImageFileItem) => void;
   onUpdateFormat?: (id: string, format: TargetFormat | undefined) => void;
   onReformatItem?: (id: string, format: TargetFormat) => void;
+  onSelectRegions?: (item: ImageFileItem) => void;
 }
 
 const DEFAULT_ROW_HEIGHT = 88;
@@ -67,6 +68,7 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   onInspectDetails,
   onUpdateFormat,
   onReformatItem,
+  onSelectRegions,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -156,6 +158,7 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
             onInspectDetails={onInspectDetails}
             onUpdateFormat={onUpdateFormat}
             onReformatItem={onReformatItem}
+            onSelectRegions={onSelectRegions}
           />
         ))}
       </div>
@@ -234,6 +237,7 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
                   onInspectDetails={onInspectDetails}
                   onUpdateFormat={onUpdateFormat}
                   onReformatItem={onReformatItem}
+                  onSelectRegions={onSelectRegions}
                 />
               ))}
             </RowWrapper>

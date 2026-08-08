@@ -1,9 +1,9 @@
 import assert from 'assert';
-import { validateMagicBytes } from '../src/lib/codecs.ts';
-import { parseSeoRoute } from '../src/lib/seo/meta.ts';
-import { calculateTargetDimensions } from '../src/lib/conversionOrchestrator.ts';
+import { validateMagicBytes, injectDpiMetadata } from '../src/lib/codecs.ts';
+import { parseSeoRoute } from '../src/lib/seoEngine.ts';
+import { calculateTargetDimensions, calculateCropRect, getCropSourceRect } from '../src/lib/conversionOrchestrator.ts';
 import { safeRandomUUID, hasCreateImageBitmap, hasOffscreenCanvas } from '../src/lib/capabilities.ts';
-import { detectHardwareCapabilities } from '../src/lib/hardwareCapabilities.ts';
+import { detectHardwareCapabilities, getBatchThresholds, getMaxMegapixels, getMaxPixels } from '../src/lib/hardwareCapabilities.ts';
 
 console.log('Running unit tests for codecs, SEO parsing, and target dimensions...\n');
 
@@ -31,15 +31,15 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
 
 // 2. Test SEO Route Parsing
 {
-  const homepageSeo = parseSeoRoute('/');
+  const homepageSeo = await parseSeoRoute('/');
   assert.strictEqual(homepageSeo.canonicalUrl, 'https://zapixal.com', 'Homepage canonical URL match');
   assert.strictEqual(homepageSeo.isIndexable, true, 'Homepage should be indexable');
 
-  const heicSeo = parseSeoRoute('/convert-heic-to-jpg-locally');
+  const heicSeo = await parseSeoRoute('/convert-heic-to-jpg-locally');
   assert.strictEqual(heicSeo.toFormat, 'jpg', 'HEIC to JPG toFormat should be jpg');
   assert.strictEqual(heicSeo.canonicalUrl, 'https://zapixal.com/convert-heic-to-jpg-locally', 'Canonical URL match');
 
-  const smallCompressSeo = parseSeoRoute('/compress-jpg-under-5kb');
+  const smallCompressSeo = await parseSeoRoute('/compress-jpg-under-5kb');
   assert.strictEqual(smallCompressSeo.isIndexable, false, 'Compress under 5KB should be marked noindex to avoid low quality spam');
 
   console.log('✓ SEO Route Parsing tests passed');
@@ -60,6 +60,102 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   assert.strictEqual(dim2.height, 500);
 
   console.log('✓ Target Dimensions Calculation tests passed');
+}
+
+// 3b. Test Calculate Crop Rect & Rotation Composition
+{
+  // 1:1 Crop on 3000x2000 landscape image
+  const crop1 = calculateCropRect(3000, 2000, { width: 1, height: 1 });
+  assert.strictEqual(crop1.cropWidth, 2000);
+  assert.strictEqual(crop1.cropHeight, 2000);
+  assert.strictEqual(crop1.cropX, 500);
+  assert.strictEqual(crop1.cropY, 0);
+
+  // 16:9 Crop on 2000x3000 portrait image
+  const crop2 = calculateCropRect(2000, 3000, { width: 16, height: 9 });
+  assert.strictEqual(crop2.cropWidth, 2000);
+  assert.strictEqual(crop2.cropHeight, 1125); // 2000 / (16/9) = 1125
+  assert.strictEqual(crop2.cropX, 0);
+  assert.strictEqual(crop2.cropY, 938); // (3000 - 1125) / 2 = 937.5 rounded to 938
+
+  // getCropSourceRect without rotation
+  const rect0 = getCropSourceRect(3000, 2000, 0, { width: 1, height: 1 });
+  assert.strictEqual(rect0.cropX, 500);
+  assert.strictEqual(rect0.cropY, 0);
+  assert.strictEqual(rect0.cropWidth, 2000);
+  assert.strictEqual(rect0.cropHeight, 2000);
+
+  // getCropSourceRect with 90° rotation on 3000x2000 (post-rotation is 2000x3000)
+  // Post-rotation 2000x3000 cropped to 1:1 gives post crop rect: X=0, Y=500, W=2000, H=2000
+  // In source space (3000x2000):
+  // cropX = 3000 - (500 + 2000) = 500
+  // cropY = 0
+  // cropWidth = 2000, cropHeight = 2000
+  const rect90 = getCropSourceRect(3000, 2000, 90, { width: 1, height: 1 });
+  assert.strictEqual(rect90.cropX, 500);
+  assert.strictEqual(rect90.cropY, 0);
+  assert.strictEqual(rect90.cropWidth, 2000);
+  assert.strictEqual(rect90.cropHeight, 2000);
+
+  console.log('✓ Crop Rect & Rotation Composition tests passed');
+}
+
+// 3c. Test DPI Metadata Injection for JPEG & PNG
+{
+  // Test JPEG with existing APP0 segment
+  const dummyJpegApp0 = new Uint8Array([
+    0xFF, 0xD8,                                 // SOI
+    0xFF, 0xE0, 0x00, 0x10,                     // APP0 header, length 16
+    0x4A, 0x46, 0x49, 0x46, 0x00,               // "JFIF\0"
+    0x01, 0x01,                                 // Version 1.1
+    0x00,                                       // Units: 0 (none)
+    0x00, 0x48,                                 // X density 72
+    0x00, 0x48,                                 // Y density 72
+    0x00, 0x00,                                 // Thumbnail 0x0
+    0xFF, 0xDB, 0x00, 0x43                      // DQT dummy
+  ]);
+
+  const jpeg300 = injectDpiMetadata(dummyJpegApp0, 'jpg', 300);
+  assert.strictEqual(jpeg300[13], 1, 'JPEG APP0 units flag must be 1 for DPI');
+  assert.strictEqual((jpeg300[14] << 8) | jpeg300[15], 300, 'JPEG X density must be 300');
+  assert.strictEqual((jpeg300[16] << 8) | jpeg300[17], 300, 'JPEG Y density must be 300');
+
+  // Test JPEG without APP0 (needs APP0 injection)
+  const rawJpeg = new Uint8Array([0xFF, 0xD8, 0xFF, 0xDB, 0x00, 0x43]);
+  const injectedJpeg = injectDpiMetadata(rawJpeg, 'jpg', 150);
+  assert.strictEqual(injectedJpeg[2], 0xFF);
+  assert.strictEqual(injectedJpeg[3], 0xE0);
+  assert.strictEqual(injectedJpeg[13], 1);
+  assert.strictEqual((injectedJpeg[14] << 8) | injectedJpeg[15], 150);
+
+  // Test PNG pHYs chunk injection
+  const dummyPng = new Uint8Array([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+    0x00, 0x00, 0x00, 0x0D,                         // IHDR length 13
+    0x49, 0x48, 0x44, 0x52,                         // "IHDR"
+    0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10, // 16x16
+    0x08, 0x06, 0x00, 0x00, 0x00,                   // 8bit RGBA
+    0x1F, 0x15, 0xC4, 0x89,                         // IHDR CRC
+    0x00, 0x00, 0x00, 0x00,                         // IEND length
+    0x49, 0x45, 0x4E, 0x44,                         // "IEND"
+    0xAE, 0x42, 0x60, 0x82                          // IEND CRC
+  ]);
+
+  const png300 = injectDpiMetadata(dummyPng, 'png', 300);
+  const expectedPpm = Math.round(300 * 39.3701); // 11811 pixels/meter
+  // Check that pHYs chunk exists after IHDR (at byte 33)
+  assert.strictEqual(png300[33], 0x00);
+  assert.strictEqual(png300[34], 0x00);
+  assert.strictEqual(png300[35], 0x00);
+  assert.strictEqual(png300[36], 0x09); // length 9
+  const chunkType = String.fromCharCode(png300[37], png300[38], png300[39], png300[40]);
+  assert.strictEqual(chunkType, 'pHYs');
+  const view = new DataView(png300.buffer, png300.byteOffset, png300.byteLength);
+  assert.strictEqual(view.getUint32(41, false), expectedPpm, 'PNG X pixels per meter must match 300 DPI');
+  assert.strictEqual(view.getUint32(45, false), expectedPpm, 'PNG Y pixels per meter must match 300 DPI');
+  assert.strictEqual(png300[49], 1, 'PNG unit specifier must be 1 (meters)');
+
+  console.log('✓ DPI Metadata Injection tests passed');
 }
 
 // 4. Test Capabilities Fallback Layer & Polyfills
@@ -111,6 +207,19 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   assert.strictEqual(lowCap.tier, 'LOW', '2GB memory / 2 CPU cores should be LOW tier');
   assert.strictEqual(lowCap.maxConcurrentWorkers, 1, 'LOW tier must process sequentially (concurrency = 1)');
 
+  // Mock a Safari/iOS device where deviceMemory is undefined and hardwareConcurrency is 4
+  Object.defineProperty(globalThis.navigator, 'hardwareConcurrency', {
+    value: 4,
+    configurable: true,
+    writable: true,
+  });
+  // @ts-ignore
+  delete (globalThis.navigator as any).deviceMemory;
+
+  const safariLowCap = detectHardwareCapabilities();
+  assert.strictEqual(safariLowCap.tier, 'LOW', 'Safari/iOS with 4 cores and undefined deviceMemory should be LOW tier');
+  assert.strictEqual(safariLowCap.maxConcurrentWorkers, 1, 'Safari/iOS LOW tier must process sequentially');
+
   // Restore navigator properties
   if (origConcurrency) {
     Object.defineProperty(globalThis.navigator, 'hardwareConcurrency', origConcurrency);
@@ -126,6 +235,33 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   }
 
   console.log('✓ Low-Tier Device Concurrency tests passed');
+
+  // Test Tier Batch Thresholds
+  const lowThresh = getBatchThresholds('LOW');
+  assert.strictEqual(lowThresh.optimalBatchBytes, 150 * 1024 * 1024, 'LOW optimal should be 150MB');
+  assert.strictEqual(lowThresh.maxBatchBytes, 450 * 1024 * 1024, 'LOW max should be 450MB');
+
+  const midThresh = getBatchThresholds('MID');
+  assert.strictEqual(midThresh.optimalBatchBytes, 500 * 1024 * 1024, 'MID optimal should be 500MB');
+  assert.strictEqual(midThresh.maxBatchBytes, 1500 * 1024 * 1024, 'MID max should be 1.5GB');
+
+  const highThresh = getBatchThresholds('HIGH');
+  assert.strictEqual(highThresh.optimalBatchBytes, 1500 * 1024 * 1024, 'HIGH optimal should be 1.5GB');
+  assert.strictEqual(highThresh.maxBatchBytes, 4500 * 1024 * 1024, 'HIGH max should be 4.5GB');
+
+  console.log('✓ Tier Batch Thresholds tests passed');
+
+  // Test Tier Megapixel Ceilings
+  assert.strictEqual(getMaxMegapixels('LOW'), 40, 'LOW tier should cap at 40 MP');
+  assert.strictEqual(getMaxPixels('LOW'), 40_000_000, 'LOW tier should cap at 40,000,000 pixels');
+
+  assert.strictEqual(getMaxMegapixels('MID'), 100, 'MID tier should cap at 100 MP');
+  assert.strictEqual(getMaxPixels('MID'), 100_000_000, 'MID tier should cap at 100,000,000 pixels');
+
+  assert.strictEqual(getMaxMegapixels('HIGH'), 300, 'HIGH tier should cap at 300 MP');
+  assert.strictEqual(getMaxPixels('HIGH'), 300_000_000, 'HIGH tier should cap at 300,000,000 pixels');
+
+  console.log('✓ Tier Megapixel Ceilings tests passed');
 }
 
 // 6. Test Unsupported Source Format Helpful Errors

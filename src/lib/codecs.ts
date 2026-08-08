@@ -322,3 +322,169 @@ export async function encodeIco(canvas: OffscreenCanvas | HTMLCanvasElement): Pr
   icoData.set(pngBytes, headerSize + dirSize);
   return new Blob([icoData], { type: 'image/x-icon' });
 }
+
+function crc32(data: Uint8Array): number {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) {
+    let byte = data[i];
+    crc ^= byte;
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 1) !== 0) {
+        crc = (crc >>> 1) ^ 0xEDB88320;
+      } else {
+        crc = crc >>> 1;
+      }
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/**
+ * Injects DPI metadata into JPEG (JFIF header) or PNG (pHYs chunk) byte arrays.
+ */
+export function injectDpiMetadata(
+  bytes: Uint8Array,
+  format: 'jpg' | 'png' | 'jpeg',
+  dpi: number
+): Uint8Array {
+  if (!dpi || dpi <= 0 || !bytes || bytes.length === 0) {
+    return bytes;
+  }
+
+  const fmt = format === 'jpeg' ? 'jpg' : format;
+
+  if (fmt === 'jpg') {
+    if (bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) {
+      return bytes;
+    }
+
+    const result = new Uint8Array(bytes);
+
+    if (
+      result[2] === 0xFF &&
+      result[3] === 0xE0 &&
+      result[6] === 0x4A &&
+      result[7] === 0x46 &&
+      result[8] === 0x49 &&
+      result[9] === 0x46 &&
+      result[10] === 0x00
+    ) {
+      result[13] = 1; // units: 1 = dots per inch
+      result[14] = (dpi >> 8) & 0xFF;
+      result[15] = dpi & 0xFF;
+      result[16] = (dpi >> 8) & 0xFF;
+      result[17] = dpi & 0xFF;
+      return result;
+    } else {
+      const app0 = new Uint8Array(18);
+      app0[0] = 0xFF;
+      app0[1] = 0xE0;
+      app0[2] = 0x00;
+      app0[3] = 0x10;
+      app0[4] = 0x4A;
+      app0[5] = 0x46;
+      app0[6] = 0x49;
+      app0[7] = 0x46;
+      app0[8] = 0x00;
+      app0[9] = 0x01;
+      app0[10] = 0x01;
+      app0[11] = 0x01;
+      app0[12] = (dpi >> 8) & 0xFF;
+      app0[13] = dpi & 0xFF;
+      app0[14] = (dpi >> 8) & 0xFF;
+      app0[15] = dpi & 0xFF;
+      app0[16] = 0x00;
+      app0[17] = 0x00;
+
+      const newBytes = new Uint8Array(bytes.length + 18);
+      newBytes.set(bytes.subarray(0, 2), 0);
+      newBytes.set(app0, 2);
+      newBytes.set(bytes.subarray(2), 20);
+      return newBytes;
+    }
+  }
+
+  if (fmt === 'png') {
+    if (
+      bytes.length < 8 ||
+      bytes[0] !== 0x89 ||
+      bytes[1] !== 0x50 ||
+      bytes[2] !== 0x4E ||
+      bytes[3] !== 0x47
+    ) {
+      return bytes;
+    }
+
+    const ppm = Math.round(dpi * 39.3701);
+
+    const physChunk = new Uint8Array(21);
+    const view = new DataView(physChunk.buffer);
+
+    view.setUint32(0, 9, false);
+    physChunk[4] = 0x70;
+    physChunk[5] = 0x48;
+    physChunk[6] = 0x59;
+    physChunk[7] = 0x73;
+    view.setUint32(8, ppm, false);
+    view.setUint32(12, ppm, false);
+    physChunk[16] = 1;
+
+    const crcVal = crc32(physChunk.subarray(4, 17));
+    view.setUint32(17, crcVal, false);
+
+    let physOffset = -1;
+    let physLength = -1;
+    let offset = 8;
+
+    while (offset + 12 <= bytes.length) {
+      const chunkLen =
+        ((bytes[offset] << 24) >>> 0) +
+        (bytes[offset + 1] << 16) +
+        (bytes[offset + 2] << 8) +
+        bytes[offset + 3];
+
+      const type = String.fromCharCode(
+        bytes[offset + 4],
+        bytes[offset + 5],
+        bytes[offset + 6],
+        bytes[offset + 7]
+      );
+
+      if (type === 'pHYs') {
+        physOffset = offset;
+        physLength = 12 + chunkLen;
+        break;
+      }
+
+      if (type === 'IEND') break;
+      offset += 12 + chunkLen;
+    }
+
+    if (physOffset !== -1) {
+      const newBytes = new Uint8Array(bytes.length - physLength + physChunk.length);
+      newBytes.set(bytes.subarray(0, physOffset), 0);
+      newBytes.set(physChunk, physOffset);
+      newBytes.set(bytes.subarray(physOffset + physLength), physOffset + physChunk.length);
+      return newBytes;
+    } else {
+      let ihdrEnd = 33;
+      if (bytes.length >= 33) {
+        const ihdrLen =
+          ((bytes[8] << 24) >>> 0) +
+          (bytes[9] << 16) +
+          (bytes[10] << 8) +
+          bytes[11];
+        ihdrEnd = 8 + 12 + ihdrLen;
+      }
+
+      const newBytes = new Uint8Array(bytes.length + physChunk.length);
+      newBytes.set(bytes.subarray(0, ihdrEnd), 0);
+      newBytes.set(physChunk, ihdrEnd);
+      newBytes.set(bytes.subarray(ihdrEnd), ihdrEnd + physChunk.length);
+      return newBytes;
+    }
+  }
+
+  return bytes;
+}
+

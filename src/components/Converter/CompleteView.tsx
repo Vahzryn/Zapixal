@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Sparkles, DownloadCloud, Share2 } from 'lucide-react';
+import { Check, Sparkles, DownloadCloud, Share2, FolderDown } from 'lucide-react';
 import { ImageFileItem, ConversionSettings } from '../../types';
 import { formatBytes } from '../../lib/utils';
 
@@ -9,6 +9,8 @@ interface CompleteViewProps {
   isCopiedShareLink: boolean;
   onDownloadAll: () => void;
   onDownloadDirect: () => void;
+  onDownloadToDirectory?: () => void;
+  hasDirectoryPicker?: boolean;
   onShareApp: () => void;
   onClearAll: () => void;
 }
@@ -19,6 +21,8 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
   isCopiedShareLink,
   onDownloadAll,
   onDownloadDirect,
+  onDownloadToDirectory,
+  hasDirectoryPicker,
   onShareApp,
   onClearAll,
 }) {
@@ -68,11 +72,12 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full mt-4">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1 sm:flex-initial">
+      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full mt-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2 flex-1 sm:flex-initial flex-wrap">
           <button
             onClick={onDownloadAll}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 text-base sm:text-lg font-black text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-lg active:scale-95 transition-all"
+            id="btn-download-all"
           >
             <DownloadCloud className="w-5 h-5 sm:w-6 sm:h-6" />
             {(() => {
@@ -81,10 +86,24 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
               return 'Download All (.ZIP)';
             })()}
           </button>
+
+          {hasDirectoryPicker && onDownloadToDirectory && successCount > 1 && settings.targetFormat !== 'pdf' && (
+            <button
+              onClick={onDownloadToDirectory}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer"
+              title="Save files directly to a directory on your machine with zero memory overhead"
+              id="btn-save-to-folder"
+            >
+              <FolderDown className="w-5 h-5 shrink-0" />
+              Save to Folder
+            </button>
+          )}
+
           {successCount > 1 && settings.targetFormat !== 'pdf' && (
             <button
               onClick={onDownloadDirect}
               className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-sm active:scale-95 transition-all"
+              id="btn-download-separately"
             >
               Download Separately
             </button>

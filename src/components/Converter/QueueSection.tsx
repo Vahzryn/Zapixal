@@ -1,9 +1,9 @@
 import React from 'react';
-import { Trash2, Loader2, Zap } from 'lucide-react';
+import { Trash2, Loader2, Zap, AlertTriangle, ShieldCheck, X } from 'lucide-react';
 import { GlobalControls } from '../GlobalControls';
 import { VirtualFileList } from '../VirtualFileList';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../../types';
-import { cn } from '../../lib/utils';
+import { cn, formatBytes } from '../../lib/utils';
 
 interface QueueSectionProps {
   files: ImageFileItem[];
@@ -31,7 +31,13 @@ interface QueueSectionProps {
   onUpdateFileFormat?: (id: string, format: TargetFormat | undefined) => void;
   onReformatItems?: (ids: string[], format: TargetFormat) => void;
   onReformatItem?: (id: string, format: TargetFormat) => void;
+  onSelectRegions?: (item: ImageFileItem) => void;
   concurrencyProfile?: string;
+  showLargeBatchBanner?: boolean;
+  onDismissLargeBatchBanner?: () => void;
+  showAutoChunkedBanner?: boolean;
+  onDismissAutoChunkedBanner?: () => void;
+  totalPendingBytes?: number;
 }
 
 export const QueueSection = React.memo<QueueSectionProps>(function QueueSection({
@@ -60,10 +66,64 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
   onUpdateFileFormat,
   onReformatItems,
   onReformatItem,
+  onSelectRegions,
   concurrencyProfile,
+  showLargeBatchBanner,
+  onDismissLargeBatchBanner,
+  showAutoChunkedBanner,
+  onDismissAutoChunkedBanner,
+  totalPendingBytes,
 }) {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+      {/* Large Batch Non-Blocking Banner */}
+      {showLargeBatchBanner && (
+        <div 
+          className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl flex items-center justify-between gap-3 text-amber-900 dark:text-amber-200 animate-in slide-in-from-top-2 duration-200"
+          id="large-batch-warning-banner"
+        >
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-left">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>This is a large batch for your device. Processing will take longer. We recommend folder-save mode below for the most reliable result.</span>
+          </div>
+          {onDismissLargeBatchBanner && (
+            <button
+              onClick={onDismissLargeBatchBanner}
+              className="p-1.5 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer shrink-0"
+              aria-label="Dismiss banner"
+              id="btn-dismiss-large-batch-banner"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Auto-Chunked Notice Banner */}
+      {showAutoChunkedBanner && (
+        <div 
+          className="p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl flex items-center justify-between gap-3 text-blue-900 dark:text-blue-200 animate-in slide-in-from-top-2 duration-200"
+          id="auto-chunked-notice-banner"
+        >
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-left">
+            <ShieldCheck className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span>
+              Memory-Safe Export Engaged: Total batch size ({formatBytes(totalPendingBytes || 0)}) reaches your device safety threshold. Chunked processing mode was automatically engaged to protect your device from memory strain.
+            </span>
+          </div>
+          {onDismissAutoChunkedBanner && (
+            <button
+              onClick={onDismissAutoChunkedBanner}
+              className="p-1.5 rounded-xl text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer shrink-0"
+              aria-label="Dismiss notice"
+              id="btn-dismiss-auto-chunked-banner"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
       <GlobalControls 
         settings={settings} 
         onChange={setSettings} 
@@ -156,6 +216,7 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
             onInspectDetails={onInspectDetails}
             onUpdateFormat={onUpdateFileFormat}
             onReformatItem={onReformatItem}
+            onSelectRegions={onSelectRegions}
           />
         </div>
       </div>

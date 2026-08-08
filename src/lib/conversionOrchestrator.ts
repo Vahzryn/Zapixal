@@ -1,8 +1,8 @@
 import { ImageFileItem, ConversionSettings, ImageDimensions, TargetFormat } from '../types';
 import { formatBytes } from './utils';
 import { getWorkerPool, PooledWorker } from './workerPool';
-import { validateMagicBytes, encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco } from './codecs';
-import { detectHardwareCapabilities } from './hardwareCapabilities';
+import { validateMagicBytes, encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from './codecs';
+import { detectHardwareCapabilities, getMaxPixels, getMaxMegapixels } from './hardwareCapabilities';
 
 export async function loadImageElement(file: File): Promise<{
   img: ImageBitmap | HTMLImageElement;
@@ -64,11 +64,21 @@ export async function loadImageElement(file: File): Promise<{
 
   // Downscale at decode time if hardware caps or settings specify max dimensions
   const hw = detectHardwareCapabilities();
+  const maxPixels = getMaxPixels(hw.tier);
+  const maxMP = getMaxMegapixels(hw.tier);
 
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       let imgBitmap = await createImageBitmap(targetFile);
+
+      // Check decoded pixel dimensions safety ceiling before proceeding
+      const decodedPixels = imgBitmap.width * imgBitmap.height;
+      if (decodedPixels > maxPixels) {
+        imgBitmap.close();
+        URL.revokeObjectURL(objectUrl);
+        throw new Error(`Image dimensions too large to process safely on this device (${Math.round(decodedPixels / 1_000_000)} MP exceeds ${maxMP} MP limit)`);
+      }
 
       if (imgBitmap.width > hw.maxCanvasDimension || imgBitmap.height > hw.maxCanvasDimension) {
         const scale = Math.min(
@@ -96,7 +106,10 @@ export async function loadImageElement(file: File): Promise<{
         dimensions: { width: imgBitmap.width, height: imgBitmap.height },
         objectUrl,
       };
-    } catch (err) {
+    } catch (err: any) {
+      if (err.message && err.message.includes('Image dimensions too large to process safely on this device')) {
+        throw err;
+      }
       console.warn(`createImageBitmap attempt ${attempt} failed:`, err);
       if (attempt < maxAttempts) {
         // Yield to the event loop
@@ -113,6 +126,12 @@ export async function loadImageElement(file: File): Promise<{
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
+          const decodedPixels = img.naturalWidth * img.naturalHeight;
+          if (decodedPixels > maxPixels) {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error(`Image dimensions too large to process safely on this device (${Math.round(decodedPixels / 1_000_000)} MP exceeds ${maxMP} MP limit)`));
+            return;
+          }
           resolve({
             img,
             dimensions: { width: img.naturalWidth, height: img.naturalHeight },
@@ -165,6 +184,93 @@ export function calculateTargetDimensions(
     width: Math.max(1, width),
     height: Math.max(1, height),
   };
+}
+
+export function calculateCropRect(
+  sourceWidth: number,
+  sourceHeight: number,
+  targetRatio: { width: number; height: number }
+): { cropX: number; cropY: number; cropWidth: number; cropHeight: number } {
+  if (sourceWidth <= 0 || sourceHeight <= 0 || !targetRatio || targetRatio.width <= 0 || targetRatio.height <= 0) {
+    return { cropX: 0, cropY: 0, cropWidth: Math.max(1, sourceWidth), cropHeight: Math.max(1, sourceHeight) };
+  }
+
+  const targetAspect = targetRatio.width / targetRatio.height;
+  const sourceAspect = sourceWidth / sourceHeight;
+
+  let cropWidth: number;
+  let cropHeight: number;
+
+  if (sourceAspect > targetAspect) {
+    // Source is wider than target ratio -> crop width
+    cropHeight = sourceHeight;
+    cropWidth = sourceHeight * targetAspect;
+  } else {
+    // Source is taller than or equal to target ratio -> crop height
+    cropWidth = sourceWidth;
+    cropHeight = sourceWidth / targetAspect;
+  }
+
+  const cropX = Math.max(0, Math.min((sourceWidth - cropWidth) / 2, sourceWidth - cropWidth));
+  const cropY = Math.max(0, Math.min((sourceHeight - cropHeight) / 2, sourceHeight - cropHeight));
+
+  return {
+    cropX: Math.round(cropX),
+    cropY: Math.round(cropY),
+    cropWidth: Math.round(cropWidth),
+    cropHeight: Math.round(cropHeight),
+  };
+}
+
+export function getCropSourceRect(
+  sourceWidth: number,
+  sourceHeight: number,
+  rotation: number,
+  cropRatio?: { width: number; height: number } | null
+): { cropX: number; cropY: number; cropWidth: number; cropHeight: number } {
+  const effectiveRotation = ((rotation % 360) + 360) % 360;
+  const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
+  const postRotWidth = isRotated90or270 ? sourceHeight : sourceWidth;
+  const postRotHeight = isRotated90or270 ? sourceWidth : sourceHeight;
+
+  if (!cropRatio || cropRatio.width <= 0 || cropRatio.height <= 0) {
+    return { cropX: 0, cropY: 0, cropWidth: sourceWidth, cropHeight: sourceHeight };
+  }
+
+  const cropRectPost = calculateCropRect(postRotWidth, postRotHeight, cropRatio);
+  const { cropX: X, cropY: Y, cropWidth: W, cropHeight: H } = cropRectPost;
+
+  let cropX = 0;
+  let cropY = 0;
+  let cropWidth = sourceWidth;
+  let cropHeight = sourceHeight;
+
+  if (effectiveRotation === 0) {
+    cropX = X;
+    cropY = Y;
+    cropWidth = W;
+    cropHeight = H;
+  } else if (effectiveRotation === 90) {
+    cropX = sourceWidth - (Y + H);
+    cropY = X;
+    cropWidth = H;
+    cropHeight = W;
+  } else if (effectiveRotation === 180) {
+    cropX = sourceWidth - (X + W);
+    cropY = sourceHeight - (Y + H);
+    cropWidth = W;
+    cropHeight = H;
+  } else if (effectiveRotation === 270) {
+    cropX = Y;
+    cropY = sourceHeight - (X + W);
+    cropWidth = H;
+    cropHeight = W;
+  }
+
+  cropX = Math.max(0, Math.min(cropX, sourceWidth - cropWidth));
+  cropY = Math.max(0, Math.min(cropY, sourceHeight - cropHeight));
+
+  return { cropX, cropY, cropWidth, cropHeight };
 }
 
 export async function generateThumbnail(file: File, maxDim: number = 200): Promise<string> {
@@ -299,43 +405,61 @@ export async function convertSingleImage(
         throw new DOMException('The operation was aborted.', 'AbortError');
       }
 
+      const pdfSourceW = loaded.dimensions.width;
+      const pdfSourceH = loaded.dimensions.height;
+      const pdfPostW = isRotated90or270 ? pdfSourceH : pdfSourceW;
+      const pdfPostH = isRotated90or270 ? pdfSourceW : pdfSourceH;
+
+      let pdfCroppedW = pdfPostW;
+      let pdfCroppedH = pdfPostH;
+      if (effectiveSettings.cropAspectRatio && effectiveSettings.cropAspectRatio.width > 0 && effectiveSettings.cropAspectRatio.height > 0) {
+        const cropPost = calculateCropRect(pdfPostW, pdfPostH, effectiveSettings.cropAspectRatio);
+        pdfCroppedW = cropPost.cropWidth;
+        pdfCroppedH = cropPost.cropHeight;
+      }
+
       const targetDim = calculateTargetDimensions(
-      loaded.dimensions,
-      resize.maxWidth,
-      resize.maxHeight,
-      resize.keepAspectRatio
-    );
+        { width: pdfCroppedW, height: pdfCroppedH },
+        resize.maxWidth,
+        resize.maxHeight,
+        resize.keepAspectRatio
+      );
 
-    const canvasWidth = isRotated90or270 ? targetDim.height : targetDim.width;
-    const canvasHeight = isRotated90or270 ? targetDim.width : targetDim.height;
+      const canvasWidth = targetDim.width;
+      const canvasHeight = targetDim.height;
 
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.jsPDF;
-    const doc = new jsPDF({
-      orientation: canvasWidth > canvasHeight ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [canvasWidth, canvasHeight],
-    });
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.jsPDF;
+      const doc = new jsPDF({
+        orientation: canvasWidth > canvasHeight ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvasWidth, canvasHeight],
+      });
 
-    if (signal?.aborted) {
-      throw new DOMException('The operation was aborted.', 'AbortError');
-    }
+      if (signal?.aborted) {
+        throw new DOMException('The operation was aborted.', 'AbortError');
+      }
 
-    const canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas context not available');
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
 
-    if (effectiveRotation !== 0) {
-      ctx.save();
-      ctx.translate(canvasWidth / 2, canvasHeight / 2);
-      ctx.rotate((effectiveRotation * Math.PI) / 180);
-      ctx.drawImage(loaded.img as CanvasImageSource, -targetDim.width / 2, -targetDim.height / 2, targetDim.width, targetDim.height);
-      ctx.restore();
-    } else {
-      ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
-    }
+      const pdfCropSource = getCropSourceRect(pdfSourceW, pdfSourceH, effectiveRotation, effectiveSettings.cropAspectRatio);
+      if (effectiveRotation !== 0) {
+        const drawW = isRotated90or270 ? canvasHeight : canvasWidth;
+        const drawH = isRotated90or270 ? canvasWidth : canvasHeight;
+        ctx.save();
+        ctx.translate(canvasWidth / 2, canvasHeight / 2);
+        ctx.rotate((effectiveRotation * Math.PI) / 180);
+        ctx.drawImage(loaded.img as CanvasImageSource, pdfCropSource.cropX, pdfCropSource.cropY, pdfCropSource.cropWidth, pdfCropSource.cropHeight, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.restore();
+      } else {
+        ctx.drawImage(loaded.img as CanvasImageSource, pdfCropSource.cropX, pdfCropSource.cropY, pdfCropSource.cropWidth, pdfCropSource.cropHeight, 0, 0, canvasWidth, canvasHeight);
+      }
+
+      applyBlurAndPixelateRegions(ctx, canvasWidth, canvasHeight, item.blurRegions, item.blurMode);
 
     const imgDataUrl = canvas.toDataURL('image/jpeg', Math.max(0.6, quality));
     doc.addImage(imgDataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
@@ -364,15 +488,28 @@ export async function convertSingleImage(
     throw new DOMException('The operation was aborted.', 'AbortError');
   }
 
+  const sourceW = loaded.dimensions.width;
+  const sourceH = loaded.dimensions.height;
+  const postRotW = isRotated90or270 ? sourceH : sourceW;
+  const postRotH = isRotated90or270 ? sourceW : sourceH;
+
+  let croppedW = postRotW;
+  let croppedH = postRotH;
+  if (effectiveSettings.cropAspectRatio && effectiveSettings.cropAspectRatio.width > 0 && effectiveSettings.cropAspectRatio.height > 0) {
+    const cropPost = calculateCropRect(postRotW, postRotH, effectiveSettings.cropAspectRatio);
+    croppedW = cropPost.cropWidth;
+    croppedH = cropPost.cropHeight;
+  }
+
   const targetDim = calculateTargetDimensions(
-    loaded.dimensions,
+    { width: croppedW, height: croppedH },
     resize.enabled ? resize.maxWidth : undefined,
     resize.enabled ? resize.maxHeight : undefined,
     resize.keepAspectRatio
   );
 
-  const canvasWidth = isRotated90or270 ? targetDim.height : targetDim.width;
-  const canvasHeight = isRotated90or270 ? targetDim.width : targetDim.height;
+  const canvasWidth = targetDim.width;
+  const canvasHeight = targetDim.height;
 
   let convertedBlob: Blob | null = null;
   let originalFallback = false;
@@ -445,6 +582,8 @@ export async function convertSingleImage(
               targetDim,
               rotation: effectiveRotation,
               originalSize: item.originalSize,
+              blurRegions: item.blurRegions,
+              blurMode: item.blurMode,
             },
             [loaded.img] // Transfer ImageBitmap ownership for zero copy
           );
@@ -497,15 +636,23 @@ export async function convertSingleImage(
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
+    const fbSourceW = fallbackLoaded.dimensions.width;
+    const fbSourceH = fallbackLoaded.dimensions.height;
+    const cropSource = getCropSourceRect(fbSourceW, fbSourceH, effectiveRotation, effectiveSettings.cropAspectRatio);
+
     if (effectiveRotation !== 0) {
+      const drawW = isRotated90or270 ? canvasHeight : canvasWidth;
+      const drawH = isRotated90or270 ? canvasWidth : canvasHeight;
       ctx.save();
       ctx.translate(canvasWidth / 2, canvasHeight / 2);
       ctx.rotate((effectiveRotation * Math.PI) / 180);
-      ctx.drawImage(fallbackLoaded.img as CanvasImageSource, -targetDim.width / 2, -targetDim.height / 2, targetDim.width, targetDim.height);
+      ctx.drawImage(fallbackLoaded.img as CanvasImageSource, cropSource.cropX, cropSource.cropY, cropSource.cropWidth, cropSource.cropHeight, -drawW / 2, -drawH / 2, drawW, drawH);
       ctx.restore();
     } else {
-      ctx.drawImage(fallbackLoaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
+      ctx.drawImage(fallbackLoaded.img as CanvasImageSource, cropSource.cropX, cropSource.cropY, cropSource.cropWidth, cropSource.cropHeight, 0, 0, canvasWidth, canvasHeight);
     }
+
+    applyBlurAndPixelateRegions(ctx, canvasWidth, canvasHeight, item.blurRegions, item.blurMode);
 
     if (effectiveSettings.grayscale) {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
@@ -546,11 +693,17 @@ export async function convertSingleImage(
       convertedBlob = await encodeIco(canvas);
     } else if (targetFormat === 'png') {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-      const pngBytes = await encodePng(imgData, quality, item.originalSize, canvas);
+      let pngBytes = await encodePng(imgData, quality, item.originalSize, canvas);
+      if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+        pngBytes = injectDpiMetadata(pngBytes, 'png', effectiveSettings.targetDPI);
+      }
       convertedBlob = new Blob([pngBytes.buffer], { type: 'image/png' });
     } else if (targetFormat === 'jpg') {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-      const jpegBytes = await encodeJpeg(imgData, quality, canvas);
+      let jpegBytes = await encodeJpeg(imgData, quality, canvas);
+      if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+        jpegBytes = injectDpiMetadata(jpegBytes, 'jpg', effectiveSettings.targetDPI);
+      }
       convertedBlob = new Blob([jpegBytes.buffer], { type: 'image/jpeg' });
     } else if (targetFormat === 'webp') {
       convertedBlob = await encodeWebp(canvas, quality);
@@ -574,11 +727,17 @@ export async function convertSingleImage(
         currentQuality = Math.max(0.1, currentQuality * 0.75);
         if (targetFormat === 'jpg') {
           const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-          const bytes = await encodeJpeg(imgData, currentQuality, canvas);
+          let bytes = await encodeJpeg(imgData, currentQuality, canvas);
+          if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+            bytes = injectDpiMetadata(bytes, 'jpg', effectiveSettings.targetDPI);
+          }
           convertedBlob = new Blob([bytes.buffer], { type: 'image/jpeg' });
         } else if (targetFormat === 'png') {
           const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-          const bytes = await encodePng(imgData, currentQuality, item.originalSize, canvas);
+          let bytes = await encodePng(imgData, currentQuality, item.originalSize, canvas);
+          if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+            bytes = injectDpiMetadata(bytes, 'png', effectiveSettings.targetDPI);
+          }
           convertedBlob = new Blob([bytes.buffer], { type: 'image/png' });
         } else if (targetFormat === 'webp') {
           convertedBlob = await encodeWebp(canvas, currentQuality);
@@ -605,11 +764,17 @@ export async function convertSingleImage(
           sCtx.drawImage(currentCanvas, 0, 0, w, h);
           if (targetFormat === 'jpg') {
             const imgData = sCtx.getImageData(0, 0, w, h);
-            const bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
+            let bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
+            if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+              bytes = injectDpiMetadata(bytes, 'jpg', effectiveSettings.targetDPI);
+            }
             convertedBlob = new Blob([bytes.buffer], { type: 'image/jpeg' });
           } else if (targetFormat === 'png') {
             const imgData = sCtx.getImageData(0, 0, w, h);
-            const bytes = await encodePng(imgData, currentQuality, item.originalSize, scaledCanvas);
+            let bytes = await encodePng(imgData, currentQuality, item.originalSize, scaledCanvas);
+            if (effectiveSettings.targetDPI && effectiveSettings.targetDPI > 0) {
+              bytes = injectDpiMetadata(bytes, 'png', effectiveSettings.targetDPI);
+            }
             convertedBlob = new Blob([bytes.buffer], { type: 'image/png' });
           } else if (targetFormat === 'webp') {
             convertedBlob = await encodeWebp(scaledCanvas, currentQuality);
@@ -774,4 +939,81 @@ export async function generateBatchZip(
   }
 
   return await zip.generateAsync({ type: 'blob' });
+}
+
+export function applyBlurAndPixelateRegions(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  regions: Array<{ x: number; y: number; width: number; height: number }> | undefined,
+  mode: 'blur' | 'pixelate' | undefined
+) {
+  if (!regions || regions.length === 0) return;
+  const activeMode = mode || 'blur';
+
+  for (const region of regions) {
+    const rx = Math.round(region.x * canvasWidth);
+    const ry = Math.round(region.y * canvasHeight);
+    const rw = Math.round(region.width * canvasWidth);
+    const rh = Math.round(region.height * canvasHeight);
+
+    if (rw <= 0 || rh <= 0) continue;
+
+    if (activeMode === 'blur') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rx, ry, rw, rh);
+      ctx.clip();
+
+      try {
+        const tempCanvas = typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(rw, rh)
+          : document.createElement('canvas');
+        tempCanvas.width = rw;
+        tempCanvas.height = rh;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.drawImage(ctx.canvas, rx, ry, rw, rh, 0, 0, rw, rh);
+          
+          // Draw with blur filter
+          ctx.filter = 'blur(16px)';
+          ctx.drawImage(tempCanvas as any, rx, ry);
+        }
+      } catch (err) {
+        // Fallback: draw directly
+        ctx.filter = 'blur(16px)';
+        ctx.drawImage(ctx.canvas, rx, ry, rw, rh, rx, ry, rw, rh);
+      }
+      ctx.restore();
+    } else {
+      // Pixelate
+      ctx.save();
+      try {
+        const scale = 0.08; // 8% of original size
+        const sw = Math.max(1, Math.round(rw * scale));
+        const sh = Math.max(1, Math.round(rh * scale));
+
+        const tempCanvas = typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(sw, sh)
+          : document.createElement('canvas');
+        tempCanvas.width = sw;
+        tempCanvas.height = sh;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.imageSmoothingEnabled = false;
+          tempCtx.drawImage(ctx.canvas, rx, ry, rw, rh, 0, 0, sw, sh);
+
+          ctx.imageSmoothingEnabled = false;
+          (ctx as any).mozImageSmoothingEnabled = false;
+          (ctx as any).webkitImageSmoothingEnabled = false;
+          (ctx as any).msImageSmoothingEnabled = false;
+
+          ctx.drawImage(tempCanvas as any, 0, 0, sw, sh, rx, ry, rw, rh);
+        }
+      } catch (err) {
+        console.error('Failed to pixelate region:', err);
+      }
+      ctx.restore();
+    }
+  }
 }

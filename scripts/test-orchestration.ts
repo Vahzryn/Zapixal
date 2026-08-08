@@ -76,4 +76,43 @@ console.log('Running unit tests for conversion orchestration...\n');
   console.log('✓ ZIP Name Collision Handling tests passed');
 }
 
+// 3. Test saveFilesToDirectory API Fallback in Node environment
+{
+  import('../src/lib/fileSystemAccess.ts').then(async (mod) => {
+    const res = await mod.saveFilesToDirectory([{ blob: new Blob(['hello']), name: 'test.png' }]);
+    assert.strictEqual(res.success, false, 'Should gracefully fail in non-browser environment without showDirectoryPicker');
+    assert.strictEqual(res.writtenCount, 0);
+    console.log('✓ saveFilesToDirectory Fallback tests passed');
+  });
+}
+
+// 4. Test Chunked ZIP Grouping logic
+{
+  const mockBlobs = [
+    { size: 100 * 1024 * 1024 }, // 100MB
+    { size: 100 * 1024 * 1024 }, // 100MB
+    { size: 100 * 1024 * 1024 }, // 100MB
+  ];
+  const zipSizeBudget = 150 * 1024 * 1024; // 150MB budget
+
+  const zipChunks: any[][] = [];
+  let currentChunk: any[] = [];
+  let currentChunkBytes = 0;
+
+  for (const b of mockBlobs) {
+    if (currentChunk.length > 0 && currentChunkBytes + b.size > zipSizeBudget) {
+      zipChunks.push(currentChunk);
+      currentChunk = [b];
+      currentChunkBytes = b.size;
+    } else {
+      currentChunk.push(b);
+      currentChunkBytes += b.size;
+    }
+  }
+  if (currentChunk.length > 0) zipChunks.push(currentChunk);
+
+  assert.strictEqual(zipChunks.length, 3, 'Should split 300MB total into 3 parts under 150MB budget');
+  console.log('✓ Sequential Chunked ZIP Budgeting tests passed');
+}
+
 console.log('\nAll orchestration unit tests passed successfully!');

@@ -16,7 +16,8 @@ export function detectHardwareCapabilities(): HardwareConfig {
   const isBrowser = typeof navigator !== 'undefined';
   const hardwareConcurrency = isBrowser ? (navigator.hardwareConcurrency || 2) : 2;
   // @ts-ignore - deviceMemory is non-standard but supported in Chromium
-  const deviceMemory = isBrowser ? ((navigator as any).deviceMemory || 4) : 4; // GB
+  const rawMemory = isBrowser ? (navigator as any).deviceMemory : undefined;
+  const deviceMemory: number | undefined = typeof rawMemory === 'number' ? rawMemory : undefined;
   
   // Guard Chromium-only navigator.connection API
   const isSaveDataActive = isBrowser && !!(navigator as any).connection?.saveData;
@@ -24,12 +25,27 @@ export function detectHardwareCapabilities(): HardwareConfig {
   // Determine Tier
   let tier: 'LOW' | 'MID' | 'HIGH' = 'MID';
 
-  if (deviceMemory <= MEMORY_LOW_THRESHOLD || hardwareConcurrency <= CONCURRENCY_LOW_THRESHOLD || isSaveDataActive) {
+  if (isSaveDataActive) {
     tier = 'LOW';
-  } else if (deviceMemory >= MEMORY_HIGH_THRESHOLD && hardwareConcurrency >= CONCURRENCY_HIGH_THRESHOLD) {
-    tier = 'HIGH';
+  } else if (deviceMemory !== undefined) {
+    if (deviceMemory <= MEMORY_LOW_THRESHOLD || hardwareConcurrency <= CONCURRENCY_LOW_THRESHOLD) {
+      tier = 'LOW';
+    } else if (deviceMemory >= MEMORY_HIGH_THRESHOLD && hardwareConcurrency >= CONCURRENCY_HIGH_THRESHOLD) {
+      tier = 'HIGH';
+    } else {
+      tier = 'MID';
+    }
   } else {
-    tier = 'MID';
+    // When deviceMemory is unavailable (e.g. Safari / iOS WebKit):
+    // Rely conservatively on hardwareConcurrency alone.
+    // Classify devices where deviceMemory is unavailable and hardwareConcurrency <= 4 as LOW tier.
+    if (hardwareConcurrency <= 4) {
+      tier = 'LOW';
+    } else if (hardwareConcurrency >= CONCURRENCY_HIGH_THRESHOLD) {
+      tier = 'HIGH';
+    } else {
+      tier = 'MID';
+    }
   }
 
   // Derive config based on tier
@@ -81,3 +97,44 @@ export async function checkBatteryThrottling(config: HardwareConfig): Promise<Ha
   }
   return config;
 }
+
+export interface BatchThresholds {
+  optimalBatchBytes: number;
+  maxBatchBytes: number;
+}
+
+export function getBatchThresholds(tier: 'LOW' | 'MID' | 'HIGH'): BatchThresholds {
+  switch (tier) {
+    case 'LOW':
+      return {
+        optimalBatchBytes: 150 * 1024 * 1024,      // 150 MB
+        maxBatchBytes: 450 * 1024 * 1024,          // 450 MB
+      };
+    case 'MID':
+      return {
+        optimalBatchBytes: 500 * 1024 * 1024,      // 500 MB
+        maxBatchBytes: 1500 * 1024 * 1024,         // 1.5 GB
+      };
+    case 'HIGH':
+      return {
+        optimalBatchBytes: 1500 * 1024 * 1024,     // 1.5 GB
+        maxBatchBytes: 4500 * 1024 * 1024,         // 4.5 GB
+      };
+  }
+}
+
+export function getMaxMegapixels(tier: 'LOW' | 'MID' | 'HIGH'): number {
+  switch (tier) {
+    case 'LOW':
+      return 40;
+    case 'MID':
+      return 100;
+    case 'HIGH':
+      return 300;
+  }
+}
+
+export function getMaxPixels(tier: 'LOW' | 'MID' | 'HIGH'): number {
+  return getMaxMegapixels(tier) * 1_000_000;
+}
+

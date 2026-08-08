@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConversionSettings, TargetFormat } from '../types';
-import { Settings2, Maximize, FileImage, FileText, Sparkles, Stamp, ShieldCheck, RotateCw } from 'lucide-react';
+import { Settings2, Maximize, FileImage, FileText, Sparkles, Stamp, ShieldCheck, RotateCw, Crop, Printer } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SettingsPanelProps {
@@ -57,6 +57,15 @@ const PRESETS = [
 function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelProps) {
   const [showAdvanced, setShowAdvanced] = React.useState(true);
   const [localQuality, setLocalQuality] = React.useState(settings.quality);
+  const [customCropWidth, setCustomCropWidth] = React.useState<string>(
+    settings.cropAspectRatio ? String(settings.cropAspectRatio.width) : '16'
+  );
+  const [customCropHeight, setCustomCropHeight] = React.useState<string>(
+    settings.cropAspectRatio ? String(settings.cropAspectRatio.height) : '9'
+  );
+  const [customDpiInput, setCustomDpiInput] = React.useState<string>(
+    settings.targetDPI ? String(settings.targetDPI) : '300'
+  );
   const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Synchronize localQuality when upstream settings.quality changes from outside (e.g. presets)
@@ -360,6 +369,204 @@ function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelP
                   </label>
                 </div>
               )}
+            </div>
+
+            {/* 2b. Crop Aspect Ratio */}
+            <div className="pt-4 border-t border-neutral-200/60 dark:border-[#3c4043]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-indigo-100 dark:bg-[#1e2338] text-indigo-600 dark:text-[#a8b1ff] rounded-lg">
+                    <Crop className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-neutral-800 dark:text-[#e8eaed]">Crop Aspect Ratio</h4>
+                  </div>
+                </div>
+                {settings.cropAspectRatio && (
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ cropAspectRatio: null })}
+                    className="text-[11px] font-bold text-indigo-600 dark:text-[#a8b1ff] hover:underline cursor-pointer"
+                  >
+                    Clear Crop
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 p-4 bg-white dark:bg-[#202124] border border-indigo-100 dark:border-[#282d4a] rounded-xl">
+                <div>
+                  <span className="block mb-1.5 text-xs font-bold text-neutral-600 dark:text-[#9aa0a6]">
+                    Aspect Ratio Presets (Centered Crop)
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                    {[
+                      { label: 'None (Full)', value: null },
+                      { label: '1:1 Square', value: { width: 1, height: 1 } },
+                      { label: '4:5 Portrait', value: { width: 4, height: 5 } },
+                      { label: '16:9 Landscape', value: { width: 16, height: 9 } },
+                      { label: '3:2 Classic', value: { width: 3, height: 2 } },
+                    ].map((preset) => {
+                      const isActive = preset.value === null
+                        ? !settings.cropAspectRatio
+                        : settings.cropAspectRatio?.width === preset.value.width && settings.cropAspectRatio?.height === preset.value.height;
+                      return (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => {
+                            updateSettings({ cropAspectRatio: preset.value });
+                            if (preset.value) {
+                              setCustomCropWidth(String(preset.value.width));
+                              setCustomCropHeight(String(preset.value.height));
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-1.5 text-[11px] font-bold rounded-lg border transition-all text-center truncate cursor-pointer",
+                            isActive
+                              ? "bg-indigo-600 text-white border-indigo-600 dark:bg-[#8ab4f8] dark:text-[#202124] dark:border-[#8ab4f8]"
+                              : "bg-neutral-50 dark:bg-[#303134] text-neutral-700 dark:text-[#e8eaed] border-neutral-200 dark:border-[#3c4043] hover:border-indigo-400"
+                          )}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Aspect Ratio */}
+                <div className="pt-2 border-t border-neutral-100 dark:border-[#3c4043]">
+                  <label className="block mb-1.5 text-xs font-bold text-neutral-600 dark:text-[#9aa0a6]">
+                    Custom Aspect Ratio (Width : Height)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={customCropWidth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomCropWidth(val);
+                        const w = parseFloat(val);
+                        const h = parseFloat(customCropHeight);
+                        if (!isNaN(w) && w > 0 && !isNaN(h) && h > 0) {
+                          updateSettings({ cropAspectRatio: { width: w, height: h } });
+                        }
+                      }}
+                      placeholder="Width"
+                      className="w-24 px-3 py-1.5 text-xs font-semibold border-2 rounded-xl bg-neutral-50 dark:bg-[#303134] border-neutral-200 dark:border-[#3c4043] text-neutral-800 dark:text-[#e8eaed] focus:border-indigo-500 focus:outline-none transition-colors shadow-xs"
+                    />
+                    <span className="text-xs font-bold text-neutral-500 dark:text-[#9aa0a6]">:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={customCropHeight}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomCropHeight(val);
+                        const w = parseFloat(customCropWidth);
+                        const h = parseFloat(val);
+                        if (!isNaN(w) && w > 0 && !isNaN(h) && h > 0) {
+                          updateSettings({ cropAspectRatio: { width: w, height: h } });
+                        }
+                      }}
+                      placeholder="Height"
+                      className="w-24 px-3 py-1.5 text-xs font-semibold border-2 rounded-xl bg-neutral-50 dark:bg-[#303134] border-neutral-200 dark:border-[#3c4043] text-neutral-800 dark:text-[#e8eaed] focus:border-indigo-500 focus:outline-none transition-colors shadow-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2c. Target DPI Metadata */}
+            <div className="pt-4 border-t border-neutral-200/60 dark:border-[#3c4043]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-indigo-100 dark:bg-[#1e2338] text-indigo-600 dark:text-[#a8b1ff] rounded-lg">
+                    <Printer className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-neutral-800 dark:text-[#e8eaed]">Target DPI Metadata</h4>
+                  </div>
+                </div>
+                {settings.targetDPI && (
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ targetDPI: null })}
+                    className="text-[11px] font-bold text-indigo-600 dark:text-[#a8b1ff] hover:underline cursor-pointer"
+                  >
+                    Clear DPI
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 p-4 bg-white dark:bg-[#202124] border border-indigo-100 dark:border-[#282d4a] rounded-xl">
+                <div>
+                  <span className="block mb-1.5 text-xs font-bold text-neutral-600 dark:text-[#9aa0a6]">
+                    DPI Presets (Metadata Only)
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {[
+                      { label: 'Default / Unset', value: null },
+                      { label: '72 DPI (Web)', value: 72 },
+                      { label: '150 DPI (Draft)', value: 150 },
+                      { label: '300 DPI (Print)', value: 300 },
+                    ].map((preset) => {
+                      const isActive = preset.value === null
+                        ? !settings.targetDPI
+                        : settings.targetDPI === preset.value;
+                      return (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => {
+                            updateSettings({ targetDPI: preset.value });
+                            if (preset.value) {
+                              setCustomDpiInput(String(preset.value));
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-1.5 text-[11px] font-bold rounded-lg border transition-all text-center truncate cursor-pointer",
+                            isActive
+                              ? "bg-indigo-600 text-white border-indigo-600 dark:bg-[#8ab4f8] dark:text-[#202124] dark:border-[#8ab4f8]"
+                              : "bg-neutral-50 dark:bg-[#303134] text-neutral-700 dark:text-[#e8eaed] border-neutral-200 dark:border-[#3c4043] hover:border-indigo-400"
+                          )}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom DPI Input */}
+                <div className="pt-2 border-t border-neutral-100 dark:border-[#3c4043] flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-600 dark:text-[#9aa0a6]">
+                    Custom DPI Value
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="2400"
+                      value={customDpiInput}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomDpiInput(val);
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num) && num > 0) {
+                          updateSettings({ targetDPI: num });
+                        }
+                      }}
+                      placeholder="e.g. 300"
+                      className="w-28 px-3 py-1.5 text-xs font-semibold border-2 rounded-xl bg-neutral-50 dark:bg-[#303134] border-neutral-200 dark:border-[#3c4043] text-neutral-800 dark:text-[#e8eaed] focus:border-indigo-500 focus:outline-none transition-colors shadow-xs"
+                    />
+                    <span className="text-xs font-medium text-neutral-500 dark:text-[#9aa0a6]">DPI</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* 3. Batch Rotation & EXIF Metadata Privacy */}

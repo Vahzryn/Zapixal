@@ -63,7 +63,7 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
 
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-[#18191c] px-3.5 py-2 rounded-xl border border-slate-200/60 dark:border-[#282a2e] shrink-0 font-sans">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>Zero server uploads — 100% private</span>
+            <span>Zero server uploads — Secure processing</span>
           </div>
 
         </div>
@@ -98,46 +98,65 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
           </div>
         </div>
 
-        {/* Discrete Toolset Section */}
+        {/* Discrete Toolset Section - All links always rendered in DOM for SEO crawlers */}
         {PSEO_ROUTES_LIST.length > 0 && (
           <div className="py-4 border-b border-slate-200/70 dark:border-[#222428]">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setIsToolsetOpen(!isToolsetOpen)}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-[#18191c] border border-slate-200/80 dark:border-[#2a2c30] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-[#383a40] transition-all cursor-pointer shadow-xs"
                 aria-expanded={isToolsetOpen}
-                aria-label="Toggle toolset directory"
+                aria-label="Toggle toolset directory view"
               >
                 <ZapIcon className="w-3.5 h-3.5 text-blue-500" />
                 <span>Zapixal Toolset Directory ({PSEO_ROUTES_LIST.length})</span>
-                {isToolsetOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                {isToolsetOpen ? (
+                  <>
+                    <span className="text-[10px] text-slate-400 font-normal">(Collapse)</span>
+                    <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[10px] text-slate-400 font-normal">(Show All)</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  </>
+                )}
               </button>
             </div>
 
-            {isToolsetOpen && (
-              <div className="mt-3 p-4 rounded-2xl bg-white/80 dark:bg-[#18191c]/80 border border-slate-200/70 dark:border-[#282a2e] animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                  {PSEO_ROUTES_LIST.map((route) => {
-                    const isActive = currentPath === route.path;
-                    return (
-                      <a
-                        key={route.path}
-                        href={route.path}
-                        onClick={(e) => handleClick(e, route.path)}
-                        className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
-                          isActive
-                            ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold'
-                            : 'border-transparent hover:border-slate-200/80 dark:hover:border-[#2e3035] hover:bg-slate-100/60 dark:hover:bg-[#202226] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
-                        }`}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                        <span className="truncate">{route.label}</span>
-                      </a>
-                    );
-                  })}
-                </div>
+            <div
+              className={`relative rounded-2xl bg-white/80 dark:bg-[#18191c]/80 border border-slate-200/70 dark:border-[#282a2e] transition-all duration-300 ease-in-out ${
+                isToolsetOpen ? 'max-h-[3000px] p-4' : 'max-h-48 p-4 overflow-hidden'
+              }`}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                {PSEO_ROUTES_LIST.map((route) => {
+                  const isActive = currentPath === route.path;
+                  return (
+                    <a
+                      key={route.path}
+                      href={route.path}
+                      onClick={(e) => handleClick(e, route.path)}
+                      className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
+                        isActive
+                          ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold'
+                          : 'border-transparent hover:border-slate-200/80 dark:hover:border-[#2e3035] hover:bg-slate-100/60 dark:hover:bg-[#202226] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <span className="truncate">{route.label}</span>
+                    </a>
+                  );
+                })}
               </div>
-            )}
+
+              {!isToolsetOpen && (
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-50 via-slate-50/90 dark:from-[#121315] dark:via-[#121315]/90 to-transparent pointer-events-none flex items-end justify-center pb-2 rounded-b-2xl"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
           </div>
         )}
 

@@ -53,6 +53,64 @@ export async function saveFileDirectly(blob: Blob, defaultName: string) {
 }
 
 /**
+ * Strategy C: Native Directory Picker Streaming
+ * Streams multiple files directly to a selected output directory using File System Access API.
+ */
+export async function saveFilesToDirectory(
+  items: Array<{ blob?: Blob; name?: string; file?: { name: string } }>,
+  getFileName?: (item: any, index: number) => string
+): Promise<{ success: boolean; writtenCount: number; canceled?: boolean }> {
+  if (typeof window === 'undefined' || !('showDirectoryPicker' in window)) {
+    return { success: false, writtenCount: 0 };
+  }
+
+  try {
+    const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+    let writtenCount = 0;
+    const usedNames = new Set<string>();
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.blob) continue;
+
+      let fileName = getFileName
+        ? getFileName(item, i)
+        : (item.name || item.file?.name || `converted_${i + 1}`);
+
+      if (usedNames.has(fileName)) {
+        const dotIdx = fileName.lastIndexOf('.');
+        const namePart = dotIdx >= 0 ? fileName.substring(0, dotIdx) : fileName;
+        const extPart = dotIdx >= 0 ? fileName.substring(dotIdx) : '';
+        let counter = 1;
+        while (usedNames.has(`${namePart}_${counter}${extPart}`)) {
+          counter++;
+        }
+        fileName = `${namePart}_${counter}${extPart}`;
+      }
+      usedNames.add(fileName);
+
+      try {
+        const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(item.blob);
+        await writable.close();
+        writtenCount++;
+      } catch (fileErr) {
+        console.error(`Failed writing file ${fileName} to directory:`, fileErr);
+      }
+    }
+
+    return { success: true, writtenCount };
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      return { success: false, writtenCount: 0, canceled: true };
+    }
+    console.error('Directory Picker Error:', err);
+    return { success: false, writtenCount: 0 };
+  }
+}
+
+/**
  * Setup Global Clipboard Paste Listener
  */
 export function setupClipboardPasteListener(onFilesPasted: (files: File[]) => void) {

@@ -9,6 +9,7 @@ import { SeoGuideContent } from './components/Converter/SeoGuideContent';
 import { QueueSection } from './components/Converter/QueueSection';
 import { ModalsOrchestrator } from './components/Modals/ModalsOrchestrator';
 import { LowTierWarningModal } from './components/Modals/LowTierWarningModal';
+import { RegionSelector } from './components/RegionSelector';
 
 import { useAppRouting } from './hooks/useAppRouting';
 import { usePwaInstall } from './hooks/usePwaInstall';
@@ -55,6 +56,7 @@ export default function App({ initialPath }: AppProps) {
 
   const [compareItem, setCompareItem] = useState<ImageFileItem | null>(null);
   const [inspectItem, setInspectItem] = useState<ImageFileItem | null>(null);
+  const [redactItem, setRedactItem] = useState<ImageFileItem | null>(null);
 
   // Extracted Custom Hooks
   const { currentPath, handleNavigate, seoData } = useAppRouting({ initialPath, setSettings });
@@ -78,6 +80,7 @@ export default function App({ initialPath }: AppProps) {
     handleFilesAdded,
     handleRotateItem,
     handleUpdateFileFormat,
+    handleUpdateBlurRegions,
     handleReformatItems,
     handleRetryFile,
     handleRemoveFile,
@@ -86,6 +89,8 @@ export default function App({ initialPath }: AppProps) {
     handleDownloadSingle,
     handleDownloadAll,
     handleDownloadDirect,
+    handleDownloadToDirectory,
+    hasDirectoryPicker,
     stopProcessing,
     processFiles,
     showLowTierWarning,
@@ -93,6 +98,11 @@ export default function App({ initialPath }: AppProps) {
     concurrencyProfile,
     stalledResetMessage,
     setStalledResetMessage,
+    showLargeBatchBanner,
+    dismissLargeBatchBanner,
+    showAutoChunkedBanner,
+    dismissAutoChunkedBanner,
+    totalPendingBytes,
   } = useBatchConversion({ settings, setSettings });
 
   const { isCopiedShareLink, handleShareApp } = useShareActions({ files });
@@ -185,6 +195,8 @@ export default function App({ initialPath }: AppProps) {
                 isCopiedShareLink={isCopiedShareLink}
                 onDownloadAll={handleDownloadAll}
                 onDownloadDirect={handleDownloadDirect}
+                onDownloadToDirectory={handleDownloadToDirectory}
+                hasDirectoryPicker={hasDirectoryPicker}
                 onShareApp={handleShareApp}
                 onClearAll={handleClearAll}
               />
@@ -216,13 +228,19 @@ export default function App({ initialPath }: AppProps) {
                 onReformatItem={handleReformatItem}
                 onCompare={setCompareItem}
                 onInspectDetails={setInspectItem}
+                onSelectRegions={setRedactItem}
                 concurrencyProfile={concurrencyProfile}
+                showLargeBatchBanner={showLargeBatchBanner}
+                onDismissLargeBatchBanner={dismissLargeBatchBanner}
+                showAutoChunkedBanner={showAutoChunkedBanner}
+                onDismissAutoChunkedBanner={dismissAutoChunkedBanner}
+                totalPendingBytes={totalPendingBytes}
               />
             )}
 
             {/* SEO Guide Content (only on pSEO routes) */}
             {seoData.pageCategory !== 'home' && (
-              <SeoGuideContent seoData={seoData} />
+              <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
             )}
 
             {/* Value Propositions / Why choose Zapixal */}
@@ -251,6 +269,15 @@ export default function App({ initialPath }: AppProps) {
           processFiles({ chunked: true });
         }}
       />
+
+      {/* Redaction Region Selector Modal */}
+      {redactItem && (
+        <RegionSelector
+          item={redactItem}
+          onClose={() => setRedactItem(null)}
+          onSave={handleUpdateBlurRegions}
+        />
+      )}
 
       {/* Orchestrated Modals & Floating Banners */}
       <ModalsOrchestrator

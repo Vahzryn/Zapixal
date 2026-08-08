@@ -1,15 +1,16 @@
-import { encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco } from '../lib/codecs';
+import { encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from '../lib/codecs';
+import { getCropSourceRect } from '../lib/conversionOrchestrator';
 
 self.onmessage = async (e: MessageEvent) => {
-  const { id, imageBitmap, settings, targetDim, rotation = 0, originalSize = 0 } = e.data;
+  const { id, imageBitmap, settings, targetDim, rotation = 0, originalSize = 0, blurRegions, blurMode } = e.data;
 
   try {
     const { targetFormat, quality } = settings;
     const effectiveRotation = ((rotation % 360) + 360) % 360;
     const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
-    const canvasWidth = isRotated90or270 ? targetDim.height : targetDim.width;
-    const canvasHeight = isRotated90or270 ? targetDim.width : targetDim.height;
+    const canvasWidth = targetDim.width;
+    const canvasHeight = targetDim.height;
 
     const canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
@@ -26,15 +27,41 @@ self.onmessage = async (e: MessageEvent) => {
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
+    const cropSource = getCropSourceRect(imageBitmap.width, imageBitmap.height, effectiveRotation, settings.cropAspectRatio);
+
     if (effectiveRotation !== 0) {
+      const drawW = isRotated90or270 ? canvasHeight : canvasWidth;
+      const drawH = isRotated90or270 ? canvasWidth : canvasHeight;
       ctx.save();
       ctx.translate(canvasWidth / 2, canvasHeight / 2);
       ctx.rotate((effectiveRotation * Math.PI) / 180);
-      ctx.drawImage(imageBitmap, -targetDim.width / 2, -targetDim.height / 2, targetDim.width, targetDim.height);
+      ctx.drawImage(
+        imageBitmap,
+        cropSource.cropX,
+        cropSource.cropY,
+        cropSource.cropWidth,
+        cropSource.cropHeight,
+        -drawW / 2,
+        -drawH / 2,
+        drawW,
+        drawH
+      );
       ctx.restore();
     } else {
-      ctx.drawImage(imageBitmap, 0, 0, targetDim.width, targetDim.height);
+      ctx.drawImage(
+        imageBitmap,
+        cropSource.cropX,
+        cropSource.cropY,
+        cropSource.cropWidth,
+        cropSource.cropHeight,
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
+      );
     }
+
+    applyBlurAndPixelateRegions(ctx, canvasWidth, canvasHeight, blurRegions, blurMode);
 
     if (settings.grayscale) {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
@@ -76,11 +103,17 @@ self.onmessage = async (e: MessageEvent) => {
       blob = await encodeIco(canvas);
     } else if (targetFormat === 'png') {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-      const pngBytes = await encodePng(imgData, quality, originalSize, canvas);
+      let pngBytes = await encodePng(imgData, quality, originalSize, canvas);
+      if (settings.targetDPI && settings.targetDPI > 0) {
+        pngBytes = injectDpiMetadata(pngBytes, 'png', settings.targetDPI);
+      }
       blob = new Blob([pngBytes.buffer], { type: 'image/png' });
     } else if (targetFormat === 'jpg') {
       const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-      const jpegBytes = await encodeJpeg(imageDataToData(imgData), quality, canvas);
+      let jpegBytes = await encodeJpeg(imgData, quality, canvas);
+      if (settings.targetDPI && settings.targetDPI > 0) {
+        jpegBytes = injectDpiMetadata(jpegBytes, 'jpg', settings.targetDPI);
+      }
       blob = new Blob([jpegBytes.buffer], { type: 'image/jpeg' });
     } else if (targetFormat === 'webp') {
       blob = await encodeWebp(canvas, quality);
@@ -98,16 +131,23 @@ self.onmessage = async (e: MessageEvent) => {
       let currentQuality = quality;
       let step = 0;
 
+      // 1. First degrade quality
       while (blob.size > maxBytes && currentQuality > 0.12 && step < 10) {
         step++;
         currentQuality = Math.max(0.1, currentQuality * 0.75);
         if (targetFormat === 'jpg') {
           const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-          const bytes = await encodeJpeg(imgData, currentQuality, canvas);
+          let bytes = await encodeJpeg(imgData, currentQuality, canvas);
+          if (settings.targetDPI && settings.targetDPI > 0) {
+            bytes = injectDpiMetadata(bytes, 'jpg', settings.targetDPI);
+          }
           blob = new Blob([bytes.buffer], { type: 'image/jpeg' });
         } else if (targetFormat === 'png') {
           const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-          const bytes = await encodePng(imgData, currentQuality, originalSize, canvas);
+          let bytes = await encodePng(imgData, currentQuality, originalSize, canvas);
+          if (settings.targetDPI && settings.targetDPI > 0) {
+            bytes = injectDpiMetadata(bytes, 'png', settings.targetDPI);
+          }
           blob = new Blob([bytes.buffer], { type: 'image/png' });
         } else if (targetFormat === 'webp') {
           blob = await encodeWebp(canvas, currentQuality);
@@ -118,6 +158,7 @@ self.onmessage = async (e: MessageEvent) => {
         }
       }
 
+      // 2. Then scale down dimensions if still too big
       let currentCanvas: OffscreenCanvas = canvas;
       let scale = 0.85;
       while (blob.size > maxBytes && scale > 0.15 && step < 15) {
@@ -130,11 +171,17 @@ self.onmessage = async (e: MessageEvent) => {
           sCtx.drawImage(currentCanvas, 0, 0, w, h);
           if (targetFormat === 'jpg') {
             const imgData = sCtx.getImageData(0, 0, w, h);
-            const bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
+            let bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
+            if (settings.targetDPI && settings.targetDPI > 0) {
+              bytes = injectDpiMetadata(bytes, 'jpg', settings.targetDPI);
+            }
             blob = new Blob([bytes.buffer], { type: 'image/jpeg' });
           } else if (targetFormat === 'png') {
             const imgData = sCtx.getImageData(0, 0, w, h);
-            const bytes = await encodePng(imgData, currentQuality, originalSize, scaledCanvas);
+            let bytes = await encodePng(imgData, currentQuality, originalSize, scaledCanvas);
+            if (settings.targetDPI && settings.targetDPI > 0) {
+              bytes = injectDpiMetadata(bytes, 'png', settings.targetDPI);
+            }
             blob = new Blob([bytes.buffer], { type: 'image/png' });
           } else if (targetFormat === 'webp') {
             blob = await encodeWebp(scaledCanvas, currentQuality);
@@ -176,6 +223,79 @@ self.onmessage = async (e: MessageEvent) => {
   }
 };
 
-function imageDataToData(imgData: ImageData): ImageData {
-  return imgData;
+function applyBlurAndPixelateRegions(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  regions: Array<{ x: number; y: number; width: number; height: number }> | undefined,
+  mode: 'blur' | 'pixelate' | undefined
+) {
+  if (!regions || regions.length === 0) return;
+  const activeMode = mode || 'blur';
+
+  for (const region of regions) {
+    const rx = Math.round(region.x * canvasWidth);
+    const ry = Math.round(region.y * canvasHeight);
+    const rw = Math.round(region.width * canvasWidth);
+    const rh = Math.round(region.height * canvasHeight);
+
+    if (rw <= 0 || rh <= 0) continue;
+
+    if (activeMode === 'blur') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rx, ry, rw, rh);
+      ctx.clip();
+
+      try {
+        const tempCanvas = typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(rw, rh)
+          : document.createElement('canvas');
+        tempCanvas.width = rw;
+        tempCanvas.height = rh;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.drawImage(ctx.canvas, rx, ry, rw, rh, 0, 0, rw, rh);
+          
+          // Draw with blur filter
+          ctx.filter = 'blur(16px)';
+          ctx.drawImage(tempCanvas as any, rx, ry);
+        }
+      } catch (err) {
+        // Fallback: draw directly
+        ctx.filter = 'blur(16px)';
+        ctx.drawImage(ctx.canvas, rx, ry, rw, rh, rx, ry, rw, rh);
+      }
+      ctx.restore();
+    } else {
+      // Pixelate
+      ctx.save();
+      try {
+        const scale = 0.08; // 8% of original size
+        const sw = Math.max(1, Math.round(rw * scale));
+        const sh = Math.max(1, Math.round(rh * scale));
+
+        const tempCanvas = typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(sw, sh)
+          : document.createElement('canvas');
+        tempCanvas.width = sw;
+        tempCanvas.height = sh;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.imageSmoothingEnabled = false;
+          tempCtx.drawImage(ctx.canvas, rx, ry, rw, rh, 0, 0, sw, sh);
+
+          ctx.imageSmoothingEnabled = false;
+          (ctx as any).mozImageSmoothingEnabled = false;
+          (ctx as any).webkitImageSmoothingEnabled = false;
+          (ctx as any).msImageSmoothingEnabled = false;
+
+          ctx.drawImage(tempCanvas as any, 0, 0, sw, sh, rx, ry, rw, rh);
+        }
+      } catch (err) {
+        console.error('Failed to pixelate region:', err);
+      }
+      ctx.restore();
+    }
+  }
 }

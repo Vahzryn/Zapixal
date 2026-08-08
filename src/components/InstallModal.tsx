@@ -80,7 +80,7 @@ export function InstallModal({ isOpen, onClose, deferredPrompt, onInstallSuccess
               </div>
               <h3 className="text-xl font-extrabold tracking-tight">Install Zapixal App</h3>
               <p className="text-xs text-blue-100 dark:text-neutral-300 mt-0.5">
-                Convert & compress images natively on your desktop or phone—100% offline!
+                Convert & compress images natively on your desktop or phone—offline!
               </p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function InstallModal({ isOpen, onClose, deferredPrompt, onInstallSuccess
             </div>
             <div className="p-3 rounded-xl bg-neutral-50 dark:bg-[#303134] border border-neutral-100 dark:border-[#3c4043] text-center">
               <ShieldCheck className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
-              <div className="text-xs font-bold">100% Offline</div>
+              <div className="text-xs font-bold">Works Offline</div>
               <div className="text-[10px] text-neutral-500 dark:text-[#9aa0a6]">No internet required</div>
             </div>
             <div className="p-3 rounded-xl bg-neutral-50 dark:bg-[#303134] border border-neutral-100 dark:border-[#3c4043] text-center">

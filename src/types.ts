@@ -16,6 +16,8 @@ export interface ConversionSettings {
     maxHeight?: number;
     keepAspectRatio: boolean;
   };
+  cropAspectRatio?: { width: number; height: number } | null;
+  targetDPI?: number | null;
   filenamePrefix: string;
   filenameSuffix: string;
   renamePattern?: string;
@@ -40,4 +42,6 @@ export interface ImageFileItem {
   convertedUrl?: string;
   originalFallback?: boolean;
   error?: string;
+  blurRegions?: Array<{ x: number; y: number; width: number; height: number }>;
+  blurMode?: 'blur' | 'pixelate';
 }

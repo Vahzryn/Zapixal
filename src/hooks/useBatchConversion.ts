@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../types';
-import { detectHardwareCapabilities, checkBatteryThrottling } from '../lib/hardwareCapabilities';
+import { detectHardwareCapabilities, checkBatteryThrottling, getBatchThresholds } from '../lib/hardwareCapabilities';
 import { formatBytes, formatOutputFilename, getExtensionFromMime } from '../lib/utils';
 import { safeRandomUUID } from '../lib/capabilities';
+import { saveFilesToDirectory, downloadBlob } from '../lib/fileSystemAccess';
 
 interface UseBatchConversionProps {
   settings: ConversionSettings;
@@ -21,6 +22,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
   const [showLowTierWarning, setShowLowTierWarning] = useState(false);
   const [stalledResetMessage, setStalledResetMessage] = useState<string | null>(null);
+
+  const [isLargeBatchBannerDismissed, setIsLargeBatchBannerDismissed] = useState(false);
+  const [isAutoChunkedBannerDismissed, setIsAutoChunkedBannerDismissed] = useState(false);
 
   // Global unhandled promise rejection listener integration
   useEffect(() => {
@@ -271,15 +275,16 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     if (validFiles.length === 0) return;
 
     const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB
-    const MAX_BATCH_SIZE = 100; // 100 files max
+
+    // Reset banner dismissal flags when adding new files
+    setIsLargeBatchBannerDismissed(false);
+    setIsAutoChunkedBannerDismissed(false);
 
     setFiles(prev => {
-      const currentCount = prev.length;
       const newItems: ImageFileItem[] = [];
 
       validFiles.forEach((file) => {
         const isOverSize = file.size > MAX_FILE_SIZE;
-        const isOverBatch = (currentCount + newItems.length) >= MAX_BATCH_SIZE;
 
         let status: 'pending' | 'error' = 'pending';
         let error: string | undefined = undefined;
@@ -287,9 +292,6 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
         if (isOverSize) {
           status = 'error';
           error = `File size exceeds 150MB limit (${formatBytes(file.size)}).`;
-        } else if (isOverBatch) {
-          status = 'error';
-          error = `Batch limit exceeded. Max ${MAX_BATCH_SIZE} files allowed per batch.`;
         }
 
         newItems.push({
@@ -374,6 +376,28 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           return {
             ...file,
             customTargetFormat: format,
+            status: 'pending',
+            blob: undefined,
+            convertedSize: undefined,
+            convertedUrl: undefined,
+          };
+        }
+        return file;
+      })
+    );
+  }, []);
+
+  const handleUpdateBlurRegions = useCallback((id: string, regions: Array<{ x: number; y: number; width: number; height: number }> | undefined, mode: 'blur' | 'pixelate' | undefined) => {
+    setFiles(prev =>
+      prev.map(file => {
+        if (file.id === id) {
+          if (file.convertedUrl) {
+            URL.revokeObjectURL(file.convertedUrl);
+          }
+          return {
+            ...file,
+            blurRegions: regions,
+            blurMode: mode,
             status: 'pending',
             blob: undefined,
             convertedSize: undefined,
@@ -496,6 +520,31 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     document.body.removeChild(a);
   }, [files, settings]);
 
+  const handleDownloadToDirectory = useCallback(async () => {
+    const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
+    if (successfulFiles.length === 0) return false;
+
+    const usedNames = new Set<string>();
+    const res = await saveFilesToDirectory(successfulFiles, (file, i) => {
+      const idx = files.findIndex(f => f.id === file.id);
+      let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
+      if (usedNames.has(fileName)) {
+        const dotIdx = fileName.lastIndexOf('.');
+        const namePart = dotIdx >= 0 ? fileName.substring(0, dotIdx) : fileName;
+        const extPart = dotIdx >= 0 ? fileName.substring(dotIdx) : '';
+        let counter = 1;
+        while (usedNames.has(`${namePart}_${counter}${extPart}`)) {
+          counter++;
+        }
+        fileName = `${namePart}_${counter}${extPart}`;
+      }
+      usedNames.add(fileName);
+      return fileName;
+    });
+
+    return res.success;
+  }, [files, settings]);
+
   const handleDownloadAll = useCallback(async () => {
     const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
     if (successfulFiles.length === 0) return;
@@ -504,14 +553,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       try {
         const { generateCombinedPdf } = await import('../lib/conversionOrchestrator');
         const pdfBlob = await generateCombinedPdf(successfulFiles, settings);
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `zapixal-converted-documents.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        downloadBlob(pdfBlob, 'zapixal-converted-documents.pdf');
       } catch (err) {
         console.error('Failed to generate PDF:', err);
       }
@@ -523,41 +565,104 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       return;
     }
 
+    const totalBatchBytes = successfulFiles.reduce((sum, f) => sum + (f.blob?.size || f.convertedSize || f.originalSize), 0);
+    const hw = detectHardwareCapabilities();
+    const thresholds = getBatchThresholds(hw.tier);
+    const isMaxBatch = totalBatchBytes >= thresholds.maxBatchBytes;
+    const hasDirectoryPicker = typeof window !== 'undefined' && 'showDirectoryPicker' in window;
+
+    // Helper function for formatting filenames uniquely
+    const getFormattedName = (file: ImageFileItem, i: number, usedNames: Set<string>) => {
+      const idx = files.findIndex(f => f.id === file.id);
+      let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
+      if (usedNames.has(fileName)) {
+        const dotIdx = fileName.lastIndexOf('.');
+        const namePart = dotIdx >= 0 ? fileName.substring(0, dotIdx) : fileName;
+        const extPart = dotIdx >= 0 ? fileName.substring(dotIdx) : '';
+        let counter = 1;
+        while (usedNames.has(`${namePart}_${counter}${extPart}`)) {
+          counter++;
+        }
+        fileName = `${namePart}_${counter}${extPart}`;
+      }
+      usedNames.add(fileName);
+      return fileName;
+    };
+
+    // 1. Automatic Directory Stream strategy when max batch threshold is crossed
+    if (isMaxBatch && hasDirectoryPicker) {
+      const batchNames = new Set<string>();
+      const itemsWithUniqueNames = successfulFiles.map((f, i) => ({
+        blob: f.blob!,
+        name: getFormattedName(f, i, batchNames),
+      }));
+
+      const res = await saveFilesToDirectory(itemsWithUniqueNames);
+      if (res.success || res.canceled) {
+        return;
+      }
+      // If folder export failed without cancellation, fall back to chunked ZIP export!
+    }
+
+    // 2. Chunked ZIP export strategy (for browsers without DirectoryPicker or as fallback)
+    const zipSizeBudget = thresholds.optimalBatchBytes;
+    const zipChunks: ImageFileItem[][] = [];
+    let currentChunk: ImageFileItem[] = [];
+    let currentChunkBytes = 0;
+
+    for (const file of successfulFiles) {
+      const fSize = file.blob?.size || file.convertedSize || file.originalSize;
+      if (currentChunk.length > 0 && (currentChunkBytes + fSize > zipSizeBudget)) {
+        zipChunks.push(currentChunk);
+        currentChunk = [file];
+        currentChunkBytes = fSize;
+      } else {
+        currentChunk.push(file);
+        currentChunkBytes += fSize;
+      }
+    }
+    if (currentChunk.length > 0) {
+      zipChunks.push(currentChunk);
+    }
+
     try {
       const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-      const usedNames = new Set<string>();
-      
-      for (let i = 0; i < successfulFiles.length; i++) {
-        const file = successfulFiles[i];
-        const idx = files.findIndex(f => f.id === file.id);
-        let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
-        
-        if (usedNames.has(fileName)) {
-          const dotIdx = fileName.lastIndexOf('.');
-          const namePart = dotIdx >= 0 ? fileName.substring(0, dotIdx) : fileName;
-          const extPart = dotIdx >= 0 ? fileName.substring(dotIdx) : '';
-          let counter = 1;
-          while (usedNames.has(`${namePart}_${counter}${extPart}`)) {
-            counter++;
-          }
-          fileName = `${namePart}_${counter}${extPart}`;
-        }
-        usedNames.add(fileName);
-        zip.file(fileName, file.blob!);
-      }
 
-      const content = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `zapixal-converted-${Date.now()}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (zipChunks.length <= 1) {
+        const zip = new JSZip();
+        const usedNames = new Set<string>();
+        for (let i = 0; i < successfulFiles.length; i++) {
+          const file = successfulFiles[i];
+          const fileName = getFormattedName(file, i, usedNames);
+          zip.file(fileName, file.blob!);
+        }
+        const content = await zip.generateAsync({ type: 'blob' });
+        downloadBlob(content, `zapixal-converted-${Date.now()}.zip`);
+      } else {
+        const totalParts = zipChunks.length;
+        const globalUsedNames = new Set<string>();
+
+        for (let partIdx = 0; partIdx < totalParts; partIdx++) {
+          const chunk = zipChunks[partIdx];
+          const zip = new JSZip();
+
+          for (let i = 0; i < chunk.length; i++) {
+            const file = chunk[i];
+            const fileName = getFormattedName(file, i, globalUsedNames);
+            zip.file(fileName, file.blob!);
+          }
+
+          const content = await zip.generateAsync({ type: 'blob' });
+          const partName = `zapixal-export-part-${partIdx + 1}-of-${totalParts}.zip`;
+          downloadBlob(content, partName);
+
+          if (partIdx < totalParts - 1) {
+            await new Promise(res => setTimeout(res, 500));
+          }
+        }
+      }
     } catch (err) {
-      console.error('Failed to generate ZIP:', err);
+      console.error('Failed to generate ZIP export:', err);
     }
   }, [files, settings, handleDownloadSingle]);
 
@@ -588,13 +693,11 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     const baseHw = detectHardwareCapabilities();
     const hw = await checkBatteryThrottling(baseHw);
+    const thresholds = getBatchThresholds(hw.tier);
     const totalSize = pendingFiles.reduce((sum, f) => sum + f.originalSize, 0);
 
-    // Trigger warning on LOW tier for batches > 20 or > 300MB
-    if (hw.tier === 'LOW' && (pendingFiles.length > 20 || totalSize > 300 * 1024 * 1024) && !options?.forceAll && !options?.chunked) {
-      setShowLowTierWarning(true);
-      return;
-    }
+    // Automatically engage safest export strategy (chunked) if total size reaches maxBatchBytes
+    const runChunked = options?.chunked || totalSize >= thresholds.maxBatchBytes;
 
     setIsProcessing(true);
     setIsStopping(false);
@@ -604,10 +707,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     const processor = await import('../lib/imageProcessor');
     const maxConcurrent = hw.maxConcurrentWorkers;
 
-    // Split pendingFiles into chunks of 15 if chunked processing is selected
+    // Split pendingFiles into chunks of 15 if chunked processing is selected or auto-engaged
     const chunkSize = 15;
     const chunks: ImageFileItem[][] = [];
-    if (options?.chunked) {
+    if (runChunked) {
       for (let i = 0; i < pendingFiles.length; i += chunkSize) {
         chunks.push(pendingFiles.slice(i, i + chunkSize));
       }
@@ -623,7 +726,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
         completedBatchCountRef.current = 0;
         totalBatchCountRef.current = currentChunk.length;
         batchStartTimeRef.current = Date.now();
-        setEtaText(options?.chunked ? `Chunk ${chunkIndex + 1} of ${chunks.length}...` : 'Calculating...');
+        setEtaText(runChunked ? `Chunk ${chunkIndex + 1} of ${chunks.length}...` : 'Calculating...');
 
         // Update files in current chunk to 'processing'
         setFiles(prev => prev.map(f => {
@@ -827,6 +930,27 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     });
   }, [files, isProcessing, settings]);
 
+  const totalPendingBytes = files
+    .filter(f => f.status === 'pending' || f.status === 'error')
+    .reduce((sum, f) => sum + f.originalSize, 0);
+
+  const hwConfig = detectHardwareCapabilities();
+  const currentThresholds = getBatchThresholds(hwConfig.tier);
+
+  const isLargeBatch = totalPendingBytes >= currentThresholds.optimalBatchBytes && totalPendingBytes < currentThresholds.maxBatchBytes;
+  const isMaxBatch = totalPendingBytes >= currentThresholds.maxBatchBytes;
+
+  const showLargeBatchBanner = isLargeBatch && !isLargeBatchBannerDismissed;
+  const showAutoChunkedBanner = isMaxBatch && !isAutoChunkedBannerDismissed;
+
+  const dismissLargeBatchBanner = useCallback(() => {
+    setIsLargeBatchBannerDismissed(true);
+  }, []);
+
+  const dismissAutoChunkedBanner = useCallback(() => {
+    setIsAutoChunkedBannerDismissed(true);
+  }, []);
+
   return {
     files,
     isProcessing,
@@ -846,6 +970,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     handleFilesAdded,
     handleRotateItem,
     handleUpdateFileFormat,
+    handleUpdateBlurRegions,
     handleReformatItems,
     handleRetryFile,
     handleRemoveFile,
@@ -854,11 +979,21 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     handleDownloadSingle,
     handleDownloadAll,
     handleDownloadDirect,
+    handleDownloadToDirectory,
+    hasDirectoryPicker: typeof window !== 'undefined' && 'showDirectoryPicker' in window,
     stopProcessing,
     processFiles,
     showLowTierWarning,
     setShowLowTierWarning,
     stalledResetMessage,
     setStalledResetMessage,
+    showLargeBatchBanner,
+    dismissLargeBatchBanner,
+    showAutoChunkedBanner,
+    dismissAutoChunkedBanner,
+    totalPendingBytes,
+    optimalBatchBytes: currentThresholds.optimalBatchBytes,
+    maxBatchBytes: currentThresholds.maxBatchBytes,
+    isAutoChunkedActive: isMaxBatch,
   };
 }

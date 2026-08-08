@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts"
+    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts"
   },
   "dependencies": {
     "@jsquash/avif": "^2.1.1",

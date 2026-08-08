@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ImageFileItem, TargetFormat } from '../types';
 import { formatBytes } from '../lib/utils';
-import { CheckCircle2, AlertCircle, Loader2, Download, Trash2, ArrowRight, Eye, GripVertical, RotateCcw, RotateCw, Copy, Check, Info, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, Download, Trash2, ArrowRight, Eye, GripVertical, RotateCcw, RotateCw, Copy, Check, Info, Image as ImageIcon, RefreshCw, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface FileItemProps {
@@ -17,6 +17,7 @@ interface FileItemProps {
   onInspectDetails?: (item: ImageFileItem) => void;
   onUpdateFormat?: (id: string, format: TargetFormat | undefined) => void;
   onReformatItem?: (id: string, format: TargetFormat) => void;
+  onSelectRegions?: (item: ImageFileItem) => void;
   onDragStart?: (e: React.DragEvent, index: number) => void;
   onDragOver?: (e: React.DragEvent, index: number) => void;
   onDrop?: (e: React.DragEvent, index: number) => void;
@@ -37,6 +38,7 @@ function FileItemComponent({
   onInspectDetails,
   onUpdateFormat,
   onReformatItem,
+  onSelectRegions,
   onDragStart,
   onDragOver,
   onDrop,
@@ -295,6 +297,30 @@ function FileItemComponent({
             aria-label="Inspect image dimensions, specifications, and color palette"
           >
             <Info className="w-4 h-4 shrink-0" />
+          </button>
+        )}
+
+        {/* Blur/Pixelate Redaction Regions */}
+        {onSelectRegions && !isProcessing && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onSelectRegions(item); }}
+            className={cn(
+              "p-1.5 transition-all rounded-xl shrink-0 cursor-pointer relative border border-transparent",
+              item.blurRegions && item.blurRegions.length > 0
+                ? "bg-amber-50 dark:bg-[#322312] text-amber-600 dark:text-[#fdd663] border-amber-200 dark:border-[#523d24]"
+                : "text-neutral-400 hover:bg-amber-50 dark:hover:bg-[#322312] hover:text-amber-600 dark:hover:text-[#fdd663]"
+            )}
+            title={
+              item.blurRegions && item.blurRegions.length > 0
+                ? `Redact Regions (${item.blurRegions.length} Active Areas)`
+                : "Redact (Blur or Pixelate) Regions"
+            }
+            aria-label="Blur or pixelate custom regions of the image"
+          >
+            <EyeOff className="w-4 h-4 shrink-0" />
+            {item.blurRegions && item.blurRegions.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            )}
           </button>
         )}
 

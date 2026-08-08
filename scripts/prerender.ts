@@ -32,7 +32,7 @@ async function prerender() {
   const uniqueRoutes = Array.from(new Set(staticRoutes));
 
   for (const route of uniqueRoutes) {
-    const seoData = parseSeoRoute(route);
+    const seoData = await parseSeoRoute(route);
     const appHtml = await renderApp(route);
 
     let html = templateHtml;
