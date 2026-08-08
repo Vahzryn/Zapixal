@@ -507,6 +507,18 @@ export async function convertSingleImage(
       ctx.drawImage(fallbackLoaded.img as CanvasImageSource, 0, 0, targetDim.width, targetDim.height);
     }
 
+    if (effectiveSettings.grayscale) {
+      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
     if (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim()) {
       const text = effectiveSettings.watermarkText.trim();
       const fontSize = Math.max(14, Math.round(canvasHeight * 0.04));
@@ -620,7 +632,8 @@ export async function convertSingleImage(
   const hasTransformations =
     effectiveRotation !== 0 ||
     (effectiveSettings.resize && effectiveSettings.resize.enabled) ||
-    (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim() !== '');
+    (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim() !== '') ||
+    !!effectiveSettings.grayscale;
 
   const isStripExif = effectiveSettings.stripExif !== false;
   if (convertedBlob.size > item.originalSize && !hasTransformations && targetFormat !== 'ico' && !isStripExif) {

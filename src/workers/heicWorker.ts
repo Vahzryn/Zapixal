@@ -8,7 +8,7 @@ self.onmessage = async (e: MessageEvent) => {
     const result = await heic2any({
       blob: file,
       toType: 'image/jpeg',
-      quality: 0.8,
+      quality: 0.95,
     });
 
     const blob = Array.isArray(result) ? result[0] : result;

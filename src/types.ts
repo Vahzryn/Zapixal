@@ -22,6 +22,7 @@ export interface ConversionSettings {
   rotation?: number; // 0, 90, 180, 270
   stripExif?: boolean;
   watermarkText?: string;
+  grayscale?: boolean;
 }
 
 export interface ImageFileItem {

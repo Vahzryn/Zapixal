@@ -36,6 +36,18 @@ self.onmessage = async (e: MessageEvent) => {
       ctx.drawImage(imageBitmap, 0, 0, targetDim.width, targetDim.height);
     }
 
+    if (settings.grayscale) {
+      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
     if (settings.watermarkText && settings.watermarkText.trim()) {
       const text = settings.watermarkText.trim();
       const fontSize = Math.max(14, Math.round(targetDim.height * 0.04));
@@ -86,26 +98,32 @@ self.onmessage = async (e: MessageEvent) => {
       let currentQuality = quality;
       let step = 0;
 
-      while (blob.size > maxBytes && currentQuality > 0.12 && step < 5) {
+      while (blob.size > maxBytes && currentQuality > 0.12 && step < 10) {
         step++;
         currentQuality = Math.max(0.1, currentQuality * 0.75);
         if (targetFormat === 'jpg') {
           const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
           const bytes = await encodeJpeg(imgData, currentQuality, canvas);
           blob = new Blob([bytes.buffer], { type: 'image/jpeg' });
-        } else if (targetFormat === 'webp' || targetFormat === 'png') {
+        } else if (targetFormat === 'png') {
+          const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+          const bytes = await encodePng(imgData, currentQuality, originalSize, canvas);
+          blob = new Blob([bytes.buffer], { type: 'image/png' });
+        } else if (targetFormat === 'webp') {
           blob = await encodeWebp(canvas, currentQuality);
         } else if (targetFormat === 'avif') {
           blob = await encodeAvif(canvas, currentQuality);
+        } else {
+          break;
         }
       }
 
-      let currentCanvas = canvas;
+      let currentCanvas: OffscreenCanvas = canvas;
       let scale = 0.85;
-      while (blob.size > maxBytes && scale > 0.25 && step < 8) {
+      while (blob.size > maxBytes && scale > 0.15 && step < 15) {
         step++;
-        const w = Math.max(32, Math.round(canvasWidth * scale));
-        const h = Math.max(32, Math.round(canvasHeight * scale));
+        const w = Math.max(16, Math.round(canvasWidth * scale));
+        const h = Math.max(16, Math.round(canvasHeight * scale));
         const scaledCanvas = new OffscreenCanvas(w, h);
         const sCtx = scaledCanvas.getContext('2d');
         if (sCtx) {
@@ -114,8 +132,16 @@ self.onmessage = async (e: MessageEvent) => {
             const imgData = sCtx.getImageData(0, 0, w, h);
             const bytes = await encodeJpeg(imgData, currentQuality, scaledCanvas);
             blob = new Blob([bytes.buffer], { type: 'image/jpeg' });
-          } else {
+          } else if (targetFormat === 'png') {
+            const imgData = sCtx.getImageData(0, 0, w, h);
+            const bytes = await encodePng(imgData, currentQuality, originalSize, scaledCanvas);
+            blob = new Blob([bytes.buffer], { type: 'image/png' });
+          } else if (targetFormat === 'webp') {
             blob = await encodeWebp(scaledCanvas, currentQuality);
+          } else if (targetFormat === 'avif') {
+            blob = await encodeAvif(scaledCanvas, currentQuality);
+          } else if (targetFormat === 'bmp') {
+            blob = await encodeBmp(scaledCanvas);
           }
           currentCanvas = scaledCanvas;
         }
@@ -126,7 +152,8 @@ self.onmessage = async (e: MessageEvent) => {
     const hasTransformations =
       effectiveRotation !== 0 ||
       (settings.resize && settings.resize.enabled) ||
-      (settings.watermarkText && settings.watermarkText.trim() !== '');
+      (settings.watermarkText && settings.watermarkText.trim() !== '') ||
+      !!settings.grayscale;
 
     let originalFallback = false;
     if (originalSize > 0 && blob.size > originalSize && !hasTransformations && targetFormat !== 'ico') {

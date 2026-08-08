@@ -427,6 +427,20 @@ function SettingsPanelComponent({ settings, onChange, disabled }: SettingsPanelP
 
             {/* 4. Batch Renaming & Watermark */}
             <div className="pt-4 border-t border-neutral-200/60 dark:border-[#3c4043] space-y-3">
+              <label className="flex items-center gap-2.5 p-2 bg-white dark:bg-[#202124] border border-neutral-200 dark:border-[#3c4043] rounded-xl cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!settings.grayscale}
+                  onChange={(e) => updateSettings({ grayscale: e.target.checked })}
+                  className="w-4 h-4 rounded text-purple-600 border-neutral-300 focus:ring-purple-500"
+                />
+                <div className="flex-1">
+                  <span className="block text-xs font-bold text-neutral-800 dark:text-[#e8eaed]">
+                    Convert to grayscale
+                  </span>
+                </div>
+              </label>
+
               <div>
                 <label className="block mb-1 text-xs font-bold text-neutral-600 dark:text-[#9aa0a6]">
                   Watermark Text (Optional)
