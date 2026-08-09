@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# AI Studio specific instructions
+AGENTS.md
+GEMINI.md
+
+# Staging folder for npm widget
+widget-package/
