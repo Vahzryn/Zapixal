@@ -1,19 +1,3 @@
-let mozjpegWasmUrl = '';
-let webpWasmUrl = '';
-let webpSimdWasmUrl = '';
-let avifWasmUrl = '';
-let avifMtWasmUrl = '';
-
-// Dynamically import WASM URLs for Vite (browser/worker environments)
-// This avoids breaking Node.js test environments (tsx) which don't support ?url
-if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
-  import('@jsquash/jpeg/codec/enc/mozjpeg_enc.wasm?url').then(m => mozjpegWasmUrl = m.default).catch(() => {});
-  import('@jsquash/webp/codec/enc/webp_enc.wasm?url').then(m => webpWasmUrl = m.default).catch(() => {});
-  import('@jsquash/webp/codec/enc/webp_enc_simd.wasm?url').then(m => webpSimdWasmUrl = m.default).catch(() => {});
-  import('@jsquash/avif/codec/enc/avif_enc.wasm?url').then(m => avifWasmUrl = m.default).catch(() => {});
-  import('@jsquash/avif/codec/enc/avif_enc_mt.wasm?url').then(m => avifMtWasmUrl = m.default).catch(() => {});
-}
-
 const wasmModuleCache = new Map<string, any>();
 
 
@@ -88,8 +72,12 @@ export async function encodeJpeg(
     let jsquashJpeg = wasmModuleCache.get('jsquash-jpeg');
     if (!jsquashJpeg) {
       jsquashJpeg = await import('@jsquash/jpeg/encode');
+      let wasmUrl = '';
+      if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        try { wasmUrl = (await import('@jsquash/jpeg/codec/enc/mozjpeg_enc.wasm?url')).default; } catch (e) {}
+      }
       await (jsquashJpeg.init || jsquashJpeg.default?.init)?.(undefined, {
-        locateFile: (path: string) => mozjpegWasmUrl || path
+        locateFile: (path: string) => wasmUrl || path
       });
       wasmModuleCache.set('jsquash-jpeg', jsquashJpeg);
     }
@@ -211,10 +199,15 @@ export async function encodeWebp(
     let jsquashWebp = wasmModuleCache.get('jsquash-webp');
     if (!jsquashWebp) {
       jsquashWebp = await import('@jsquash/webp/encode');
+      let webpWasm = '', webpSimd = '';
+      if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        try { webpWasm = (await import('@jsquash/webp/codec/enc/webp_enc.wasm?url')).default; } catch (e) {}
+        try { webpSimd = (await import('@jsquash/webp/codec/enc/webp_enc_simd.wasm?url')).default; } catch (e) {}
+      }
       await (jsquashWebp.init || jsquashWebp.default?.init)?.(undefined, {
         locateFile: (path: string) => {
-          if (path.endsWith('webp_enc_simd.wasm')) return webpSimdWasmUrl || path;
-          return webpWasmUrl || path;
+          if (path.endsWith('webp_enc_simd.wasm')) return webpSimd || path;
+          return webpWasm || path;
         }
       });
       wasmModuleCache.set('jsquash-webp', jsquashWebp);
@@ -334,10 +327,15 @@ export async function encodeAvif(
     let jsquashAvif = wasmModuleCache.get('jsquash-avif');
     if (!jsquashAvif) {
       jsquashAvif = await import('@jsquash/avif/encode');
+      let avifWasm = '', avifMt = '';
+      if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        try { avifWasm = (await import('@jsquash/avif/codec/enc/avif_enc.wasm?url')).default; } catch (e) {}
+        try { avifMt = (await import('@jsquash/avif/codec/enc/avif_enc_mt.wasm?url')).default; } catch (e) {}
+      }
       await (jsquashAvif.init || jsquashAvif.default?.init)?.(undefined, {
         locateFile: (path: string) => {
-          if (path.endsWith('avif_enc_mt.wasm')) return avifMtWasmUrl || path;
-          return avifWasmUrl || path;
+          if (path.endsWith('avif_enc_mt.wasm')) return avifMt || path;
+          return avifWasm || path;
         }
       });
       wasmModuleCache.set('jsquash-avif', jsquashAvif);
