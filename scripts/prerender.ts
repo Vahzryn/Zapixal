@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { parseSeoRoute, PSEO_ROUTES_LIST } from '../src/lib/seoEngine';
+import { ALL_ARTICLE_SYSTEM_ROUTES } from '../src/lib/seo/routes';
 
 async function prerender() {
   const distDir = path.resolve(process.cwd(), 'dist');
@@ -24,11 +25,13 @@ async function prerender() {
   const staticRoutes = [
     '/',
     ...PSEO_ROUTES_LIST.map(r => r.path),
+    ...ALL_ARTICLE_SYSTEM_ROUTES,
     '/about',
     '/privacy',
     '/terms',
     '/404'
   ];
+
 
   const uniqueRoutes = Array.from(new Set(staticRoutes));
 
@@ -78,6 +81,7 @@ async function prerender() {
     // Prepare new json-ld scripts
     let jsonLdScripts = '';
     if (seoData.jsonLd) {
+      if (seoData.jsonLd.article) jsonLdScripts += `<script id="jsonld-article" type="application/ld+json">${JSON.stringify(seoData.jsonLd.article)}</script>\n`;
       if (seoData.jsonLd.softwareApp) jsonLdScripts += `<script id="jsonld-software" type="application/ld+json">${JSON.stringify(seoData.jsonLd.softwareApp)}</script>\n`;
       if (seoData.jsonLd.howTo) jsonLdScripts += `<script id="jsonld-howto" type="application/ld+json">${JSON.stringify(seoData.jsonLd.howTo)}</script>\n`;
       if (seoData.jsonLd.faqPage) jsonLdScripts += `<script id="jsonld-faq" type="application/ld+json">${JSON.stringify(seoData.jsonLd.faqPage)}</script>\n`;

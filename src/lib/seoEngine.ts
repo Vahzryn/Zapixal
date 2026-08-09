@@ -30,6 +30,7 @@ export interface SeoRouteData {
   } | null;
   relatedRoutes?: Array<{ path: string; label: string }> | null;
   jsonLd?: {
+    article?: object | null;
     softwareApp: object | null;
     howTo: object | null;
     faqPage: object | null;

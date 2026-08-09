@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DownloadCloud, Github, Moon, Sun, Heart, Zap } from 'lucide-react';
+import { DownloadCloud, Github, Moon, Sun, Heart, Zap, BookOpen } from 'lucide-react';
 import { cn } from '../lib/utils';
 const logoImg = '/assets/logo.webp';
 
@@ -15,6 +15,7 @@ interface HeaderNavbarProps {
 }
 
 export function HeaderNavbar({
+  currentPath = '/',
   onNavigate,
   isDarkMode,
   onToggleDarkMode,
@@ -95,6 +96,21 @@ export function HeaderNavbar({
 
         {/* Right Action Cluster */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Articles & Guides Button */}
+          <button
+            onClick={() => onNavigate('/articles')}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer active:scale-95 shadow-2xs",
+              currentPath.startsWith('/articles')
+                ? "bg-blue-600 text-white"
+                : "text-neutral-700 dark:text-[#e8eaed] bg-neutral-100 hover:bg-neutral-200 dark:bg-[#303134] dark:hover:bg-[#3c4043] border border-neutral-200 dark:border-transparent"
+            )}
+            title="Read Technical & Privacy Guides"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Guides</span>
+          </button>
+
           {/* Support / Donate Button */}
           {onOpenDonate && (
             <button

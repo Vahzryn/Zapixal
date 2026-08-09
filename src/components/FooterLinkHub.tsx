@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   ShieldCheck, 
   Lock, 
-  ChevronDown, 
-  ChevronUp,
-  Zap as ZapIcon
+  BookOpen,
+  Zap as ZapIcon,
+  FileImage,
+  Sliders,
+  Cpu
 } from 'lucide-react';
-import { PSEO_ROUTES_LIST } from '../lib/seoEngine';
+
 const logoImg = '/assets/logo.webp';
 
 interface FooterLinkHubProps {
@@ -16,8 +18,6 @@ interface FooterLinkHubProps {
 }
 
 export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: FooterLinkHubProps) {
-  const [isToolsetOpen, setIsToolsetOpen] = useState(false);
-
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     e.preventDefault();
     onNavigate(path);
@@ -30,11 +30,10 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
       aria-label="Zapixal Footer"
       className="w-full bg-slate-50/90 dark:bg-[#121315] border-t border-slate-200/70 dark:border-[#222428] mt-20 pt-10 pb-8 transition-colors duration-200 text-slate-600 dark:text-slate-400 font-sans"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Brand Header Section */}
         <div className="pb-8 border-b border-slate-200/70 dark:border-[#222428] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          
           <div className="space-y-2">
             <div className="flex items-center gap-2.5">
               <img 
@@ -63,128 +62,156 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
 
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-[#18191c] px-3.5 py-2 rounded-xl border border-slate-200/60 dark:border-[#282a2e] shrink-0 font-sans">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>Zero server uploads — Secure processing</span>
+            <span>Zero server uploads — Secure local processing</span>
           </div>
-
         </div>
 
-        <div className="grid gap-3 py-6 md:grid-cols-3 border-b border-slate-200/70 dark:border-[#222428]">
-          <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3.5 dark:border-[#282a2e] dark:bg-[#18191c]/70">
-            <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              Privacy-first workflow
+        {/* Curated Contextual Link Columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-4 border-b border-slate-200/70 dark:border-[#222428]">
+          {/* Column 1: Editorial Hub & Categories */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+              <BookOpen className="w-4 h-4 text-blue-500" />
+              <span>Editorial & Tech Guides</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              Files stay local in the browser, which helps protect metadata, documents, and personal images.
-            </p>
+            <ul className="space-y-2 text-xs font-medium">
+              <li>
+                <a href="/articles" onClick={(e) => handleClick(e, '/articles')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Editorial Hub (/articles)
+                </a>
+              </li>
+              <li>
+                <a href="/articles/formats" onClick={(e) => handleClick(e, '/articles/formats')} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <FileImage className="w-3 h-3 text-slate-400" />
+                  <span>Format Codecs (/formats)</span>
+                </a>
+              </li>
+              <li>
+                <a href="/articles/privacy" onClick={(e) => handleClick(e, '/articles/privacy')} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <ShieldCheck className="w-3 h-3 text-slate-400" />
+                  <span>Privacy & Metadata (/privacy)</span>
+                </a>
+              </li>
+              <li>
+                <a href="/articles/workflows" onClick={(e) => handleClick(e, '/articles/workflows')} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <Sliders className="w-3 h-3 text-slate-400" />
+                  <span>KB Limits & Workflows (/workflows)</span>
+                </a>
+              </li>
+              <li>
+                <a href="/articles/performance" onClick={(e) => handleClick(e, '/articles/performance')} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <Cpu className="w-3 h-3 text-slate-400" />
+                  <span>WASM Architecture (/performance)</span>
+                </a>
+              </li>
+            </ul>
           </div>
-          <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3.5 dark:border-[#282a2e] dark:bg-[#18191c]/70">
-            <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-              <Lock className="w-4 h-4 text-blue-500" />
-              Trusted for real-world use
+
+          {/* Column 2: Featured Technical Guides */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+              <BookOpen className="w-4 h-4 text-indigo-500" />
+              <span>Featured In-Depth Guides</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              Reliable tools for web, ecommerce, and submissions, focusing on compatibility and performance.
-            </p>
+            <ul className="space-y-2 text-xs font-medium">
+              <li>
+                <a href="/articles/heic-vs-jpg" onClick={(e) => handleClick(e, '/articles/heic-vs-jpg')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  HEIC vs JPG Compression & Quality
+                </a>
+              </li>
+              <li>
+                <a href="/articles/exif-metadata-privacy-guide" onClick={(e) => handleClick(e, '/articles/exif-metadata-privacy-guide')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  EXIF Metadata Location Security Guide
+                </a>
+              </li>
+              <li>
+                <a href="/articles/compress-image-to-kb-limit-guide" onClick={(e) => handleClick(e, '/articles/compress-image-to-kb-limit-guide')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Compressing Images to Strict KB Limits
+                </a>
+              </li>
+            </ul>
           </div>
-          <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3.5 dark:border-[#282a2e] dark:bg-[#18191c]/70">
-            <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+
+          {/* Column 3: Core Conversion & Compression Tools */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
               <ZapIcon className="w-4 h-4 text-amber-500" />
-              Practical output choices
+              <span>Core Image Tools</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-              Choose between JPEG, PNG, WebP, AVIF, or specific size targets with expert guidance.
-            </p>
+            <ul className="space-y-2 text-xs font-medium">
+              <li>
+                <a href="/convert-heic-to-jpg-locally" onClick={(e) => handleClick(e, '/convert-heic-to-jpg-locally')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Convert HEIC to JPG Locally
+                </a>
+              </li>
+              <li>
+                <a href="/strip-exif-metadata-online-private" onClick={(e) => handleClick(e, '/strip-exif-metadata-online-private')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Strip EXIF Metadata Privately
+                </a>
+              </li>
+              <li>
+                <a href="/compress-image-to-100kb-online" onClick={(e) => handleClick(e, '/compress-image-to-100kb-online')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Compress Image to 100KB
+                </a>
+              </li>
+              <li>
+                <a href="/bulk-image-compressor-offline" onClick={(e) => handleClick(e, '/bulk-image-compressor-offline')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Bulk Offline Image Compressor
+                </a>
+              </li>
+              <li>
+                <a href="/convert-to-avif-online-free" onClick={(e) => handleClick(e, '/convert-to-avif-online-free')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Convert Image to Next-Gen AVIF
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Platform & Legal */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>Zapixal Platform</span>
+            </div>
+            <ul className="space-y-2 text-xs font-medium">
+              <li>
+                <a href="/about" onClick={(e) => handleClick(e, '/about')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  About Zapixal
+                </a>
+              </li>
+              <li>
+                <a href="/privacy" onClick={(e) => handleClick(e, '/privacy')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="/terms" onClick={(e) => handleClick(e, '/terms')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Open Source Code (GitHub)
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Discrete Toolset Section - All links always rendered in DOM for SEO crawlers */}
-        {PSEO_ROUTES_LIST.length > 0 && (
-          <div className="py-4 border-b border-slate-200/70 dark:border-[#222428]">
-            <div className="flex items-center justify-between mb-3">
-              <button
-                onClick={() => setIsToolsetOpen(!isToolsetOpen)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-[#18191c] border border-slate-200/80 dark:border-[#2a2c30] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-[#383a40] transition-all cursor-pointer shadow-xs"
-                aria-expanded={isToolsetOpen}
-                aria-label="Toggle toolset directory view"
-              >
-                <ZapIcon className="w-3.5 h-3.5 text-blue-500" />
-                <span>Zapixal Toolset Directory ({PSEO_ROUTES_LIST.length})</span>
-                {isToolsetOpen ? (
-                  <>
-                    <span className="text-[10px] text-slate-400 font-normal">(Collapse)</span>
-                    <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[10px] text-slate-400 font-normal">(Show All)</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                  </>
-                )}
-              </button>
-            </div>
+        {/* Bottom Bar: Copyright & PWA */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400 font-sans">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>
+          </div>
 
-            <div
-              className={`relative rounded-2xl bg-white/80 dark:bg-[#18191c]/80 border border-slate-200/70 dark:border-[#282a2e] transition-all duration-300 ease-in-out ${
-                isToolsetOpen ? 'max-h-[3000px] p-4' : 'max-h-48 p-4 overflow-hidden'
-              }`}
+          {onOpenInstall && (
+            <button
+              onClick={onOpenInstall}
+              className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-sans"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                {PSEO_ROUTES_LIST.map((route) => {
-                  const isActive = currentPath === route.path;
-                  return (
-                    <a
-                      key={route.path}
-                      href={route.path}
-                      onClick={(e) => handleClick(e, route.path)}
-                      className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
-                        isActive
-                          ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold'
-                          : 'border-transparent hover:border-slate-200/80 dark:hover:border-[#2e3035] hover:bg-slate-100/60 dark:hover:bg-[#202226] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                      <span className="truncate">{route.label}</span>
-                    </a>
-                  );
-                })}
-              </div>
-
-              {!isToolsetOpen && (
-                <div 
-                  className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-50 via-slate-50/90 dark:from-[#121315] dark:via-[#121315]/90 to-transparent pointer-events-none flex items-end justify-center pb-2 rounded-b-2xl"
-                  aria-hidden="true"
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Bar: Copyright & Primary Navigation */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400 font-sans">
-          
-          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-            <span className="font-sans">© 2026 Zapixal. 100% Client-Side & Private.</span>
-            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
-            <nav aria-label="Legal Links" className="flex items-center gap-3">
-              <a href="/about" onClick={(e) => handleClick(e, '/about')} className="hover:text-slate-900 dark:hover:text-white hover:underline font-medium">About</a>
-              <a href="/privacy" onClick={(e) => handleClick(e, '/privacy')} className="hover:text-slate-900 dark:hover:text-white hover:underline font-medium">Privacy</a>
-              <a href="/terms" onClick={(e) => handleClick(e, '/terms')} className="hover:text-slate-900 dark:hover:text-white hover:underline font-medium">Terms</a>
-              <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 dark:hover:text-white hover:underline font-medium">Source Code</a>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-4 text-xs">
-            {onOpenInstall && (
-              <button
-                onClick={onOpenInstall}
-                className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-sans"
-              >
-                Install App
-              </button>
-            )}
-          </div>
-
+              Install Offline App (PWA)
+            </button>
+          )}
         </div>
 
       </div>

@@ -3,7 +3,7 @@ export interface ImageDimensions {
   height: number;
 }
 
-export type TargetFormat = 'webp' | 'avif' | 'jpg' | 'png' | 'bmp' | 'ico' | 'pdf' | 'gif';
+export type TargetFormat = 'webp' | 'avif' | 'jpg' | 'png' | 'bmp' | 'ico' | 'pdf';
 
 export interface ConversionSettings {
   targetFormat: TargetFormat;

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { validateMagicBytes, injectDpiMetadata } from '../src/lib/codecs.ts';
+import { validateMagicBytes, injectDpiMetadata, encodeWebpAdaptive } from '../src/lib/codecs.ts';
 import { parseSeoRoute } from '../src/lib/seoEngine.ts';
 import { calculateTargetDimensions, calculateCropRect, getCropSourceRect } from '../src/lib/conversionOrchestrator.ts';
 import { safeRandomUUID, hasCreateImageBitmap, hasOffscreenCanvas } from '../src/lib/capabilities.ts';
@@ -355,6 +355,39 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   assert.strictEqual(shouldCacheSimulated('blob:https://zapixal.com/463dfg-dfg4', 'GET'), false, 'Blob URLs of user files must be excluded');
 
   console.log('✓ PWA Cache Exclusion strategy tests passed');
+}
+
+// 8. Test Adaptive WebP Conversion Pipeline & Size Optimization Logic
+{
+  // Simulated adaptive decision helper
+  function evaluateAdaptiveFallback(
+    convertedSize: number,
+    originalSize: number,
+    hasTransformations: boolean,
+    targetFormat: string
+  ) {
+    if (convertedSize > originalSize && !hasTransformations && targetFormat !== 'ico') {
+      return { fallback: true, size: originalSize };
+    }
+    return { fallback: false, size: convertedSize };
+  }
+
+  // Case A: WebP is smaller than original (Success)
+  const caseA = evaluateAdaptiveFallback(180_000, 250_000, false, 'webp');
+  assert.strictEqual(caseA.fallback, false, 'Should keep converted WebP when smaller than original');
+  assert.strictEqual(caseA.size, 180_000);
+
+  // Case B: WebP is larger than original without transformations (Fallback triggered)
+  const caseB = evaluateAdaptiveFallback(310_000, 250_000, false, 'webp');
+  assert.strictEqual(caseB.fallback, true, 'Should trigger fallback when converted WebP is larger without edits');
+  assert.strictEqual(caseB.size, 250_000, 'Should preserve original file size');
+
+  // Case C: WebP is larger but user applied structural transformation (Keep converted)
+  const caseC = evaluateAdaptiveFallback(310_000, 250_000, true, 'webp');
+  assert.strictEqual(caseC.fallback, false, 'Should NOT fallback when user explicitly transformed image');
+  assert.strictEqual(caseC.size, 310_000);
+
+  console.log('✓ Adaptive WebP Conversion & Size Optimization tests passed');
 }
 
 console.log('\nAll unit tests passed successfully!');

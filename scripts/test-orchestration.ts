@@ -115,4 +115,112 @@ console.log('Running unit tests for conversion orchestration...\n');
   console.log('✓ Sequential Chunked ZIP Budgeting tests passed');
 }
 
+// 5. Test Per-File Format Precedence in Mixed Batch (A->AVIF, B->ICO, C->JPEG, D->PNG)
+{
+  const globalSettings: ConversionSettings = {
+    targetFormat: 'webp',
+    quality: 0.8,
+    renamePattern: '',
+    resize: { enabled: false, keepAspectRatio: true },
+    stripExif: true,
+    filenamePrefix: '',
+    filenameSuffix: '',
+  };
+
+  const batch: ImageFileItem[] = [
+    {
+      id: 'file-a',
+      file: new File([''], 'photo-a.jpg', { type: 'image/jpeg' }),
+      previewUrl: '',
+      originalSize: 1024,
+      status: 'success',
+      progress: 100,
+      customTargetFormat: 'avif',
+      blob: new Blob(['fake-avif'], { type: 'image/avif' }),
+    },
+    {
+      id: 'file-b',
+      file: new File([''], 'photo-b.png', { type: 'image/png' }),
+      previewUrl: '',
+      originalSize: 2048,
+      status: 'success',
+      progress: 100,
+      customTargetFormat: 'ico',
+      blob: new Blob(['fake-ico'], { type: 'image/x-icon' }),
+    },
+    {
+      id: 'file-c',
+      file: new File([''], 'photo-c.webp', { type: 'image/webp' }),
+      previewUrl: '',
+      originalSize: 3072,
+      status: 'success',
+      progress: 100,
+      customTargetFormat: 'jpg',
+      blob: new Blob(['fake-jpg'], { type: 'image/jpeg' }),
+    },
+    {
+      id: 'file-d',
+      file: new File([''], 'photo-d.bmp', { type: 'image/bmp' }),
+      previewUrl: '',
+      originalSize: 4096,
+      status: 'success',
+      progress: 100,
+      customTargetFormat: 'png',
+      blob: new Blob(['fake-png'], { type: 'image/png' }),
+    },
+  ];
+
+  const filenames = batch.map((item, idx) => formatOutputFilename(item, idx, globalSettings));
+  assert.deepStrictEqual(
+    filenames,
+    ['photo-a.avif', 'photo-b.ico', 'photo-c.jpg', 'photo-d.png'],
+    'Mixed-format batch files must output exact per-file format extensions ignoring global default'
+  );
+  console.log('✓ Per-file format precedence in mixed batch tests passed');
+}
+
+// 6. Test Unsupported PDF Rejection
+{
+  import('../src/lib/conversionOrchestrator.ts').then(async (mod) => {
+    const mockItem: ImageFileItem = {
+      id: 'pdf-test',
+      file: new File(['fake-img'], 'sample.jpg', { type: 'image/jpeg' }),
+      previewUrl: '',
+      originalSize: 100,
+      status: 'pending',
+      progress: 0,
+      customTargetFormat: 'pdf' as any,
+    };
+    const settings: ConversionSettings = {
+      targetFormat: 'pdf' as any,
+      quality: 0.8,
+      renamePattern: '',
+      resize: { enabled: false, keepAspectRatio: true },
+      stripExif: true,
+      filenamePrefix: '',
+      filenameSuffix: '',
+    };
+
+    let convertFailed = false;
+    try {
+      await mod.convertSingleImage(mockItem, settings);
+    } catch (err: any) {
+      convertFailed = true;
+      assert.ok(err.message.includes('PDF output is not supported'), 'Error message must specify unsupported PDF target format');
+    }
+    assert.strictEqual(convertFailed, true, 'convertSingleImage must reject targetFormat=pdf');
+
+    let pdfGenFailed = false;
+    try {
+      await mod.generateCombinedPdf([mockItem], settings);
+    } catch (err: any) {
+      pdfGenFailed = true;
+      assert.ok(err.message.includes('PDF output is not supported'), 'generateCombinedPdf must throw unsupported error');
+    }
+    assert.strictEqual(pdfGenFailed, true, 'generateCombinedPdf must reject execution');
+
+    console.log('✓ Unsupported PDF rejection tests passed');
+  });
+}
+
 console.log('\nAll orchestration unit tests passed successfully!');

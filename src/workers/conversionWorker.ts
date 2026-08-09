@@ -1,4 +1,4 @@
-import { encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from '../lib/codecs';
+import { encodeJpeg, encodePng, encodeWebp, encodeWebpAdaptive, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from '../lib/codecs';
 import {
   getCropSourceRect,
   applyBlurAndPixelateRegions,
@@ -7,8 +7,23 @@ import {
   reduceToTargetMaxKB
 } from '../lib/imageEffects';
 
+function isSameFormat(mime?: string, name?: string, targetFormat?: string): boolean {
+  if (!targetFormat) return false;
+  const m = (mime || '').toLowerCase();
+  const fn = (name || '').toLowerCase();
+
+  if ((targetFormat === 'jpg' || targetFormat === 'jpeg') && (m === 'image/jpeg' || /\.jpe?g$/i.test(fn))) return true;
+  if (targetFormat === 'png' && (m === 'image/png' || /\.png$/i.test(fn))) return true;
+  if (targetFormat === 'webp' && (m === 'image/webp' || /\.webp$/i.test(fn))) return true;
+  if (targetFormat === 'avif' && (m === 'image/avif' || /\.avif$/i.test(fn))) return true;
+  if (targetFormat === 'bmp' && (m === 'image/bmp' || /\.bmp$/i.test(fn))) return true;
+  if (targetFormat === 'ico' && (m === 'image/x-icon' || m === 'image/vnd.microsoft.icon' || /\.ico$/i.test(fn))) return true;
+
+  return false;
+}
+
 self.onmessage = async (e: MessageEvent) => {
-  const { id, imageBitmap, settings, targetDim, rotation = 0, originalSize = 0, blurRegions, blurMode } = e.data;
+  const { id, imageBitmap, settings, targetDim, rotation = 0, originalSize = 0, originalFileName, originalFileType, blurRegions, blurMode } = e.data;
 
   try {
     const { targetFormat, quality } = settings;
@@ -101,7 +116,16 @@ self.onmessage = async (e: MessageEvent) => {
       }
       blob = new Blob([jpegBytes.buffer], { type: 'image/jpeg' });
     } else if (targetFormat === 'webp') {
-      blob = await encodeWebp(canvas, quality);
+      if (settings.targetMaxKB && settings.targetMaxKB > 0) {
+        const adaptiveRes = await encodeWebpAdaptive(canvas, {
+          initialQuality: quality,
+          originalSize,
+          isJpegSource: true,
+        });
+        blob = adaptiveRes.blob;
+      } else {
+        blob = await encodeWebp(canvas, quality);
+      }
     } else if (targetFormat === 'avif') {
       blob = await encodeAvif(canvas, quality);
     } else if (targetFormat === 'bmp') {
@@ -134,7 +158,8 @@ self.onmessage = async (e: MessageEvent) => {
       !!settings.grayscale;
 
     let originalFallback = false;
-    if (originalSize > 0 && blob.size > originalSize && !hasTransformations && targetFormat !== 'ico') {
+    const isOriginalSameFormat = isSameFormat(originalFileType, originalFileName, targetFormat);
+    if (isOriginalSameFormat && originalSize > 0 && blob.size > originalSize && !hasTransformations && targetFormat !== 'ico') {
       originalFallback = true;
     }
 

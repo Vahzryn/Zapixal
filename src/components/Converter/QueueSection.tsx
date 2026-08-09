@@ -1,5 +1,5 @@
-import React from 'react';
-import { Trash2, Loader2, Zap, AlertTriangle, ShieldCheck, X } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Trash2, Loader2, Zap, AlertTriangle, ShieldCheck, X, Plus, Download, FolderDown, Archive, ChevronDown } from 'lucide-react';
 import { GlobalControls } from '../GlobalControls';
 import { VirtualFileList } from '../VirtualFileList';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../../types';
@@ -20,6 +20,11 @@ interface QueueSectionProps {
   totalCount: number;
   progressPercent: number;
   successCount: number;
+  onFilesAdded?: (files: File[]) => void;
+  onDownloadAll?: () => void;
+  onDownloadDirect?: () => void;
+  onDownloadToDirectory?: () => void;
+  hasDirectoryPicker?: boolean;
   onConvert: () => void;
   onStop: () => void;
   onClearAll: () => void;
@@ -41,6 +46,7 @@ interface QueueSectionProps {
   showAutoChunkedBanner?: boolean;
   onDismissAutoChunkedBanner?: () => void;
   totalPendingBytes?: number;
+  onContinueToDownload?: () => void;
 }
 
 export const QueueSection = React.memo<QueueSectionProps>(function QueueSection({
@@ -56,6 +62,11 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
   totalCount,
   progressPercent,
   successCount,
+  onFilesAdded,
+  onDownloadAll,
+  onDownloadDirect,
+  onDownloadToDirectory,
+  hasDirectoryPicker,
   onConvert,
   onStop,
   onClearAll,
@@ -77,10 +88,33 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
   showAutoChunkedBanner,
   onDismissAutoChunkedBanner,
   totalPendingBytes,
-  seoData
+  seoData,
+  onContinueToDownload
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const added = Array.from(e.target.files).filter(f => f.type.startsWith('image/') || /\.heic$/i.test(f.name));
+      if (added.length > 0 && onFilesAdded) {
+        onFilesAdded(added);
+      }
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileInputChange}
+        multiple
+        accept="image/*,.heic,.heif,.webp,.avif,.bmp,.ico,.png,.jpg,.jpeg,.svg"
+        className="hidden"
+        id="queue-add-files-input"
+      />
       {/* Large Batch Non-Blocking Banner */}
       {showLargeBatchBanner && (
         <div 
@@ -142,27 +176,64 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
       />
 
       <div className="flex flex-col bg-white dark:bg-neutral-900 border rounded-3xl border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 dark:bg-neutral-800/50">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 dark:bg-neutral-800/50">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="font-extrabold text-neutral-900 dark:text-white text-lg">Queue ({files.length})</span>
-            {concurrencyProfile && (
-              <span className="text-xs font-semibold text-neutral-400 dark:text-[#9aa0a6] hidden sm:inline" id="hw-tier-badge">
-                • {concurrencyProfile}
+            {successCount > 0 && (
+              <span className="px-2.5 py-0.5 text-xs font-bold rounded-lg bg-emerald-100 dark:bg-[#1e3427] text-emerald-700 dark:text-[#81c995] border border-emerald-200 dark:border-[#2d523c]">
+                {successCount} Completed
+              </span>
+            )}
+            {pendingCount > 0 && (
+              <span className="px-2.5 py-0.5 text-xs font-bold rounded-lg bg-amber-100 dark:bg-[#322312] text-amber-700 dark:text-[#fdd663] border border-amber-200 dark:border-[#523d24]">
+                {pendingCount} Pending
               </span>
             )}
             {isProcessing && etaText && (
-              <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-100 dark:bg-[#1e293b] text-blue-700 dark:text-[#8ab4f8] shadow-sm border border-blue-200 dark:border-[#384c6c] flex items-center gap-1.5">
+              <span className="px-2.5 py-0.5 text-xs font-bold rounded-lg bg-blue-100 dark:bg-[#1e293b] text-blue-700 dark:text-[#8ab4f8] shadow-xs border border-blue-200 dark:border-[#384c6c] flex items-center gap-1.5">
                 <span>⏱️ {etaText}</span>
               </span>
             )}
+            {concurrencyProfile && (
+              <span className="text-xs font-semibold text-neutral-400 dark:text-[#9aa0a6] hidden lg:inline" id="hw-tier-badge">
+                • {concurrencyProfile}
+              </span>
+            )}
           </div>
-          <button 
-            onClick={onClearAll}
-            disabled={isProcessing}
-            className="flex items-center gap-1.5 text-xs font-bold text-neutral-500 hover:text-red-600 transition-colors disabled:opacity-50"
-          >
-            <Trash2 className="w-4 h-4" /> Clear
-          </button>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessing}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-[#8ab4f8] hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-[#384c6c] transition-colors disabled:opacity-50 cursor-pointer"
+              title="Add more images to the queue"
+              id="btn-add-more-images"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Images</span>
+            </button>
+
+            {successCount > 0 && onContinueToDownload && (
+              <button
+                onClick={onContinueToDownload}
+                disabled={isProcessing}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-emerald-600 text-white dark:bg-[#81c995] dark:text-neutral-900 hover:bg-emerald-700 dark:hover:bg-[#68b67f] shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                id="btn-continue-to-download"
+              >
+                <Download className="w-4 h-4" />
+                <span>Continue to Download</span>
+              </button>
+            )}
+
+            <button 
+              onClick={onClearAll}
+              disabled={isProcessing}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Clear all files from workspace"
+            >
+              <Trash2 className="w-4 h-4" /> Clear
+            </button>
+          </div>
         </div>
 
         {selectedFileIds.size > 0 && (
@@ -192,7 +263,6 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
                 <option value="avif">AVIF</option>
                 <option value="jpg">JPEG</option>
                 <option value="png">PNG (Lossless)</option>
-                <option value="pdf">PDF Document</option>
                 <option value="bmp">BMP</option>
                 <option value="ico">ICO</option>
               </select>

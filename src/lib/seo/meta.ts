@@ -1,6 +1,8 @@
 import { DOMAIN } from './routes';
 import { SeoRouteData } from '../seoEngine';
 import { getPageSeo as getNotFoundSeo } from './pages/not-found';
+import { getArticleBySlug, getCategoryInfo, ALL_ARTICLES } from '../../content/articles';
+import { generateArticleJsonLdSchema } from './schema';
 
 const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (fullUrl: string, path: string) => SeoRouteData }>> = {
   'home': () => import('./pages/home'),
@@ -127,6 +129,116 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
   const fullUrl = `${DOMAIN}${path === '/' ? '' : path}`;
   const slug = path === '/' ? 'home' : path.slice(1);
 
+  // Handle article system routes
+  if (path === '/articles' || path.startsWith('/articles/')) {
+    if (path === '/articles') {
+      return {
+        path: '/articles',
+        h1Title: 'Zapixal Editorial & Technical Guides',
+        metaTitle: 'Zapixal Editorial & Technical Guides | Image Optimization & Codec Hub',
+        metaDescription: 'In-depth architectural guides on image codecs, WebAssembly performance, EXIF metadata privacy risks, and client-side optimization workflows.',
+        canonicalUrl: `${DOMAIN}/articles`,
+        isIndexable: true,
+        pageCategory: 'resource',
+        breadcrumbs: [
+          { name: 'Home', url: '/' },
+          { name: 'Articles', url: '/articles' },
+        ],
+        jsonLd: {
+          softwareApp: null,
+          howTo: null,
+          faqPage: null,
+          breadcrumbs: {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: DOMAIN },
+              { '@type': 'ListItem', position: 2, name: 'Articles', item: `${DOMAIN}/articles` },
+            ],
+          },
+          organization: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Zapixal', url: DOMAIN, logo: `${DOMAIN}/icon-512.png` },
+          website: { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Zapixal', url: DOMAIN },
+        },
+      };
+    }
+
+    const subPath = path.replace(/^\/articles\//, '');
+    const categoryInfo = getCategoryInfo(subPath);
+
+    if (categoryInfo) {
+      const catUrl = `${DOMAIN}/articles/${categoryInfo.slug}`;
+      return {
+        path: `/articles/${categoryInfo.slug}`,
+        h1Title: categoryInfo.title,
+        metaTitle: categoryInfo.metaTitle,
+        metaDescription: categoryInfo.metaDescription,
+        canonicalUrl: catUrl,
+        isIndexable: true,
+        pageCategory: 'resource',
+        breadcrumbs: [
+          { name: 'Home', url: '/' },
+          { name: 'Articles', url: '/articles' },
+          { name: categoryInfo.shortTitle, url: `/articles/${categoryInfo.slug}` },
+        ],
+        relatedRoutes: categoryInfo.relatedTools,
+        jsonLd: {
+          softwareApp: null,
+          howTo: null,
+          faqPage: null,
+          breadcrumbs: {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: DOMAIN },
+              { '@type': 'ListItem', position: 2, name: 'Articles', item: `${DOMAIN}/articles` },
+              { '@type': 'ListItem', position: 3, name: categoryInfo.shortTitle, item: catUrl },
+            ],
+          },
+          organization: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Zapixal', url: DOMAIN, logo: `${DOMAIN}/icon-512.png` },
+          website: { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Zapixal', url: DOMAIN },
+        },
+      };
+    }
+
+    const article = getArticleBySlug(subPath);
+    if (article) {
+      const artCategory = getCategoryInfo(article.category);
+      const artUrl = `${DOMAIN}/articles/${article.slug}`;
+      const articleBreadcrumbs = [
+        { name: 'Home', url: '/' },
+        { name: 'Articles', url: '/articles' },
+        { name: artCategory?.shortTitle || article.category, url: `/articles/${article.category}` },
+        { name: article.title, url: `/articles/${article.slug}` },
+      ];
+
+      const articleJsonLd = generateArticleJsonLdSchema(
+        article.title,
+        article.metaDescription,
+        artUrl,
+        article.author,
+        article.datePublished,
+        article.dateModified,
+        artCategory?.title || article.category,
+        articleBreadcrumbs
+      );
+
+      return {
+        path: `/articles/${article.slug}`,
+        h1Title: article.title,
+        metaTitle: article.metaTitle,
+        metaDescription: article.metaDescription,
+        canonicalUrl: artUrl,
+        isIndexable: true,
+        pageCategory: 'resource',
+        breadcrumbs: articleBreadcrumbs,
+        relatedRoutes: article.relatedTools,
+        jsonLd: articleJsonLd,
+      };
+    }
+
+    return getNotFoundSeo(fullUrl, path);
+  }
+
   let seoData: SeoRouteData;
 
   if (slug in PAGE_IMPORTS) {
@@ -207,6 +319,9 @@ export function applySeoToHead(seoData: SeoRouteData) {
   };
 
   if (seoData.jsonLd) {
+    if (seoData.jsonLd.article) {
+      injectJsonLd('jsonld-article', seoData.jsonLd.article);
+    }
     injectJsonLd('jsonld-software', seoData.jsonLd.softwareApp);
     injectJsonLd('jsonld-howto', seoData.jsonLd.howTo);
     injectJsonLd('jsonld-faq', seoData.jsonLd.faqPage);
@@ -215,3 +330,4 @@ export function applySeoToHead(seoData: SeoRouteData) {
     injectJsonLd('jsonld-website', seoData.jsonLd.website);
   }
 }
+

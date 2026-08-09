@@ -50,14 +50,14 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
           </div>
         ) : (
           (() => {
-            const isFormatOverhead = settings.targetFormat === 'ico' || settings.targetFormat === 'pdf';
+            const isFormatOverhead = settings.targetFormat === 'ico';
             return (
               <div className="inline-flex flex-col sm:flex-row items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-[#2e2312] text-amber-800 dark:text-[#fdd663] rounded-xl border border-amber-200 dark:border-[#4d3a1f] text-center sm:text-left">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span className="font-bold text-sm">
                     {isFormatOverhead
-                      ? `${settings.targetFormat.toUpperCase()} Document Generated (${formatBytes(totConv)})`
+                      ? `${settings.targetFormat.toUpperCase()} Generated (${formatBytes(totConv)})`
                       : `Size increased by ${formatBytes(Math.abs(netSaved))} (+${Math.abs(pct)}%)`}
                   </span>
                 </div>
@@ -80,14 +80,10 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
             id="btn-download-all"
           >
             <DownloadCloud className="w-5 h-5 sm:w-6 sm:h-6" />
-            {(() => {
-              if (settings.targetFormat === 'pdf') return 'Download PDF';
-              if (successCount === 1) return 'Download File';
-              return 'Download All (.ZIP)';
-            })()}
+            {successCount === 1 ? 'Download File' : 'Download All (.ZIP)'}
           </button>
 
-          {hasDirectoryPicker && onDownloadToDirectory && successCount > 1 && settings.targetFormat !== 'pdf' && (
+          {hasDirectoryPicker && onDownloadToDirectory && successCount > 1 && (
             <button
               onClick={onDownloadToDirectory}
               className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer"
@@ -99,7 +95,7 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
             </button>
           )}
 
-          {successCount > 1 && settings.targetFormat !== 'pdf' && (
+          {successCount > 1 && (
             <button
               onClick={onDownloadDirect}
               className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-sm active:scale-95 transition-all"

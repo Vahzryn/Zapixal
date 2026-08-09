@@ -302,6 +302,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           status,
           error,
           progress: 0,
+          customTargetFormat: settings.targetFormat,
         });
       });
 
@@ -548,17 +549,6 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const handleDownloadAll = useCallback(async () => {
     const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
     if (successfulFiles.length === 0) return;
-
-    if (settings.targetFormat === 'pdf') {
-      try {
-        const { generateCombinedPdf } = await import('../lib/conversionOrchestrator');
-        const pdfBlob = await generateCombinedPdf(successfulFiles, settings);
-        downloadBlob(pdfBlob, 'zapixal-converted-documents.pdf');
-      } catch (err) {
-        console.error('Failed to generate PDF:', err);
-      }
-      return;
-    }
 
     if (successfulFiles.length === 1) {
       handleDownloadSingle(successfulFiles[0]);

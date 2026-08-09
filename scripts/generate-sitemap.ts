@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PSEO_ROUTES_LIST, DOMAIN } from '../src/lib/seo/routes';
+import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
 
 const STATIC_ROUTES = ['/', '/about', '/privacy', '/terms'];
 
@@ -9,6 +9,9 @@ function generateSitemap() {
 
   // Add static routes
   STATIC_ROUTES.forEach((r) => routesSet.add(r));
+
+  // Add article system routes
+  ALL_ARTICLE_SYSTEM_ROUTES.forEach((r) => routesSet.add(r));
 
   // Add pSEO routes
   PSEO_ROUTES_LIST.forEach((item) => {

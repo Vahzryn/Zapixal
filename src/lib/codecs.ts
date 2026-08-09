@@ -1,3 +1,19 @@
+let mozjpegWasmUrl = '';
+let webpWasmUrl = '';
+let webpSimdWasmUrl = '';
+let avifWasmUrl = '';
+let avifMtWasmUrl = '';
+
+// Dynamically import WASM URLs for Vite (browser/worker environments)
+// This avoids breaking Node.js test environments (tsx) which don't support ?url
+if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+  import('@jsquash/jpeg/codec/enc/mozjpeg_enc.wasm?url').then(m => mozjpegWasmUrl = m.default).catch(() => {});
+  import('@jsquash/webp/codec/enc/webp_enc.wasm?url').then(m => webpWasmUrl = m.default).catch(() => {});
+  import('@jsquash/webp/codec/enc/webp_enc_simd.wasm?url').then(m => webpSimdWasmUrl = m.default).catch(() => {});
+  import('@jsquash/avif/codec/enc/avif_enc.wasm?url').then(m => avifWasmUrl = m.default).catch(() => {});
+  import('@jsquash/avif/codec/enc/avif_enc_mt.wasm?url').then(m => avifMtWasmUrl = m.default).catch(() => {});
+}
+
 const wasmModuleCache = new Map<string, any>();
 
 
@@ -72,6 +88,9 @@ export async function encodeJpeg(
     let jsquashJpeg = wasmModuleCache.get('jsquash-jpeg');
     if (!jsquashJpeg) {
       jsquashJpeg = await import('@jsquash/jpeg/encode');
+      await (jsquashJpeg.init || jsquashJpeg.default?.init)?.(undefined, {
+        locateFile: (path: string) => mozjpegWasmUrl || path
+      });
       wasmModuleCache.set('jsquash-jpeg', jsquashJpeg);
     }
     const encode = jsquashJpeg.default || jsquashJpeg;
@@ -159,6 +178,23 @@ export async function encodePng(
   }
 }
 
+export interface AdaptiveWebpOptions {
+  initialQuality?: number;
+  originalSize?: number;
+  isJpegSource?: boolean;
+  minQuality?: number;
+  maxAttempts?: number;
+}
+
+export interface AdaptiveWebpResult {
+  blob: Blob;
+  finalQuality: number;
+  attempts: number;
+  isSmallerThanOriginal: boolean;
+  originalSize: number;
+  finalSize: number;
+}
+
 /**
  * Encodes canvas to WebP Blob.
  */
@@ -166,12 +202,21 @@ export async function encodeWebp(
   canvas: OffscreenCanvas | HTMLCanvasElement,
   quality: number
 ): Promise<Blob> {
-  const targetQ = Math.max(1, Math.min(100, Math.round(quality * 100)));
+  const targetQ = quality <= 1.0
+    ? Math.max(1, Math.min(100, Math.round(quality * 100)))
+    : Math.max(1, Math.min(100, Math.round(quality)));
+  const qualityFloat = quality <= 1.0 ? quality : quality / 100;
 
   try {
     let jsquashWebp = wasmModuleCache.get('jsquash-webp');
     if (!jsquashWebp) {
       jsquashWebp = await import('@jsquash/webp/encode');
+      await (jsquashWebp.init || jsquashWebp.default?.init)?.(undefined, {
+        locateFile: (path: string) => {
+          if (path.endsWith('webp_enc_simd.wasm')) return webpSimdWasmUrl || path;
+          return webpWasmUrl || path;
+        }
+      });
       wasmModuleCache.set('jsquash-webp', jsquashWebp);
     }
     const encode = jsquashWebp.default || jsquashWebp;
@@ -180,21 +225,100 @@ export async function encodeWebp(
     if (!ctx) throw new Error('Could not get 2d context for WebP WASM encoding');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    const buf = await encode(imageData, { quality: targetQ });
+    const buf = await encode(imageData, {
+      quality: targetQ,
+      lossless: 0,
+      method: 4,
+      exact: 0,
+      sns_strength: 50,
+      filter_strength: 60,
+    });
     return new Blob([buf], { type: 'image/webp' });
   } catch (err) {
     console.warn('WebP WASM encoding failed, using canvas fallback:', err);
     if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-      return await canvas.convertToBlob({ type: 'image/webp', quality });
+      return await canvas.convertToBlob({ type: 'image/webp', quality: qualityFloat });
     }
     return new Promise<Blob>((resolve, reject) => {
       (canvas as HTMLCanvasElement).toBlob(
         (b) => (b ? resolve(b) : reject(new Error('WebP export failed'))),
         'image/webp',
-        quality
+        qualityFloat
       );
     });
   }
+}
+
+/**
+ * Adaptively encodes WebP to ensure size reduction over original JPEG/source image.
+ */
+export async function encodeWebpAdaptive(
+  canvas: OffscreenCanvas | HTMLCanvasElement,
+  options: AdaptiveWebpOptions = {}
+): Promise<AdaptiveWebpResult> {
+  const originalSize = options.originalSize || 0;
+  const isJpeg = options.isJpegSource !== false;
+  const minQ = options.minQuality !== undefined
+    ? (options.minQuality <= 1 ? Math.round(options.minQuality * 100) : Math.round(options.minQuality))
+    : 48;
+  const maxAttempts = options.maxAttempts || 4;
+
+  let startQVal = options.initialQuality !== undefined
+    ? (options.initialQuality <= 1 ? Math.round(options.initialQuality * 100) : Math.round(options.initialQuality))
+    : 75;
+
+  if (isJpeg && startQVal > 75) {
+    startQVal = 75;
+  }
+
+  let currentQ = Math.max(minQ, Math.min(100, startQVal));
+
+  let bestBlob = await encodeWebp(canvas, currentQ / 100);
+  let bestSize = bestBlob.size;
+  let bestQ = currentQ;
+  let attempts = 1;
+
+  if (originalSize > 0 && bestSize >= originalSize) {
+    while (currentQ > minQ && attempts < maxAttempts && bestSize >= originalSize) {
+      const ratio = bestSize / originalSize;
+      let step = 8;
+      if (ratio > 1.25) step = 14;
+      else if (ratio > 1.1) step = 10;
+
+      const nextQ = Math.max(minQ, currentQ - step);
+      if (nextQ === currentQ) break;
+
+      currentQ = nextQ;
+      attempts++;
+
+      try {
+        const candidateBlob = await encodeWebp(canvas, currentQ / 100);
+        if (candidateBlob.size < bestSize) {
+          bestBlob = candidateBlob;
+          bestSize = candidateBlob.size;
+          bestQ = currentQ;
+        }
+
+        if (bestSize < originalSize) {
+          break;
+        }
+      } catch (err) {
+        console.warn(`Adaptive WebP encoding failed at quality ${currentQ}:`, err);
+        break;
+      }
+    }
+  }
+
+  const isSmallerThanOriginal = originalSize > 0 ? bestSize < originalSize : true;
+
+  return {
+    blob: bestBlob,
+    finalQuality: bestQ / 100,
+    attempts,
+    isSmallerThanOriginal,
+    originalSize,
+    finalSize: bestSize,
+  };
 }
 
 /**
@@ -210,6 +334,12 @@ export async function encodeAvif(
     let jsquashAvif = wasmModuleCache.get('jsquash-avif');
     if (!jsquashAvif) {
       jsquashAvif = await import('@jsquash/avif/encode');
+      await (jsquashAvif.init || jsquashAvif.default?.init)?.(undefined, {
+        locateFile: (path: string) => {
+          if (path.endsWith('avif_enc_mt.wasm')) return avifMtWasmUrl || path;
+          return avifWasmUrl || path;
+        }
+      });
       wasmModuleCache.set('jsquash-avif', jsquashAvif);
     }
     const encode = jsquashAvif.default || jsquashAvif;
@@ -242,24 +372,68 @@ export async function encodeAvif(
 }
 
 /**
- * Encodes canvas to BMP Blob.
+ * Encodes canvas to genuine 24-bit uncompressed BMP Blob.
  */
 export async function encodeBmp(canvas: OffscreenCanvas | HTMLCanvasElement): Promise<Blob> {
-  let blob: Blob;
-  if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-    blob = await canvas.convertToBlob({ type: 'image/bmp' });
-  } else {
-    blob = await new Promise<Blob>((resolve, reject) => {
-      (canvas as HTMLCanvasElement).toBlob(
-        (b) => (b ? resolve(b) : reject(new Error('BMP export failed'))),
-        'image/bmp'
-      );
-    });
+  const width = canvas.width;
+  const height = canvas.height;
+  if (width === 0 || height === 0) {
+    throw new Error('Invalid canvas dimensions for BMP export');
   }
-  if (blob.type !== 'image/bmp') {
-    throw new Error('BMP encoding is not supported by this browser');
+
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+  if (!ctx) {
+    throw new Error('Could not get 2D rendering context for BMP encoding');
   }
-  return blob;
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const rgbaData = imageData.data;
+
+  // Row size must be padded to a multiple of 4 bytes (24-bit = 3 bytes/pixel)
+  const rowSize = Math.floor((width * 3 + 3) / 4) * 4;
+  const pixelArraySize = rowSize * height;
+  const fileSize = 54 + pixelArraySize;
+
+  const buffer = new Uint8Array(fileSize);
+  const view = new DataView(buffer.buffer);
+
+  // 1. BMP File Header (14 bytes)
+  buffer[0] = 0x42; // 'B'
+  buffer[1] = 0x4D; // 'M'
+  view.setUint32(2, fileSize, true);  // File size
+  view.setUint16(6, 0, true);         // Reserved 1
+  view.setUint16(8, 0, true);         // Reserved 2
+  view.setUint32(10, 54, true);       // Pixel array offset
+
+  // 2. DIB Header (BITMAPINFOHEADER - 40 bytes)
+  view.setUint32(14, 40, true);       // Header size
+  view.setInt32(18, width, true);     // Image width
+  view.setInt32(22, height, true);    // Image height (positive = bottom-up)
+  view.setUint16(26, 1, true);        // Color planes
+  view.setUint16(28, 24, true);       // Bits per pixel (24-bit RGB)
+  view.setUint32(30, 0, true);        // BI_RGB (uncompressed)
+  view.setUint32(34, pixelArraySize, true); // Raw image size
+  view.setInt32(38, 2835, true);     // X pixels/meter (~72 DPI)
+  view.setInt32(42, 2835, true);     // Y pixels/meter (~72 DPI)
+  view.setUint32(46, 0, true);        // Colors in color table
+  view.setUint32(50, 0, true);        // Important colors
+
+  // 3. Pixel Array (Bottom-to-top, BGR byte order)
+  let offset = 54;
+  for (let y = height - 1; y >= 0; y--) {
+    const rowStart = y * width * 4;
+    let colOffset = offset;
+    for (let x = 0; x < width; x++) {
+      const p = rowStart + x * 4;
+      buffer[colOffset]     = rgbaData[p + 2]; // B
+      buffer[colOffset + 1] = rgbaData[p + 1]; // G
+      buffer[colOffset + 2] = rgbaData[p];     // R
+      colOffset += 3;
+    }
+    offset += rowSize;
+  }
+
+  return new Blob([buffer], { type: 'image/bmp' });
 }
 
 /**

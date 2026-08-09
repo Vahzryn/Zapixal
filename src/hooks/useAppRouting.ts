@@ -23,6 +23,7 @@ export function isKnownRoute(pathname: string): boolean {
   const rawPath = (pathname || '/').split('?')[0].split('#')[0].toLowerCase().trim();
   const path = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : (rawPath || '/');
   if (STATIC_KNOWN_ROUTES.has(path)) return true;
+  if (path === '/articles' || path.startsWith('/articles/')) return true;
   if (PSEO_ROUTES_LIST.some(r => r.path === path)) return true;
   if (path in REDIRECTS_MAP) return true;
   return false;

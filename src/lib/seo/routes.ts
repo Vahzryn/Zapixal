@@ -215,3 +215,23 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
     category: 'use-case'
   },
 ];
+
+export const ARTICLE_CATEGORY_ROUTES = [
+  '/articles/formats',
+  '/articles/privacy',
+  '/articles/workflows',
+  '/articles/performance',
+];
+
+export const ARTICLE_ITEM_ROUTES = [
+  '/articles/heic-vs-jpg',
+  '/articles/exif-metadata-privacy-guide',
+  '/articles/compress-image-to-kb-limit-guide',
+];
+
+export const ALL_ARTICLE_SYSTEM_ROUTES = [
+  '/articles',
+  ...ARTICLE_CATEGORY_ROUTES,
+  ...ARTICLE_ITEM_ROUTES,
+];
+

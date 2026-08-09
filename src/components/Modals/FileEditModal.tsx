@@ -124,7 +124,6 @@ export function FileEditModal({
               <option value="avif">AVIF (Next-Gen Compression)</option>
               <option value="jpg">JPEG (Universal Compatibility)</option>
               <option value="png">PNG (Lossless Transparency)</option>
-              <option value="pdf">PDF (Document Format)</option>
               <option value="bmp">BMP (Uncompressed Bitmap)</option>
               <option value="ico">ICO (Favicon Icon)</option>
             </select>

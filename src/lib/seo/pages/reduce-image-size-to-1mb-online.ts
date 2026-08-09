@@ -12,7 +12,7 @@ export function getReduceTo1mbContent(): RouteEditorialContent {
     section1Title: 'Achieving the 1MB threshold for professional web assets',
     section1Body: 'The 1 megabyte (1MB) limit is a common standard across corporate portals, CMS systems, and email marketing platforms. It represents a professional baseline for high-resolution images that need to remain sharp while avoiding excessive bandwidth consumption. Zapixal’s 1MB target-size tool provides a high-fidelity path to meeting this requirement. By using iterative local re-encoding, we find the highest possible quality setting that fits strictly within a 1MB budget, ensuring your photos and documents look great without being rejected for size.',
     section2Title: 'Precision compression for high-DPI and Retina displays',
-    section2Body: 'When targeting 1MB, you have enough byte-budget to preserve significant detail, even for high-DPI and Retina displays. Zapixal’s WASM-powered encoders excel at balancing this trade-off. We prioritize fine textures and color accuracy, ensuring that your 1MB output maintains a premium look. Because the entire optimization happens in your browser’s local RAM, you can experiment with different formats (WebP vs JPEG) to see which yields the best visual results for your specific 1MB goal, all while keeping your data 100% private.',
+    section2Body: 'When targeting 1MB, you have enough byte-budget to preserve significant detail, even for high-DPI and Retina displays. Zapixal’s WASM-powered encoders excel at balancing this trade-off. We prioritize fine textures and color accuracy, ensuring that your 1MB output maintains a premium look. Because the entire optimization happens in your browser’s local RAM, you can experiment with different formats (WebP vs JPEG) to see which yields the best visual results for your specific 1MB goal, all while keeping your data strictly in local browser memory.',
     steps: [
       'Enter "Target Size" mode and set the limit to 1MB.',
       'Drop your high-resolution images into the browser processing area.',
@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Reduce Image Size to 1MB: Free High-Fidelity Optimization',
     metaTitle: 'Reduce Image Size to 1MB | Free High-Fidelity Optimization | Zapixal',
-    metaDescription: 'Need to get an image under 1MB? Our precision target-size tool shrinks photos and scans to exactly 1MB while preserving high-fidelity detail. 100% Private.',
+    metaDescription: 'Need to get an image under 1MB? Our precision target-size tool shrinks photos and scans to exactly 1MB while preserving high-fidelity detail. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'compression',

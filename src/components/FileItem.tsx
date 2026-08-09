@@ -254,7 +254,6 @@ function FileItemComponent({
                 <option value="avif">AVIF</option>
                 <option value="jpg">JPEG</option>
                 <option value="png">PNG</option>
-                <option value="pdf">PDF</option>
                 <option value="bmp">BMP</option>
                 <option value="ico">ICO</option>
               </select>
@@ -279,7 +278,6 @@ function FileItemComponent({
                 <option value="avif">AVIF</option>
                 <option value="jpg">JPEG</option>
                 <option value="png">PNG</option>
-                <option value="pdf">PDF</option>
                 <option value="bmp">BMP</option>
                 <option value="ico">ICO</option>
               </select>

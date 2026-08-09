@@ -1,7 +1,7 @@
 import { ImageFileItem, ConversionSettings, ImageDimensions, TargetFormat } from '../types';
 import { formatBytes } from './utils';
 import { getWorkerPool, PooledWorker } from './workerPool';
-import { validateMagicBytes, encodeJpeg, encodePng, encodeWebp, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from './codecs';
+import { validateMagicBytes, encodeJpeg, encodePng, encodeWebp, encodeWebpAdaptive, encodeAvif, encodeBmp, encodeIco, injectDpiMetadata } from './codecs';
 import { detectHardwareCapabilities, getMaxPixels, getMaxMegapixels } from './hardwareCapabilities';
 import {
   calculateCropRect,
@@ -17,6 +17,18 @@ export {
   getCropSourceRect,
   applyBlurAndPixelateRegions
 };
+
+function isSameFormat(file: File, targetFormat: TargetFormat): boolean {
+  const mime = (file.type || '').toLowerCase();
+  const name = (file.name || '').toLowerCase();
+  if (targetFormat === 'jpg' && (mime === 'image/jpeg' || /\.jpe?g$/i.test(name))) return true;
+  if (targetFormat === 'png' && (mime === 'image/png' || /\.png$/i.test(name))) return true;
+  if (targetFormat === 'webp' && (mime === 'image/webp' || /\.webp$/i.test(name))) return true;
+  if (targetFormat === 'avif' && (mime === 'image/avif' || /\.avif$/i.test(name))) return true;
+  if (targetFormat === 'bmp' && (mime === 'image/bmp' || /\.bmp$/i.test(name))) return true;
+  if (targetFormat === 'ico' && (mime === 'image/x-icon' || mime === 'image/vnd.microsoft.icon' || /\.ico$/i.test(name))) return true;
+  return false;
+}
 
 export async function loadImageElement(file: File): Promise<{
   img: ImageBitmap | HTMLImageElement;
@@ -326,87 +338,8 @@ export async function convertSingleImage(
   const effectiveRotation = (((effectiveSettings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
   const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
-  // PDF Export
-  if (targetFormat === 'pdf') {
-    const loaded = await loadImageElement(item.file);
-    try {
-      if (signal?.aborted) {
-        throw new DOMException('The operation was aborted.', 'AbortError');
-      }
-
-      const pdfSourceW = loaded.dimensions.width;
-      const pdfSourceH = loaded.dimensions.height;
-      const pdfPostW = isRotated90or270 ? pdfSourceH : pdfSourceW;
-      const pdfPostH = isRotated90or270 ? pdfSourceW : pdfSourceH;
-
-      let pdfCroppedW = pdfPostW;
-      let pdfCroppedH = pdfPostH;
-      if (effectiveSettings.cropAspectRatio && effectiveSettings.cropAspectRatio.width > 0 && effectiveSettings.cropAspectRatio.height > 0) {
-        const cropPost = calculateCropRect(pdfPostW, pdfPostH, effectiveSettings.cropAspectRatio);
-        pdfCroppedW = cropPost.cropWidth;
-        pdfCroppedH = cropPost.cropHeight;
-      }
-
-      const targetDim = calculateTargetDimensions(
-        { width: pdfCroppedW, height: pdfCroppedH },
-        resize.maxWidth,
-        resize.maxHeight,
-        resize.keepAspectRatio
-      );
-
-      const canvasWidth = targetDim.width;
-      const canvasHeight = targetDim.height;
-
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.jsPDF;
-      const doc = new jsPDF({
-        orientation: canvasWidth > canvasHeight ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [canvasWidth, canvasHeight],
-      });
-
-      if (signal?.aborted) {
-        throw new DOMException('The operation was aborted.', 'AbortError');
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas context not available');
-
-      const pdfCropSource = getCropSourceRect(pdfSourceW, pdfSourceH, effectiveRotation, effectiveSettings.cropAspectRatio);
-      if (effectiveRotation !== 0) {
-        const drawW = isRotated90or270 ? canvasHeight : canvasWidth;
-        const drawH = isRotated90or270 ? canvasWidth : canvasHeight;
-        ctx.save();
-        ctx.translate(canvasWidth / 2, canvasHeight / 2);
-        ctx.rotate((effectiveRotation * Math.PI) / 180);
-        ctx.drawImage(loaded.img as CanvasImageSource, pdfCropSource.cropX, pdfCropSource.cropY, pdfCropSource.cropWidth, pdfCropSource.cropHeight, -drawW / 2, -drawH / 2, drawW, drawH);
-        ctx.restore();
-      } else {
-        ctx.drawImage(loaded.img as CanvasImageSource, pdfCropSource.cropX, pdfCropSource.cropY, pdfCropSource.cropWidth, pdfCropSource.cropHeight, 0, 0, canvasWidth, canvasHeight);
-      }
-
-      applyBlurAndPixelateRegions(ctx, canvasWidth, canvasHeight, item.blurRegions, item.blurMode);
-
-    const imgDataUrl = canvas.toDataURL('image/jpeg', Math.max(0.6, quality));
-    doc.addImage(imgDataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
-    const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-
-    return {
-      blob: pdfBlob,
-      convertedSize: pdfBlob.size,
-      dimensions: { width: canvasWidth, height: canvasHeight },
-      convertedUrl: pdfUrl,
-    };
-    } finally {
-      if (loaded.img instanceof ImageBitmap) {
-        try { loaded.img.close(); } catch(e) {}
-      }
-      URL.revokeObjectURL(loaded.objectUrl);
-    }
+  if ((targetFormat as string) === 'pdf') {
+    throw new Error('PDF output is not supported as a raster image target format.');
   }
 
   // Load image
@@ -511,6 +444,8 @@ export async function convertSingleImage(
               targetDim,
               rotation: effectiveRotation,
               originalSize: item.originalSize,
+              originalFileName: item.file.name,
+              originalFileType: item.file.type,
               blurRegions: item.blurRegions,
               blurMode: item.blurMode,
             },
@@ -614,7 +549,16 @@ export async function convertSingleImage(
       }
       convertedBlob = new Blob([jpegBytes.buffer], { type: 'image/jpeg' });
     } else if (targetFormat === 'webp') {
-      convertedBlob = await encodeWebp(canvas, quality);
+      if (effectiveSettings.targetMaxKB && effectiveSettings.targetMaxKB > 0) {
+        const adaptiveRes = await encodeWebpAdaptive(canvas, {
+          initialQuality: quality,
+          originalSize: item.originalSize,
+          isJpegSource: /jpe?g$/i.test(item.file.name) || item.file.type === 'image/jpeg',
+        });
+        convertedBlob = adaptiveRes.blob;
+      } else {
+        convertedBlob = await encodeWebp(canvas, quality);
+      }
     } else if (targetFormat === 'avif') {
       convertedBlob = await encodeAvif(canvas, quality);
     } else if (targetFormat === 'bmp') {
@@ -647,12 +591,10 @@ export async function convertSingleImage(
     (effectiveSettings.watermarkText && effectiveSettings.watermarkText.trim() !== '') ||
     !!effectiveSettings.grayscale;
 
-  const isStripExif = effectiveSettings.stripExif !== false;
-  if (convertedBlob.size > item.originalSize && !hasTransformations && targetFormat !== 'ico' && !isStripExif) {
+  const isOriginalSameFormat = isSameFormat(item.file, targetFormat);
+  if (isOriginalSameFormat && (convertedBlob.size > item.originalSize || originalFallback) && !hasTransformations && targetFormat !== 'ico') {
     convertedBlob = item.file;
     originalFallback = true;
-  } else if (originalFallback && !isStripExif) {
-    convertedBlob = item.file;
   } else {
     originalFallback = false;
   }
@@ -682,75 +624,10 @@ export async function convertSingleImage(
 }
 
 export async function generateCombinedPdf(
-  items: ImageFileItem[],
-  settings: ConversionSettings
+  _items: ImageFileItem[],
+  _settings: ConversionSettings
 ): Promise<Blob> {
-  const jsPDFModule = await import('jspdf');
-  const jsPDF = jsPDFModule.jsPDF;
-  let doc: any = null;
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (item.status !== 'success') continue;
-
-    try {
-      const effectiveRotation = (((settings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
-      const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
-
-      const loaded = await loadImageElement(item.file);
-      try {
-        const dim = calculateTargetDimensions(
-          loaded.dimensions,
-          settings.resize.maxWidth,
-          settings.resize.maxHeight,
-          settings.resize.keepAspectRatio
-        );
-
-        const canvasWidth = isRotated90or270 ? dim.height : dim.width;
-        const canvasHeight = isRotated90or270 ? dim.width : dim.height;
-        const orientation = canvasWidth > canvasHeight ? 'landscape' : 'portrait';
-
-        if (!doc) {
-          doc = new jsPDF({
-            orientation,
-            unit: 'px',
-            format: [canvasWidth, canvasHeight],
-          });
-        } else {
-          doc.addPage([canvasWidth, canvasHeight], orientation);
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          if (effectiveRotation !== 0) {
-            ctx.save();
-            ctx.translate(canvasWidth / 2, canvasHeight / 2);
-            ctx.rotate((effectiveRotation * Math.PI) / 180);
-            ctx.drawImage(loaded.img as CanvasImageSource, -dim.width / 2, -dim.height / 2, dim.width, dim.height);
-            ctx.restore();
-          } else {
-            ctx.drawImage(loaded.img as CanvasImageSource, 0, 0, dim.width, dim.height);
-          }
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-          doc.addImage(dataUrl, 'JPEG', 0, 0, canvasWidth, canvasHeight);
-        }
-      } finally {
-        if (loaded.img instanceof ImageBitmap) {
-          try { loaded.img.close(); } catch(e) {}
-        }
-        URL.revokeObjectURL(loaded.objectUrl);
-      }
-    } catch (itemErr) {
-      console.error(`Skipping failed image ${item.file.name} in combined PDF generation:`, itemErr);
-    }
-  }
-
-  if (!doc) throw new Error('No images successfully compiled into PDF');
-  return doc.output('blob');
+  throw new Error('PDF output is not supported as a raster image target format.');
 }
 
 export async function generateBatchZip(

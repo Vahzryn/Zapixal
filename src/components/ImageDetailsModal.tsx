@@ -1,7 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { ImageFileItem } from '../types';
-import { formatBytes } from '../lib/utils';
-import { X, Info, Palette, Copy, Check, Layers, Image as ImageIcon } from 'lucide-react';
+import { formatBytes, cn } from '../lib/utils';
+import {
+  X,
+  Info,
+  Palette,
+  Check,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  RotateCcw,
+  SlidersHorizontal,
+  ChevronRight,
+  ChevronLeft,
+  Sparkles,
+  Maximize,
+} from 'lucide-react';
 
 interface ImageDetailsModalProps {
   item: ImageFileItem;
@@ -15,14 +29,21 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
     item.dimensions || null
   );
 
-  useEffect(() => {
-    if (item.dimensions) {
-      setImgDimensions(item.dimensions);
-    }
-  }, [item.dimensions]);
-
   const [previewUrl, setPreviewUrl] = useState<string>(item.convertedUrl || '');
+  const [showInfoPanel, setShowInfoPanel] = useState<boolean>(true);
 
+  // Zoom and Pan state
+  const [scale, setScale] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchPinchDistRef = useRef<number | null>(null);
+  const touchStartScaleRef = useRef<number>(1);
+
+  // Derive preview URL safely
   useEffect(() => {
     if (item.convertedUrl) {
       setPreviewUrl(item.convertedUrl);
@@ -35,14 +56,64 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
     };
   }, [item.convertedUrl, item.file]);
 
-  // Extract color palette & verify exact natural dimensions
+  // Compute container fit scale helper
+  const getFitScale = useCallback(() => {
+    if (!containerRef.current || !imgDimensions) return 1;
+    const { clientWidth, clientHeight } = containerRef.current;
+    if (clientWidth === 0 || clientHeight === 0) return 1;
+
+    // Apply rotation dimensions swap if rotated 90 or 270 deg
+    const isRotated = (item.rotation || 0) % 180 !== 0;
+    const w = isRotated ? imgDimensions.height : imgDimensions.width;
+    const h = isRotated ? imgDimensions.width : imgDimensions.height;
+
+    const pad = 32; // 16px padding on each side
+    const scaleX = (clientWidth - pad) / w;
+    const scaleY = (clientHeight - pad) / h;
+    return Math.min(scaleX, scaleY, 1);
+  }, [imgDimensions, item.rotation]);
+
+  // Reset view to Fit to Screen
+  const handleFitToScreen = useCallback(() => {
+    const fit = getFitScale();
+    setScale(fit);
+    setPan({ x: 0, y: 0 });
+  }, [getFitScale]);
+
+  // Reset view to 100% (1:1 actual pixel size)
+  const handleSetActualSize = useCallback(() => {
+    setScale(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setScale((prev) => Math.min(10, prev * 1.25));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setScale((prev) => Math.max(0.05, prev / 1.25));
+  }, []);
+
+  // Extract color palette & measure natural dimensions
   useEffect(() => {
     const img = new Image();
     img.src = previewUrl;
 
     img.onload = () => {
-      if (!imgDimensions) {
-        setImgDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
+      setImgDimensions(dimensions);
+
+      // Auto-fit on initial load if scale hasn't been set manually
+      if (containerRef.current) {
+        const isRotated = (item.rotation || 0) % 180 !== 0;
+        const w = isRotated ? dimensions.height : dimensions.width;
+        const h = isRotated ? dimensions.width : dimensions.height;
+        const pad = 32;
+        const scaleX = (containerRef.current.clientWidth - pad) / w;
+        const scaleY = (containerRef.current.clientHeight - pad) / h;
+        const fit = Math.min(scaleX, scaleY, 1);
+        setScale(fit);
+        setPan({ x: 0, y: 0 });
       }
 
       // Sample colors on small 24x24 canvas
@@ -64,7 +135,6 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
 
         if (a < 128) continue; // Skip transparent pixels
 
-        // Quantize colors to reduce noise
         const qr = Math.round(r / 32) * 32;
         const qg = Math.round(g / 32) * 32;
         const qb = Math.round(b / 32) * 32;
@@ -80,7 +150,138 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
 
       setColors(sorted);
     };
-  }, [previewUrl, imgDimensions]);
+  }, [previewUrl, item.rotation]);
+
+  // Non-passive wheel listener for smooth desktop trackpad/mouse zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+      setScale((prev) => Math.max(0.05, Math.min(10, prev * zoomFactor)));
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', onWheel);
+    };
+  }, []);
+
+  // Keyboard accessibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      // Ignore zoom hotkeys if user is focusing an input
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        handleFitToScreen();
+      } else if (e.key === '1') {
+        e.preventDefault();
+        handleSetActualSize();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        handleFitToScreen();
+      } else if (e.key === 'ArrowLeft') {
+        setPan((p) => ({ ...p, x: p.x + 30 }));
+      } else if (e.key === 'ArrowRight') {
+        setPan((p) => ({ ...p, x: p.x - 30 }));
+      } else if (e.key === 'ArrowUp') {
+        setPan((p) => ({ ...p, y: p.y + 30 }));
+      } else if (e.key === 'ArrowDown') {
+        setPan((p) => ({ ...p, y: p.y - 30 }));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, handleZoomIn, handleZoomOut, handleFitToScreen, handleSetActualSize]);
+
+  // Mouse pan handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Only left click
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setPanStart({ ...pan });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    setPan({
+      x: panStart.x + dx,
+      y: panStart.y + dy,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch pan & pinch-to-zoom handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      setPanStart({ ...pan });
+      touchPinchDistRef.current = null;
+    } else if (e.touches.length === 2) {
+      setIsDragging(false);
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      touchPinchDistRef.current = dist;
+      touchStartScaleRef.current = scale;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && isDragging) {
+      const dx = e.touches[0].clientX - dragStart.x;
+      const dy = e.touches[0].clientY - dragStart.y;
+      setPan({
+        x: panStart.x + dx,
+        y: panStart.y + dy,
+      });
+    } else if (e.touches.length === 2 && touchPinchDistRef.current !== null) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const factor = dist / touchPinchDistRef.current;
+      setScale(Math.max(0.05, Math.min(10, touchStartScaleRef.current * factor)));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    touchPinchDistRef.current = null;
+  };
+
+  // Double click toggle between Fit and 100% / zoomed view
+  const handleDoubleClick = () => {
+    const fitScale = getFitScale();
+    if (Math.abs(scale - fitScale) < 0.02) {
+      setScale(1); // 100% natural pixel size
+    } else {
+      handleFitToScreen();
+    }
+  };
 
   const copyToClipboard = (hex: string) => {
     navigator.clipboard.writeText(hex);
@@ -99,118 +300,273 @@ export function ImageDetailsModal({ item, onClose }: ImageDetailsModalProps) {
     return `${rw}:${rh}`;
   };
 
+  const zoomPercent = Math.round(scale * 100);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative flex flex-col w-full max-w-2xl bg-white dark:bg-[#202124] rounded-3xl shadow-2xl border border-neutral-200 dark:border-[#3c4043] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative flex flex-col w-full max-w-6xl h-[92vh] max-h-[920px] bg-white dark:bg-[#202124] rounded-3xl shadow-2xl border border-neutral-200 dark:border-[#3c4043] overflow-hidden">
         
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-[#3c4043]">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-50 dark:bg-[#21243a] text-indigo-600 dark:text-[#a8b1ff] rounded-2xl">
-              <Info className="w-6 h-6" />
+        {/* Header with Title + Interactive Zoom Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 py-3 border-b border-neutral-200 dark:border-[#3c4043] bg-neutral-50/90 dark:bg-[#28292c]/90 backdrop-blur-md z-10 shrink-0">
+          
+          {/* File Title Info */}
+          <div className="flex items-center gap-3 min-w-0 max-w-xs sm:max-w-md">
+            <div className="p-2 bg-indigo-50 dark:bg-[#21243a] text-indigo-600 dark:text-[#a8b1ff] rounded-xl shrink-0">
+              <Info className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-neutral-900 dark:text-[#e8eaed]">Image Details & Palette</h3>
-              <p className="text-xs font-semibold text-neutral-500 dark:text-[#9aa0a6] truncate max-w-xs sm:max-w-md">
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-[#e8eaed] truncate">
                 {item.file.name}
+              </h3>
+              <p className="text-xs text-neutral-500 dark:text-[#9aa0a6] truncate">
+                {imgDimensions ? `${imgDimensions.width} × ${imgDimensions.height} px` : 'Loading specs...'} • {formatBytes(item.originalSize)}
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2.5 transition-all text-neutral-400 hover:text-neutral-700 dark:hover:text-[#e8eaed] hover:bg-neutral-100 dark:hover:bg-[#3c4043] rounded-full"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          {/* Zoom & Viewport Controls Toolbar */}
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-neutral-200/60 dark:bg-[#3c4043]/60 p-1 rounded-2xl border border-neutral-300/50 dark:border-[#5f6368]/50">
+            
+            <button
+              onClick={handleZoomOut}
+              className="p-1.5 text-neutral-700 dark:text-[#e8eaed] hover:bg-white dark:hover:bg-[#202124] rounded-xl transition-all active:scale-95 cursor-pointer"
+              title="Zoom Out (-)"
+              aria-label="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+
+            <span className="px-2 text-xs font-mono font-bold text-neutral-800 dark:text-[#e8eaed] min-w-[3.25rem] text-center">
+              {zoomPercent}%
+            </span>
+
+            <button
+              onClick={handleZoomIn}
+              className="p-1.5 text-neutral-700 dark:text-[#e8eaed] hover:bg-white dark:hover:bg-[#202124] rounded-xl transition-all active:scale-95 cursor-pointer"
+              title="Zoom In (+)"
+              aria-label="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+
+            <div className="w-px h-4 bg-neutral-300 dark:bg-[#5f6368] mx-0.5" />
+
+            <button
+              onClick={handleFitToScreen}
+              className="px-2.5 py-1 text-xs font-bold text-neutral-700 dark:text-[#e8eaed] hover:bg-white dark:hover:bg-[#202124] rounded-xl transition-all cursor-pointer flex items-center gap-1"
+              title="Fit to Screen (0)"
+              aria-label="Fit to Screen"
+            >
+              <Maximize className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Fit</span>
+            </button>
+
+            <button
+              onClick={handleSetActualSize}
+              className="px-2.5 py-1 text-xs font-bold text-neutral-700 dark:text-[#e8eaed] hover:bg-white dark:hover:bg-[#202124] rounded-xl transition-all cursor-pointer flex items-center gap-1"
+              title="100% Actual Size (1)"
+              aria-label="100% Actual Size"
+            >
+              <span>100%</span>
+            </button>
+
+            <button
+              onClick={handleFitToScreen}
+              className="p-1.5 text-neutral-700 dark:text-[#e8eaed] hover:bg-white dark:hover:bg-[#202124] rounded-xl transition-all active:scale-95 cursor-pointer"
+              title="Reset View (R)"
+              aria-label="Reset View"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Action Buttons: Toggle Spec Panel & Close */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowInfoPanel((prev) => !prev)}
+              className={cn(
+                'p-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold border',
+                showInfoPanel
+                  ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-[#a8b1ff] border-indigo-200 dark:border-indigo-800'
+                  : 'bg-white dark:bg-[#303134] text-neutral-600 dark:text-[#e8eaed] border-neutral-200 dark:border-[#3c4043] hover:bg-neutral-100'
+              )}
+              title="Toggle Details & Palette"
+              aria-label="Toggle Details & Palette"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="hidden md:inline">Details</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 transition-all text-neutral-500 hover:text-neutral-900 dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] hover:bg-neutral-200 dark:hover:bg-[#3c4043] rounded-full cursor-pointer"
+              title="Close Inspector (Esc)"
+              aria-label="Close Inspector"
+              autoFocus
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Image Preview Canvas */}
-          <div className="relative w-full h-52 bg-neutral-900 rounded-2xl overflow-hidden flex items-center justify-center border border-neutral-800">
+        {/* Main Content Area */}
+        <div className="relative flex-1 flex flex-col lg:flex-row overflow-hidden bg-neutral-950">
+          
+          {/* Zoomable / Pannable Image Viewport Container */}
+          <div
+            ref={containerRef}
+            className={cn(
+              'relative flex-1 h-full w-full overflow-hidden flex items-center justify-center select-none touch-none',
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            )}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onDoubleClick={handleDoubleClick}
+          >
+            {/* Visual Grid Background Pattern for Alpha/Transparency */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle, #ffffff 1px, transparent 1px)',
+                backgroundSize: '16px 16px',
+              }}
+            />
+
             <img
               src={previewUrl}
-              alt="Preview"
-              width="600"
-              height="300"
+              alt="Inspection Preview"
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
-              className="max-h-full max-w-full object-contain"
-              style={{ transform: `rotate(${item.rotation || 0}deg)` }}
+              className="max-w-none pointer-events-none select-none transition-transform duration-75 ease-out"
+              style={{
+                transform: `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${scale}) rotate(${item.rotation || 0}deg)`,
+                transformOrigin: 'center center',
+              }}
             />
-          </div>
 
-          {/* Quick Technical Specs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
-              <span className="block text-[11px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">Original Size</span>
-              <span className="text-sm font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block">
-                {formatBytes(item.originalSize)}
-              </span>
-            </div>
-
-            <div className="p-3.5 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
-              <span className="block text-[11px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">Dimensions</span>
-              <span className="text-sm font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block">
-                {imgDimensions ? `${imgDimensions.width} × ${imgDimensions.height}` : 'Loading...'}
-              </span>
-            </div>
-
-            <div className="p-3.5 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
-              <span className="block text-[11px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">Aspect Ratio</span>
-              <span className="text-sm font-black text-blue-600 dark:text-[#8ab4f8] mt-0.5 block">
-                {imgDimensions ? calculateAspectRatio(imgDimensions.width, imgDimensions.height) : '-'}
-              </span>
-            </div>
-
-            <div className="p-3.5 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
-              <span className="block text-[11px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">MIME Type</span>
-              <span className="text-sm font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block uppercase truncate">
-                {item.file.type.replace('image/', '') || 'UNKNOWN'}
-              </span>
+            {/* Viewport Overlay Hints */}
+            <div className="absolute bottom-3 left-3 z-10 px-3 py-1.5 bg-black/60 backdrop-blur-md text-white/80 text-[11px] font-medium rounded-xl pointer-events-none hidden sm:flex items-center gap-2 border border-white/10">
+              <span>Scroll to Zoom</span>
+              <span>•</span>
+              <span>Drag to Pan</span>
+              <span>•</span>
+              <span>Double-click to Toggle 100%/Fit</span>
             </div>
           </div>
 
-          {/* Color Palette Extraction */}
-          <div className="p-5 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-indigo-600 dark:text-[#a8b1ff]" />
-                <h4 className="text-sm font-bold text-neutral-800 dark:text-[#e8eaed]">Extracted Color Palette</h4>
+          {/* Details & Palette Side Drawer Panel */}
+          {showInfoPanel && (
+            <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-neutral-200 dark:border-[#3c4043] bg-white dark:bg-[#202124] p-5 space-y-5 overflow-y-auto shrink-0 max-h-[40vh] lg:max-h-none">
+              
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-neutral-900 dark:text-[#e8eaed] flex items-center gap-2">
+                  <Info className="w-4 h-4 text-indigo-600 dark:text-[#a8b1ff]" />
+                  Technical Specifications
+                </h4>
+                <button
+                  onClick={() => setShowInfoPanel(false)}
+                  className="lg:hidden p-1 text-neutral-400 hover:text-neutral-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <span className="text-[11px] font-semibold text-neutral-400">Click color code to copy</span>
-            </div>
 
-            {colors.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-                {colors.map((hex) => (
-                  <button
-                    key={hex}
-                    onClick={() => copyToClipboard(hex)}
-                    className="flex flex-col items-center p-2 rounded-xl bg-white dark:bg-[#202124] border border-neutral-200 dark:border-[#3c4043] hover:border-indigo-500 transition-all group"
-                  >
-                    <div
-                      className="w-full h-10 rounded-lg shadow-inner mb-1.5 border border-black/10"
-                      style={{ backgroundColor: hex }}
-                    />
-                    <span className="text-[11px] font-mono font-bold text-neutral-700 dark:text-[#e8eaed] group-hover:text-indigo-600 flex items-center gap-1">
-                      {copiedColor === hex ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-500" />
-                          <span>Copied</span>
-                        </>
-                      ) : (
-                        hex
-                      )}
+              {/* Specs Grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
+                  <span className="block text-[10px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">File Size</span>
+                  <span className="text-xs font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block">
+                    {formatBytes(item.originalSize)}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
+                  <span className="block text-[10px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">Dimensions</span>
+                  <span className="text-xs font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block">
+                    {imgDimensions ? `${imgDimensions.width} × ${imgDimensions.height}` : 'Loading...'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
+                  <span className="block text-[10px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">Aspect Ratio</span>
+                  <span className="text-xs font-black text-blue-600 dark:text-[#8ab4f8] mt-0.5 block">
+                    {imgDimensions ? calculateAspectRatio(imgDimensions.width, imgDimensions.height) : '-'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
+                  <span className="block text-[10px] font-bold text-neutral-400 dark:text-[#9aa0a6] uppercase tracking-wider">MIME Type</span>
+                  <span className="text-xs font-black text-neutral-800 dark:text-[#e8eaed] mt-0.5 block uppercase truncate">
+                    {item.file.type.replace('image/', '') || 'UNKNOWN'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Converted Stats if available */}
+              {item.convertedSize ? (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="block text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Converted Size</span>
+                    <span className="text-sm font-black text-emerald-800 dark:text-emerald-300 mt-0.5 block">
+                      {formatBytes(item.convertedSize)}
                     </span>
-                  </button>
-                ))}
+                  </div>
+                  <span className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-bold rounded-xl">
+                    {Math.round(((item.originalSize - item.convertedSize) / item.originalSize) * 100)}% Saved
+                  </span>
+                </div>
+              ) : null}
+
+              {/* Color Palette Section */}
+              <div className="p-4 bg-neutral-50 dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-indigo-600 dark:text-[#a8b1ff]" />
+                    <h4 className="text-xs font-bold text-neutral-800 dark:text-[#e8eaed]">Extracted Palette</h4>
+                  </div>
+                  <span className="text-[10px] font-medium text-neutral-400">Click to copy</span>
+                </div>
+
+                {colors.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {colors.map((hex) => (
+                      <button
+                        key={hex}
+                        onClick={() => copyToClipboard(hex)}
+                        className="flex flex-col items-center p-1.5 rounded-xl bg-white dark:bg-[#202124] border border-neutral-200 dark:border-[#3c4043] hover:border-indigo-500 transition-all group cursor-pointer"
+                      >
+                        <div
+                          className="w-full h-8 rounded-lg shadow-inner mb-1 border border-black/10"
+                          style={{ backgroundColor: hex }}
+                        />
+                        <span className="text-[10px] font-mono font-bold text-neutral-700 dark:text-[#e8eaed] group-hover:text-indigo-600 flex items-center gap-1">
+                          {copiedColor === hex ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-500" />
+                              <span>Copied</span>
+                            </>
+                          ) : (
+                            hex
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-neutral-400 italic">Analyzing palette...</p>
+                )}
               </div>
-            ) : (
-              <p className="text-xs text-neutral-400 italic">Analyzing palette...</p>
-            )}
-          </div>
+
+            </div>
+          )}
+
         </div>
 
       </div>

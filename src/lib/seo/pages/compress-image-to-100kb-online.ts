@@ -21,7 +21,7 @@ export function getCompressTo100kbContent(): RouteEditorialContent {
     faqs: [
       makeFaq('How can I compress an image to exactly 100KB?', 'Zapixal allows you to specify a target size of 100KB. Our engine then automatically adjusts compression parameters locally until the output matches your goal.'),
       makeFaq('Will my image be too blurry at 100KB?', 'It depends on the original resolution, but Zapixal uses advanced quantization to preserve as much detail as possible. You can also resize the image dimensions to help meet the 100KB target with better clarity.'),
-      makeFaq('Is it safe to compress official documents here?', 'Yes. Zapixal is 100% private. Your documents are never uploaded to a server; all processing happens in your browser’s local sandbox.')
+      makeFaq('Is it safe to compress official documents here?', 'Yes. Zapixal is privacy-first. Your documents are never uploaded to a server; all processing happens in your browser’s local sandbox.')
     ]
   };
 }
@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Compress Image to 100KB: Free Precision Target Sizing',
     metaTitle: 'Compress Image to 100KB | Free Precision Target Sizing | Zapixal',
-    metaDescription: 'Need an image under 100KB? Use our precision target-size tool to compress photos and scans to exactly 100KB without losing readability. 100% Private.',
+    metaDescription: 'Need an image under 100KB? Use our precision target-size tool to compress photos and scans to exactly 100KB without losing readability. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'compression',

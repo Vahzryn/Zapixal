@@ -23,6 +23,10 @@ import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { AboutPage } from './components/AboutPage';
 import { FooterLinkHub } from './components/FooterLinkHub';
+import { ArticlesHubPage } from './components/Articles/ArticlesHubPage';
+import { ArticleCategoryPage } from './components/Articles/ArticleCategoryPage';
+import { ArticleViewPage } from './components/Articles/ArticleViewPage';
+import { getCategoryInfo, getArticleBySlug } from './content/articles';
 
 const PageLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center py-20 min-h-[400px] gap-3 text-neutral-500 dark:text-[#9aa0a6] animate-in fade-in duration-300">
@@ -99,6 +103,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
   const [comparingFileId, setComparingFileId] = useState<string | null>(null);
   const [inspectingFileId, setInspectingFileId] = useState<string | null>(null);
   const [redactingFileId, setRedactingFileId] = useState<string | null>(null);
+  const [showCompleteView, setShowCompleteView] = useState<boolean>(false);
 
   // Extracted Custom Hooks
   const { currentPath, handleNavigate, seoData } = useAppRouting({
@@ -252,6 +257,18 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
           <TermsOfService />
         ) : currentPath === '/about' ? (
           <AboutPage />
+        ) : currentPath === '/articles' ? (
+          <ArticlesHubPage onNavigate={handleNavigate} />
+        ) : getCategoryInfo(currentPath.replace(/^\/articles\//, '')) ? (
+          <ArticleCategoryPage 
+            category={getCategoryInfo(currentPath.replace(/^\/articles\//, ''))!} 
+            onNavigate={handleNavigate} 
+          />
+        ) : getArticleBySlug(currentPath.replace(/^\/articles\//, '')) ? (
+          <ArticleViewPage 
+            article={getArticleBySlug(currentPath.replace(/^\/articles\//, ''))!} 
+            onNavigate={handleNavigate} 
+          />
         ) : (
           <React.Fragment>
             {files.length === 0 ? (
@@ -259,8 +276,8 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
               <div className="flex flex-col gap-6 mb-16 animate-in fade-in zoom-in-95 duration-300 min-h-[400px]">
                 <Dropzone onFilesAdded={handleFilesAdded} fromFormat={seoData.fromFormat} />
               </div>
-            ) : successCount === files.length && !isProcessing ? (
-              /* STATE 3: COMPLETE */
+            ) : showCompleteView && files.length > 0 ? (
+              /* COMPLETE / DOWNLOAD VIEW */
               <CompleteView
                 files={files}
                 settings={settings}
@@ -270,10 +287,13 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
                 onDownloadToDirectory={handleDownloadToDirectory}
                 hasDirectoryPicker={hasDirectoryPicker}
                 onShareApp={handleShareApp}
-                onClearAll={handleClearAll}
+                onClearAll={() => {
+                  handleClearAll();
+                  setShowCompleteView(false);
+                }}
               />
             ) : (
-              /* STATE 2: ACTIVE QUEUE */
+              /* PERSISTENT WORKSPACE */
               <QueueSection
                 files={files}
                 selectedFileIds={selectedFileIds}
@@ -288,9 +308,17 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
                 totalCount={totalCount}
                 progressPercent={progressPercent}
                 successCount={successCount}
+                onFilesAdded={handleFilesAdded}
+                onDownloadAll={handleDownloadAll}
+                onDownloadDirect={handleDownloadDirect}
+                onDownloadToDirectory={handleDownloadToDirectory}
+                hasDirectoryPicker={hasDirectoryPicker}
                 onConvert={processFiles}
                 onStop={stopProcessing}
-                onClearAll={handleClearAll}
+                onClearAll={() => {
+                  handleClearAll();
+                  setShowCompleteView(false);
+                }}
                 onToggleSelect={handleToggleSelect}
                 onRemoveFile={handleRemoveFile}
                 onRetryFile={handleRetryFile}
@@ -309,6 +337,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
                 showAutoChunkedBanner={showAutoChunkedBanner}
                 onDismissAutoChunkedBanner={dismissAutoChunkedBanner}
                 totalPendingBytes={totalPendingBytes}
+                onContinueToDownload={() => setShowCompleteView(true)}
               />
             )}
 

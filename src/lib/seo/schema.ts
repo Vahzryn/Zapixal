@@ -141,3 +141,83 @@ export function generateJsonLdSchemas(
     website,
   };
 }
+
+export function generateArticleJsonLdSchema(
+  title: string,
+  description: string,
+  url: string,
+  author: string,
+  datePublished: string,
+  dateModified: string,
+  categoryName: string,
+  breadcrumbs: { name: string; url: string }[] = []
+) {
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    'headline': title,
+    'description': description,
+    'url': url,
+    'datePublished': datePublished,
+    'dateModified': dateModified,
+    'author': {
+      '@type': 'Organization',
+      'name': author,
+      'url': DOMAIN,
+    },
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'Zapixal',
+      'logo': {
+        '@type': 'ImageObject',
+        'url': `${DOMAIN}/icon-512.png`,
+      },
+    },
+    'mainEntityOfPage': {
+      '@type': 'WebPage',
+      '@id': url,
+    },
+    'about': {
+      '@type': 'Thing',
+      'name': categoryName,
+    },
+    'inLanguage': 'en-US',
+  };
+
+  const breadcrumbsSchema = breadcrumbs && breadcrumbs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': breadcrumbs.map((b, idx) => ({
+      '@type': 'ListItem',
+      'position': idx + 1,
+      'name': b.name,
+      'item': b.url.startsWith('http') ? b.url : `${DOMAIN}${b.url}`,
+    })),
+  } : null;
+
+  const organization = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    'name': 'Zapixal',
+    'url': DOMAIN,
+    'logo': `${DOMAIN}/icon-512.png`,
+  };
+
+  const website = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'Zapixal',
+    'url': DOMAIN,
+  };
+
+  return {
+    article: articleSchema,
+    softwareApp: null,
+    howTo: null,
+    faqPage: null,
+    breadcrumbs: breadcrumbsSchema,
+    organization,
+    website,
+  };
+}
+

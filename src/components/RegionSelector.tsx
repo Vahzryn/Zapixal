@@ -1,6 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ImageFileItem } from '../types';
-import { X, Trash2, Eye, ShieldAlert, Sparkles, Paintbrush, Undo, Check } from 'lucide-react';
+import {
+  X,
+  Trash2,
+  Eye,
+  ShieldAlert,
+  Sparkles,
+  Paintbrush,
+  Check,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  RotateCcw,
+  Hand,
+  Square,
+  Maximize,
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface RegionSelectorProps {
@@ -22,56 +37,274 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
     item.blurRegions || []
   );
   const [blurMode, setBlurMode] = useState<'blur' | 'pixelate'>(item.blurMode || 'blur');
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [interactMode, setInteractMode] = useState<'draw' | 'pan'>('draw');
+
+  // Zoom and Pan states
+  const [scale, setScale] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  
+  // Drawing state
+  const [drawStartRel, setDrawStartRel] = useState<{ x: number; y: number } | null>(null);
   const [currentDrag, setCurrentDrag] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [imgDimensions, setImgDimensions] = useState<{ width: number; height: number } | null>(
+    item.dimensions || null
+  );
 
-  // Stop propagation for all key/mouse events to prevent modal conflicts
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const touchPinchDistRef = useRef<number | null>(null);
+  const touchStartScaleRef = useRef<number>(1);
+
+  // Full resolution image URL for redaction editing
+  const [fullResUrl, setFullResUrl] = useState<string>('');
+
+  useEffect(() => {
+    // If we have a fully converted URL (and we are editing the result), use it.
+    // Otherwise, use the original high-res file rather than the 120px preview thumbnail.
+    if (item.convertedUrl) {
+      setFullResUrl(item.convertedUrl);
+      return;
+    }
     
-    // Left click only
-    if (e.button !== 0) return;
+    const url = URL.createObjectURL(item.file);
+    setFullResUrl(url);
+    
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [item.file, item.convertedUrl]);
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+  // Measure natural dimensions
+  useEffect(() => {
+    if (!fullResUrl) return;
+    const img = new Image();
+    img.src = fullResUrl;
+    img.onload = () => {
+      setImgDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+  }, [fullResUrl]);
 
-    setIsDragging(true);
-    setDragStart({ x, y });
-    setCurrentDrag({ x, y, width: 0, height: 0 });
-    containerRef.current.setPointerCapture(e.pointerId);
+  // Compute container fit scale
+  const getFitScale = useCallback(() => {
+    if (!viewportRef.current || !imgDimensions) return 1;
+    const { clientWidth, clientHeight } = viewportRef.current;
+    if (clientWidth === 0 || clientHeight === 0) return 1;
+    const pad = 32;
+    const scaleX = (clientWidth - pad) / imgDimensions.width;
+    const scaleY = (clientHeight - pad) / imgDimensions.height;
+    return Math.min(scaleX, scaleY, 1);
+  }, [imgDimensions]);
+
+  // Reset view to Fit to Screen
+  const handleFitToScreen = useCallback(() => {
+    const fit = getFitScale();
+    setScale(fit);
+    setPan({ x: 0, y: 0 });
+  }, [getFitScale]);
+
+  // Reset view to 100% (1:1 actual pixels)
+  const handleSetActualSize = useCallback(() => {
+    setScale(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setScale((prev) => Math.min(10, prev * 1.25));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setScale((prev) => Math.max(0.05, prev / 1.25));
+  }, []);
+
+  // Auto-fit on initial dimensions load or viewport resize
+  useEffect(() => {
+    if (!imgDimensions || !viewportRef.current) return;
+    
+    // We only want to auto-fit on the very first valid measurement
+    // to avoid resetting user's zoom/pan when they resize the window.
+    let hasInitializedFit = false;
+
+    const observer = new ResizeObserver(() => {
+      const { clientWidth, clientHeight } = viewportRef.current!;
+      if (clientWidth > 0 && clientHeight > 0 && !hasInitializedFit) {
+        hasInitializedFit = true;
+        handleFitToScreen();
+      }
+    });
+
+    observer.observe(viewportRef.current);
+    
+    return () => observer.disconnect();
+  }, [imgDimensions, handleFitToScreen]);
+
+  // Non-passive wheel listener for smooth desktop trackpad/mouse zoom
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+      setScale((prev) => Math.max(0.05, Math.min(10, prev * zoomFactor)));
+    };
+
+    viewport.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      viewport.removeEventListener('wheel', onWheel);
+    };
+  }, []);
+
+  // Keyboard hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        handleFitToScreen();
+      } else if (e.key === '1') {
+        e.preventDefault();
+        handleSetActualSize();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        handleFitToScreen();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, handleZoomIn, handleZoomOut, handleFitToScreen, handleSetActualSize]);
+
+  // Pointer interactions for Drawing and Panning
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!imgRef.current) return;
+
+    // Middle click (1), Right click (2), Shift key, or Pan mode -> Pan
+    const isPan = interactMode === 'pan' || e.button === 1 || e.button === 2 || e.shiftKey;
+
+    if (isPan) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+      setPanStart({ ...pan });
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (_) {}
+      return;
+    }
+
+    // Left click in Draw mode -> Draw Region
+    if (e.button === 0) {
+      const imgRect = imgRef.current.getBoundingClientRect();
+      if (imgRect.width === 0 || imgRect.height === 0) return;
+
+      const relX = Math.max(0, Math.min(1, (e.clientX - imgRect.left) / imgRect.width));
+      const relY = Math.max(0, Math.min(1, (e.clientY - imgRect.top) / imgRect.height));
+
+      setIsDragging(true);
+      setDrawStartRel({ x: relX, y: relY });
+      setCurrentDrag({ x: relX, y: relY, width: 0, height: 0 });
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !dragStart || !containerRef.current) return;
+    if (!isDragging || !imgRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const currentX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const currentY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    // Pan mode handling
+    if (interactMode === 'pan' || e.button === 1 || e.button === 2 || e.shiftKey || !drawStartRel) {
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      setPan({
+        x: panStart.x + dx,
+        y: panStart.y + dy,
+      });
+      return;
+    }
 
-    const x = Math.min(dragStart.x, currentX);
-    const y = Math.min(dragStart.y, currentY);
-    const width = Math.abs(dragStart.x - currentX);
-    const height = Math.abs(dragStart.y - currentY);
+    // Draw mode handling
+    const imgRect = imgRef.current.getBoundingClientRect();
+    if (imgRect.width === 0 || imgRect.height === 0) return;
+
+    const currentRelX = Math.max(0, Math.min(1, (e.clientX - imgRect.left) / imgRect.width));
+    const currentRelY = Math.max(0, Math.min(1, (e.clientY - imgRect.top) / imgRect.height));
+
+    const x = Math.min(drawStartRel.x, currentRelX);
+    const y = Math.min(drawStartRel.y, currentRelY);
+    const width = Math.abs(currentRelX - drawStartRel.x);
+    const height = Math.abs(currentRelY - drawStartRel.y);
 
     setCurrentDrag({ x, y, width, height });
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !containerRef.current) return;
+    if (!isDragging) return;
 
-    containerRef.current.releasePointerCapture(e.pointerId);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
     setIsDragging(false);
 
-    if (currentDrag && currentDrag.width > 0.01 && currentDrag.height > 0.01) {
+    if (currentDrag && currentDrag.width > 0.005 && currentDrag.height > 0.005) {
       setRegions((prev) => [...prev, currentDrag]);
     }
 
-    setDragStart(null);
+    setDrawStartRel(null);
     setCurrentDrag(null);
+  };
+
+  // Touch gesture handlers for mobile pinch-to-zoom & 2-finger panning
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      setIsDragging(false);
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      touchPinchDistRef.current = dist;
+      touchStartScaleRef.current = scale;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchPinchDistRef.current !== null) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const factor = dist / touchPinchDistRef.current;
+      setScale(Math.max(0.05, Math.min(10, touchStartScaleRef.current * factor)));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchPinchDistRef.current = null;
+  };
+
+  // Double click toggle Fit ↔ 100%
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const fitScale = getFitScale();
+    if (Math.abs(scale - fitScale) < 0.05) {
+      handleSetActualSize();
+    } else {
+      handleFitToScreen();
+    }
   };
 
   const handleDeleteRegion = (index: number) => {
@@ -87,68 +320,119 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
     onClose();
   };
 
-  // Close modal on Escape
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-neutral-900/80 backdrop-blur-sm animate-fade-in" id="region-selector-modal">
-      <div className="bg-white dark:bg-[#202124] rounded-2xl w-full max-w-5xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden shadow-2xl border border-neutral-200 dark:border-[#3c4043] animate-scale-in">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-neutral-950/85 backdrop-blur-md animate-fade-in"
+      id="region-selector-modal"
+    >
+      <div className="bg-white dark:bg-[#1f2023] rounded-2xl md:rounded-3xl w-full h-full max-w-7xl max-h-[94vh] flex flex-col overflow-hidden shadow-2xl border border-neutral-200 dark:border-[#3c4043] animate-scale-in">
         
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-neutral-100 dark:border-[#3c4043]/60 shrink-0">
-          <div className="flex items-center gap-2">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-neutral-100 dark:border-[#3c4043]/60 shrink-0 bg-neutral-50/50 dark:bg-[#1a1b1e]">
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-50 dark:bg-[#21243a] text-indigo-600 dark:text-[#a8b1ff] rounded-xl">
               <Paintbrush className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-neutral-800 dark:text-[#e8eaed]">Blur & Pixelate Regions</h3>
+              <h3 className="text-base sm:text-lg font-bold text-neutral-800 dark:text-[#e8eaed]">
+                Blur & Pixelate Redaction Editor
+              </h3>
               <p className="text-xs text-neutral-500 dark:text-[#9aa0a6] hidden sm:block">
-                Redact sensitive image parts (faces, plates, names) before saving.
+                Draw shapes on the image to obfuscate faces, licenses, names, or sensitive details before export.
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 transition-colors rounded-xl text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-neutral-800 dark:hover:text-[#e8eaed] cursor-pointer"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="p-2 transition-colors rounded-xl text-neutral-400 hover:bg-neutral-100 dark:hover:bg-[#3c4043] hover:text-neutral-800 dark:hover:text-[#e8eaed] cursor-pointer"
+              aria-label="Close modal"
+              title="Close editor"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 flex flex-col md:flex-row min-h-0 w-full">
+        {/* Content Body */}
+        <div className="flex-1 flex flex-col md:flex-row min-h-0 w-full overflow-hidden">
           
-          {/* Main Preview (Left / Center) */}
-          <div className="flex-1 bg-neutral-100 dark:bg-[#121212] p-4 flex items-center justify-center overflow-auto min-h-0 relative select-none">
-            {/* Checkerboard transparency grid container */}
-            <div className="relative border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-md overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#2c2d30_1px,transparent_1px)] [background-size:16px_16px] bg-[#f9fafb] dark:bg-[#1a1b1e]">
+          {/* Main Inspection & Redaction Viewport (Left / Center) */}
+          <div className="flex-1 bg-neutral-950 relative flex flex-col min-h-0 overflow-hidden select-none">
+            
+            {/* Top Toolbar Controls Bar inside Viewport */}
+            <div className="absolute top-3 left-3 right-3 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+              
+              {/* Interaction Mode Switcher */}
+              <div className="flex items-center gap-1 bg-neutral-900/90 dark:bg-[#202124]/90 backdrop-blur-md p-1 rounded-xl border border-neutral-700/60 shadow-lg pointer-events-auto">
+                <button
+                  onClick={() => setInteractMode('draw')}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                    interactMode === 'draw'
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-neutral-300 hover:text-white hover:bg-white/10"
+                  )}
+                  title="Draw redaction region"
+                >
+                  <Square className="w-3.5 h-3.5" />
+                  <span>Draw Region</span>
+                </button>
+                <button
+                  onClick={() => setInteractMode('pan')}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                    interactMode === 'pan'
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-neutral-300 hover:text-white hover:bg-white/10"
+                  )}
+                  title="Pan / move image view"
+                >
+                  <Hand className="w-3.5 h-3.5" />
+                  <span>Pan View</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive Viewport Canvas Box */}
+            <div
+              ref={viewportRef}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onDoubleClick={handleDoubleClick}
+              className={cn(
+                "flex-1 w-full h-full flex items-center justify-center overflow-hidden relative touch-none bg-[radial-gradient(#2c2d30_1px,transparent_1px)] [background-size:16px_16px] bg-[#121316]",
+                interactMode === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'
+              )}
+            >
+              {/* Scaled & Panned Image Layer */}
               <div
-                ref={containerRef}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                className="relative inline-block max-w-full cursor-crosshair overflow-hidden touch-none"
+                className="relative inline-block transition-transform duration-75 ease-out select-none"
+                style={{
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+                  transformOrigin: 'center center',
+                }}
               >
-                {/* Invisible/Display Image */}
+                {/* Source Image */}
                 <img
-                  src={item.previewUrl}
-                  alt="Redaction Preview"
-                  className="max-w-full max-h-[50vh] md:max-h-[60vh] object-contain block select-none pointer-events-none"
+                  ref={imgRef}
+                  src={fullResUrl}
+                  alt="Redaction Target"
+                  className="block max-w-none max-h-none select-none pointer-events-none rounded shadow-2xl"
                   referrerPolicy="no-referrer"
+                  draggable={false}
                 />
 
-                {/* Render Selected Regions */}
+                {/* Existing Defined Redaction Regions */}
                 {regions.map((region, idx) => (
                   <div
                     key={idx}
-                    className="absolute border border-indigo-500 bg-indigo-500/10 group/item"
+                    className="absolute border border-indigo-500 bg-indigo-500/10 group/item transition-all"
                     style={{
                       left: `${region.x * 100}%`,
                       top: `${region.y * 100}%`,
@@ -160,33 +444,40 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
                     {blurMode === 'blur' ? (
                       <div className="w-full h-full backdrop-blur-md" />
                     ) : (
-                      <div className="w-full h-full bg-[#000]/15" style={{ backgroundImage: 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%)', backgroundSize: '12px 12px' }} />
+                      <div
+                        className="w-full h-full bg-black/20"
+                        style={{
+                          backgroundImage:
+                            'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%)',
+                          backgroundSize: '10px 10px',
+                        }}
+                      />
                     )}
 
-                    {/* Quick Delete Overlay Badge */}
+                    {/* Quick Delete Overlay Button */}
                     <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteRegion(idx);
                         }}
-                        className="p-1 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-md cursor-pointer"
+                        className="p-1 bg-red-600 hover:bg-red-700 text-white rounded shadow-md cursor-pointer"
                         title="Delete Region"
                       >
                         <X className="w-3 h-3" strokeWidth={3} />
                       </button>
                     </div>
 
-                    <span className="absolute bottom-1 left-1 px-1 bg-black/75 text-white text-[8px] font-mono rounded select-none">
+                    <span className="absolute bottom-1 left-1 px-1 bg-black/80 text-white text-[9px] font-mono rounded select-none">
                       #{idx + 1}
                     </span>
                   </div>
                 ))}
 
-                {/* Render Current Drag Rectangle */}
+                {/* Current Drawing Box */}
                 {currentDrag && (
                   <div
-                    className="absolute border-2 border-dashed border-indigo-500 bg-indigo-500/20"
+                    className="absolute border-2 border-dashed border-indigo-400 bg-indigo-500/25 pointer-events-none"
                     style={{
                       left: `${currentDrag.x * 100}%`,
                       top: `${currentDrag.y * 100}%`,
@@ -197,26 +488,99 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
                     {blurMode === 'blur' ? (
                       <div className="w-full h-full backdrop-blur-sm" />
                     ) : (
-                      <div className="w-full h-full bg-[#000]/10" style={{ backgroundImage: 'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%)', backgroundSize: '8px 8px' }} />
+                      <div
+                        className="w-full h-full bg-black/15"
+                        style={{
+                          backgroundImage:
+                            'repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%)',
+                          backgroundSize: '8px 8px',
+                        }}
+                      />
                     )}
                   </div>
                 )}
               </div>
+
+              {/* Bottom Context Hint Overlay */}
+              {regions.length === 0 && !isDragging && (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-neutral-900/90 text-neutral-200 text-xs font-semibold rounded-full shadow-2xl pointer-events-none border border-neutral-700/60 text-center max-w-sm">
+                  {interactMode === 'draw'
+                    ? 'Click & drag on the image to define redaction boxes'
+                    : 'Click & drag to pan • Scroll to zoom'}
+                </div>
+              )}
+
+              {/* Bottom Prominent Zoom Controls Toolbar */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 bg-neutral-900/95 dark:bg-[#1a1b1e]/95 backdrop-blur-xl px-2 sm:px-3 py-2 rounded-2xl border border-neutral-700/60 shadow-2xl z-40 pointer-events-auto w-[95%] sm:w-max max-w-lg overflow-x-auto overflow-y-hidden hide-scrollbar">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  title="Zoom Out (-)"
+                >
+                  <ZoomOut className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2 px-1 sm:px-2 shrink-0">
+                  <input
+                    type="range"
+                    min={5}
+                    max={1000}
+                    step={1}
+                    value={Math.round(scale * 100)}
+                    onChange={(e) => setScale(Math.max(0.05, Math.min(10, parseInt(e.target.value) / 100)))}
+                    className="w-20 sm:w-32 h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    title="Zoom Scale"
+                  />
+                  <span className="text-xs font-mono font-bold text-neutral-200 min-w-[48px] text-right select-none">
+                    {Math.round(scale * 100)}%
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleZoomIn}
+                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  title="Zoom In (+)"
+                >
+                  <ZoomIn className="w-5 h-5" />
+                </button>
+
+                <div className="w-[1px] h-6 bg-neutral-700/60 mx-1 shrink-0" />
+
+                <button
+                  onClick={handleSetActualSize}
+                  className="px-2 sm:px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  title="100% Actual Size (1)"
+                >
+                  100%
+                </button>
+
+                <button
+                  onClick={handleFitToScreen}
+                  className="px-2 sm:px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 flex items-center gap-1.5 shrink-0"
+                  title="Fit to Screen (0)"
+                >
+                  <Maximize className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Fit</span>
+                </button>
+
+                <button
+                  onClick={handleFitToScreen}
+                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 sm:ml-1 shrink-0"
+                  title="Reset View (R)"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+
             </div>
 
-            {/* Hint overlay */}
-            {regions.length === 0 && !isDragging && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-neutral-900/80 text-white text-xs font-semibold rounded-full shadow-lg pointer-events-none text-center">
-                Click and drag on the image to draw redaction areas
-              </div>
-            )}
           </div>
 
-          {/* Sidebar Panel (Right) */}
-          <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-neutral-100 dark:border-[#3c4043]/60 p-4 flex flex-col min-h-0 bg-neutral-50/50 dark:bg-[#1a1a1c] shrink-0">
+          {/* Right Sidebar Control Panel */}
+          <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-neutral-200 dark:border-[#3c4043]/60 p-4 sm:p-5 flex flex-col min-h-0 bg-neutral-50 dark:bg-[#1a1b1e] shrink-0">
             
-            {/* Redaction Type Option */}
-            <div className="mb-4">
+            {/* Redaction Mode Option */}
+            <div className="mb-5">
               <span className="block mb-2 text-xs font-bold text-neutral-500 dark:text-[#9aa0a6] uppercase tracking-wider">
                 Redaction Effect
               </span>
@@ -250,11 +614,11 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               </div>
             </div>
 
-            {/* List of Regions */}
-            <div className="flex-1 flex flex-col min-h-0 mb-4">
+            {/* List of Defined Active Regions */}
+            <div className="flex-1 flex flex-col min-h-0 mb-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-neutral-500 dark:text-[#9aa0a6] uppercase tracking-wider">
-                  Active Areas ({regions.length})
+                  Defined Areas ({regions.length})
                 </span>
                 {regions.length > 0 && (
                   <button
@@ -267,19 +631,19 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               </div>
 
               {regions.length === 0 ? (
-                <div className="flex-1 border border-dashed border-neutral-200 dark:border-neutral-800 rounded-xl flex flex-col items-center justify-center p-4 text-center text-neutral-400">
+                <div className="flex-1 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl flex flex-col items-center justify-center p-4 text-center text-neutral-400">
                   <ShieldAlert className="w-8 h-8 mb-2 text-neutral-300 dark:text-[#5f6368]" />
-                  <span className="text-xs font-medium">No redaction areas defined yet.</span>
+                  <span className="text-xs font-medium">No redaction boxes created yet.</span>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 max-h-[30vh] md:max-h-none">
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[25vh] md:max-h-none">
                   {regions.map((region, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2.5 bg-white dark:bg-[#202124] border border-neutral-200 dark:border-[#3c4043]/80 rounded-xl text-xs hover:border-indigo-300 dark:hover:border-[#5f6368] transition-colors"
+                      className="flex items-center justify-between p-2.5 bg-white dark:bg-[#202124] border border-neutral-200 dark:border-[#3c4043]/80 rounded-xl text-xs hover:border-indigo-400 transition-colors shadow-xs"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded bg-neutral-100 dark:bg-[#303134] text-[10px] font-bold text-neutral-600 dark:text-[#e8eaed] flex items-center justify-center font-mono">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-5 h-5 rounded-md bg-neutral-100 dark:bg-[#303134] text-[10px] font-bold text-neutral-600 dark:text-[#e8eaed] flex items-center justify-center font-mono">
                           #{idx + 1}
                         </span>
                         <div className="flex flex-col">
@@ -304,19 +668,19 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-2 shrink-0">
+            {/* Footer Action Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 text-xs font-bold rounded-xl border border-neutral-300 dark:border-[#3c4043] text-neutral-700 dark:text-[#e8eaed] bg-white dark:bg-[#202124] hover:bg-neutral-50 dark:hover:bg-[#303134] transition-colors cursor-pointer text-center"
+                className="px-4 py-3 text-xs font-bold rounded-xl border border-neutral-300 dark:border-[#3c4043] text-neutral-700 dark:text-[#e8eaed] bg-white dark:bg-[#202124] hover:bg-neutral-50 dark:hover:bg-[#303134] transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-2.5 text-xs font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-[#8ab4f8] dark:text-[#202124] dark:hover:bg-[#a8c7fa] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                className="px-4 py-3 text-xs font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-[#8ab4f8] dark:text-[#202124] dark:hover:bg-[#a8c7fa] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
               >
                 <Check className="w-4 h-4" strokeWidth={2.5} />
                 Save Regions
