@@ -514,41 +514,39 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 bg-neutral-900/95 dark:bg-[#1a1b1e]/95 backdrop-blur-xl px-2 sm:px-3 py-2 rounded-2xl border border-neutral-700/60 shadow-2xl z-40 pointer-events-auto w-[95%] sm:w-max max-w-lg overflow-x-auto overflow-y-hidden hide-scrollbar">
                 <button
                   onClick={handleZoomOut}
-                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  className="px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer font-mono font-bold text-lg active:scale-95 shrink-0"
                   title="Zoom Out (-)"
                 >
-                  <ZoomOut className="w-5 h-5" />
+                  −
                 </button>
 
-                <div className="flex items-center gap-2 px-1 sm:px-2 shrink-0">
-                  <input
-                    type="range"
-                    min={5}
-                    max={1000}
-                    step={1}
-                    value={Math.round(scale * 100)}
-                    onChange={(e) => setScale(Math.max(0.05, Math.min(10, parseInt(e.target.value) / 100)))}
-                    className="w-20 sm:w-32 h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                    title="Zoom Scale"
-                  />
-                  <span className="text-xs font-mono font-bold text-neutral-200 min-w-[48px] text-right select-none">
+                <div className="flex items-center justify-center px-2 py-1.5 bg-neutral-800/80 rounded-lg min-w-[72px] cursor-default border border-neutral-700/50" title="Zoom Scale">
+                  <span className="text-xs font-mono font-bold text-neutral-200 text-center select-none w-full">
                     {Math.round(scale * 100)}%
                   </span>
                 </div>
 
                 <button
                   onClick={handleZoomIn}
-                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  className="px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer font-mono font-bold text-lg active:scale-95 shrink-0"
                   title="Zoom In (+)"
                 >
-                  <ZoomIn className="w-5 h-5" />
+                  +
                 </button>
 
                 <div className="w-[1px] h-6 bg-neutral-700/60 mx-1 shrink-0" />
 
                 <button
+                  onClick={handleFitToScreen}
+                  className="px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  title="Fit to Screen (0)"
+                >
+                  Fit
+                </button>
+
+                <button
                   onClick={handleSetActualSize}
-                  className="px-2 sm:px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
+                  className="px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
                   title="100% Actual Size (1)"
                 >
                   100%
@@ -556,19 +554,10 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
 
                 <button
                   onClick={handleFitToScreen}
-                  className="px-2 sm:px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 flex items-center gap-1.5 shrink-0"
-                  title="Fit to Screen (0)"
-                >
-                  <Maximize className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Fit</span>
-                </button>
-
-                <button
-                  onClick={handleFitToScreen}
-                  className="p-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 sm:ml-1 shrink-0"
+                  className="px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
                   title="Reset View (R)"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  Reset
                 </button>
               </div>
 

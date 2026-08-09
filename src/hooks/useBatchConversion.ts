@@ -49,17 +49,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           return f;
         });
         
-        if (!matched) {
-          const firstProcessing = prev.find(f => f.status === 'processing');
-          if (firstProcessing) {
-            return prev.map(f => f.id === firstProcessing.id ? {
-              ...f,
-              status: 'error' as const,
-              error: 'Operation failed unexpectedly'
-            } : f);
-          }
-        }
-        return nextFiles as ImageFileItem[];
+        return matched ? nextFiles as ImageFileItem[] : prev;
       });
     };
 

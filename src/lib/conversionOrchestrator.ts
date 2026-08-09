@@ -386,6 +386,7 @@ export async function convertSingleImage(
       }
 
       const workerInstance = pooledWorker.worker;
+      const jobId = `${item.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const result = await new Promise<{ buffer: ArrayBuffer; mimeType: string; originalFallback?: boolean }>(
         (resolve, reject) => {
           const timeoutId = setTimeout(() => {
@@ -408,7 +409,7 @@ export async function convertSingleImage(
           }
 
           const onMsg = (e: MessageEvent) => {
-            if (e.data.id !== item.id) return;
+            if (e.data.id !== jobId) return;
             workerInstance.removeEventListener('message', onMsg);
             workerInstance.removeEventListener('error', onErr);
             if (signal) signal.removeEventListener('abort', onAbort);
@@ -438,7 +439,7 @@ export async function convertSingleImage(
 
           workerInstance.postMessage(
             {
-              id: item.id,
+              id: jobId,
               imageBitmap: loaded.img,
               settings: effectiveSettings,
               targetDim,

@@ -173,6 +173,8 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
         isProcessing={isProcessing}
         isStopping={isStopping}
         pendingCount={pendingCount}
+        successCount={successCount}
+        onContinueToDownload={onContinueToDownload}
       />
 
       <div className="flex flex-col bg-white dark:bg-neutral-900 border rounded-3xl border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
@@ -212,18 +214,6 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
               <Plus className="w-4 h-4" />
               <span>Add Images</span>
             </button>
-
-            {successCount > 0 && onContinueToDownload && (
-              <button
-                onClick={onContinueToDownload}
-                disabled={isProcessing}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl bg-emerald-600 text-white dark:bg-[#81c995] dark:text-neutral-900 hover:bg-emerald-700 dark:hover:bg-[#68b67f] shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
-                id="btn-continue-to-download"
-              >
-                <Download className="w-4 h-4" />
-                <span>Continue to Download</span>
-              </button>
-            )}
 
             <button 
               onClick={onClearAll}
@@ -317,6 +307,14 @@ export const QueueSection = React.memo<QueueSectionProps>(function QueueSection(
             ) : (
               <><Zap className="w-4 h-4 animate-pulse" /> Stop</>
             )}
+          </button>
+        ) : pendingCount === 0 && successCount > 0 && onContinueToDownload ? (
+          <button
+            onClick={onContinueToDownload}
+            className="flex items-center gap-2 px-5 py-3 text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all rounded-full shadow-xl border border-emerald-800"
+            aria-label="Continue to Download"
+          >
+            <span>Continue to Download</span>
           </button>
         ) : pendingCount > 0 ? (
           <button

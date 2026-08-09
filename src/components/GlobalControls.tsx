@@ -14,6 +14,8 @@ interface GlobalControlsProps {
   isProcessing?: boolean;
   isStopping?: boolean;
   pendingCount?: number;
+  successCount?: number;
+  onContinueToDownload?: () => void;
 }
 
 function GlobalControlsComponent({
@@ -25,7 +27,9 @@ function GlobalControlsComponent({
   onStop,
   isProcessing = false,
   isStopping = false,
-  pendingCount = 0
+  pendingCount = 0,
+  successCount = 0,
+  onContinueToDownload
 }: GlobalControlsProps) {
   const [localQuality, setLocalQuality] = React.useState(settings.quality);
   const [localMaxKB, setLocalMaxKB] = React.useState(settings.targetMaxKB?.toString() || '');
@@ -541,6 +545,13 @@ function GlobalControlsComponent({
                 ) : (
                   <><Zap className="w-5 h-5 animate-pulse" /> Stop</>
                 )}
+              </button>
+            ) : pendingCount === 0 && successCount > 0 && onContinueToDownload ? (
+              <button
+                onClick={onContinueToDownload}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 text-base sm:text-lg font-black rounded-xl shadow-md border-b-4 transition-all bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700 active:translate-y-[2px] active:border-b-0 active:mb-[4px]"
+              >
+                Continue to Download
               </button>
             ) : (
               <button
