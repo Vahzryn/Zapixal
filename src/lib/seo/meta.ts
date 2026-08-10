@@ -11,6 +11,7 @@ const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (fullUrl: string,
   'about': () => import('./pages/about'),
   'client-side-private-image-compressor': () => import('./pages/client-side-private-image-compressor'),
   'compress-image-under-50kb-government-portal': () => import('./pages/compress-image-under-50kb-government-portal'),
+  'compress-signature-image-to-10-20kb': () => import('./pages/compress-signature-image-to-10-20kb'),
   'convert-heic-to-jpg-locally': () => import('./pages/convert-heic-to-jpg-locally'),
   'strip-exif-metadata-online-private': () => import('./pages/strip-exif-metadata-online-private'),
   'bulk-image-compressor-offline': () => import('./pages/bulk-image-compressor-offline'),
@@ -64,6 +65,12 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Size Reducer' },
     { path: '/resize-image-for-job-application-form', label: 'Job Application Resizer' },
     { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
+    { path: '/compress-signature-image-to-10-20kb', label: '10–20KB Signature Compressor' },
+  ],
+  '/compress-signature-image-to-10-20kb': [
+    { path: '/secure-signature-compressor-pdf', label: 'Private Signature Compressor' },
+    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
+    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Size Reducer' },
   ],
   '/convert-heic-to-jpg-locally': [
     { path: '/bulk-heic-to-jpg-converter-offline', label: 'Bulk HEIC to JPG' },
@@ -129,7 +136,6 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
   const fullUrl = `${DOMAIN}${path === '/' ? '' : path}`;
   const slug = path === '/' ? 'home' : path.slice(1);
 
-  // Handle article system routes
   if (path === '/articles' || path.startsWith('/articles/')) {
     if (path === '/articles') {
       return {
@@ -253,81 +259,52 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
     seoData = getNotFoundSeo(fullUrl, path);
   }
 
-  if (!seoData.relatedRoutes) {
-    seoData.relatedRoutes = RELATED_ROUTES_MAP[path] || null;
-  }
+  const related = RELATED_ROUTES_MAP[path];
+  if (related) seoData.relatedRoutes = related;
 
   return seoData;
 }
 
-export function applySeoToHead(seoData: SeoRouteData) {
-  if (typeof document === 'undefined') return;
+export async function applySeoToHead(pathname: string): Promise<SeoRouteData> {
+  const seo = await parseSeoRoute(pathname);
 
-  document.title = seoData.metaTitle;
+  document.title = seo.metaTitle;
 
-  const setMeta = (nameAttr: string, attrVal: string, contentVal: string) => {
-    let el = document.querySelector(`meta[${nameAttr}="${attrVal}"]`);
+  const setMeta = (name: string, content: string, property = false) => {
+    const attr = property ? 'property' : 'name';
+    let el = document.head.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
     if (!el) {
       el = document.createElement('meta');
-      el.setAttribute(nameAttr, attrVal);
+      el.setAttribute(attr, name);
       document.head.appendChild(el);
     }
-    el.setAttribute('content', contentVal);
+    el.setAttribute('content', content);
   };
 
-  setMeta('name', 'description', seoData.metaDescription);
+  setMeta('description', seo.metaDescription);
+  setMeta('robots', seo.isIndexable ? 'index,follow' : 'noindex,nofollow');
+  setMeta('og:title', seo.metaTitle, true);
+  setMeta('og:description', seo.metaDescription, true);
+  setMeta('og:type', seo.pageCategory === 'resource' ? 'article' : 'website', true);
+  setMeta('og:url', seo.canonicalUrl, true);
 
-  const robotsVal = seoData.isIndexable
-    ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
-    : 'noindex, follow';
-  setMeta('name', 'robots', robotsVal);
-  setMeta('name', 'googlebot', robotsVal);
-
-  let canonicalEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-  if (!canonicalEl) {
-    canonicalEl = document.createElement('link');
-    canonicalEl.setAttribute('rel', 'canonical');
-    document.head.appendChild(canonicalEl);
+  let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+  if (!canonical) {
+    canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    document.head.appendChild(canonical);
   }
-  canonicalEl.setAttribute('href', seoData.canonicalUrl);
+  canonical.href = seo.canonicalUrl;
 
-  setMeta('property', 'og:title', seoData.metaTitle);
-  setMeta('property', 'og:description', seoData.metaDescription);
-  setMeta('property', 'og:url', seoData.canonicalUrl);
-  setMeta('property', 'og:type', 'website');
-  setMeta('property', 'og:site_name', 'Zapixal');
-  setMeta('property', 'og:image', `${DOMAIN}/icon-512.png`);
-
-  setMeta('name', 'twitter:card', 'summary_large_image');
-  setMeta('name', 'twitter:title', seoData.metaTitle);
-  setMeta('name', 'twitter:description', seoData.metaDescription);
-  setMeta('name', 'twitter:image', `${DOMAIN}/icon-512.png`);
-
-  const injectJsonLd = (id: string, schemaObj: object | null | undefined) => {
-    let scriptEl = document.getElementById(id);
-    if (!schemaObj) {
-      if (scriptEl) scriptEl.remove();
-      return;
-    }
-    if (!scriptEl) {
-      scriptEl = document.createElement('script');
-      scriptEl.id = id;
-      scriptEl.setAttribute('type', 'application/ld+json');
-      document.head.appendChild(scriptEl);
-    }
-    scriptEl.textContent = JSON.stringify(schemaObj).replace(/</g, '\\u003c');
-  };
-
-  if (seoData.jsonLd) {
-    if (seoData.jsonLd.article) {
-      injectJsonLd('jsonld-article', seoData.jsonLd.article);
-    }
-    injectJsonLd('jsonld-software', seoData.jsonLd.softwareApp);
-    injectJsonLd('jsonld-howto', seoData.jsonLd.howTo);
-    injectJsonLd('jsonld-faq', seoData.jsonLd.faqPage);
-    injectJsonLd('jsonld-breadcrumbs', seoData.jsonLd.breadcrumbs);
-    injectJsonLd('jsonld-organization', seoData.jsonLd.organization);
-    injectJsonLd('jsonld-website', seoData.jsonLd.website);
+  if (seo.jsonLd) {
+    const existing = document.getElementById('zapixal-seo-jsonld');
+    if (existing) existing.remove();
+    const script = document.createElement('script');
+    script.id = 'zapixal-seo-jsonld';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(seo.jsonLd);
+    document.head.appendChild(script);
   }
+
+  return seo;
 }
-
