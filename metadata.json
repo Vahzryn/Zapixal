@@ -1,0 +1,6 @@
+{
+  "name": "Zapixal Image Converter",
+  "description": "Ultra-fast, 100% private, browser-native client-side image converter & compressor operating in browser memory.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
