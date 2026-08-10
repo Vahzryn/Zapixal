@@ -20,6 +20,11 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
     category: 'use-case'
   },
   {
+    path: '/compress-signature-image-to-10-20kb',
+    label: 'Compress Signature Image to 10–20KB',
+    category: 'use-case'
+  },
+  {
     path: '/convert-heic-to-jpg-locally',
     label: 'Convert HEIC to JPG Locally',
     category: 'converter'
@@ -234,4 +239,3 @@ export const ALL_ARTICLE_SYSTEM_ROUTES = [
   ...ARTICLE_CATEGORY_ROUTES,
   ...ARTICLE_ITEM_ROUTES,
 ];
-
