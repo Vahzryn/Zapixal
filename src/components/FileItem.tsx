@@ -258,6 +258,7 @@ function FileItemComponent({
                   <option value="png">PNG</option>
                   <option value="bmp">BMP</option>
                   <option value="ico">ICO</option>
+                  <option value="pdf">PDF</option>
                 </select>
               </div>
             )}
@@ -282,6 +283,7 @@ function FileItemComponent({
                   <option value="png">PNG</option>
                   <option value="bmp">BMP</option>
                   <option value="ico">ICO</option>
+                  <option value="pdf">PDF</option>
                 </select>
               </div>
             )}

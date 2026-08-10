@@ -179,48 +179,4 @@ console.log('Running unit tests for conversion orchestration...\n');
   console.log('✓ Per-file format precedence in mixed batch tests passed');
 }
 
-// 6. Test Unsupported PDF Rejection
-{
-  import('../src/lib/conversionOrchestrator.ts').then(async (mod) => {
-    const mockItem: ImageFileItem = {
-      id: 'pdf-test',
-      file: new File(['fake-img'], 'sample.jpg', { type: 'image/jpeg' }),
-      previewUrl: '',
-      originalSize: 100,
-      status: 'pending',
-      progress: 0,
-      customTargetFormat: 'pdf' as any,
-    };
-    const settings: ConversionSettings = {
-      targetFormat: 'pdf' as any,
-      quality: 0.8,
-      renamePattern: '',
-      resize: { enabled: false, keepAspectRatio: true },
-      stripExif: true,
-      filenamePrefix: '',
-      filenameSuffix: '',
-    };
-
-    let convertFailed = false;
-    try {
-      await mod.convertSingleImage(mockItem, settings);
-    } catch (err: any) {
-      convertFailed = true;
-      assert.ok(err.message.includes('PDF output is not supported'), 'Error message must specify unsupported PDF target format');
-    }
-    assert.strictEqual(convertFailed, true, 'convertSingleImage must reject targetFormat=pdf');
-
-    let pdfGenFailed = false;
-    try {
-      await mod.generateCombinedPdf([mockItem], settings);
-    } catch (err: any) {
-      pdfGenFailed = true;
-      assert.ok(err.message.includes('PDF output is not supported'), 'generateCombinedPdf must throw unsupported error');
-    }
-    assert.strictEqual(pdfGenFailed, true, 'generateCombinedPdf must reject execution');
-
-    console.log('✓ Unsupported PDF rejection tests passed');
-  });
-}
-
-console.log('\nAll orchestration unit tests passed successfully!');
+console.log("\nAll orchestration unit tests passed successfully!");

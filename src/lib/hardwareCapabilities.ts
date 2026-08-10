@@ -138,3 +138,89 @@ export function getMaxPixels(tier: 'LOW' | 'MID' | 'HIGH'): number {
   return getMaxMegapixels(tier) * 1_000_000;
 }
 
+
+export interface MemoryBudget {
+  deviceTotalBytes: number;
+  safeWorkingBytes: number;
+}
+
+export function estimateDeviceMemoryBudget(hw: HardwareConfig): MemoryBudget {
+  const isBrowser = typeof navigator !== 'undefined';
+  const rawMemory = isBrowser ? (navigator as any).deviceMemory : undefined;
+  
+  let totalGB = 4;
+  if (typeof rawMemory === 'number') {
+    totalGB = rawMemory;
+  } else {
+    if (hw.tier === 'LOW') totalGB = 2;
+    else if (hw.tier === 'MID') totalGB = 4;
+    else if (hw.tier === 'HIGH') totalGB = 8;
+  }
+
+  let safeGB = totalGB * 0.25;
+  if (safeGB > 2.5) safeGB = 2.5;
+  if (safeGB < 0.5) safeGB = 0.5;
+
+  return {
+    deviceTotalBytes: totalGB * 1024 * 1024 * 1024,
+    safeWorkingBytes: Math.floor(safeGB * 1024 * 1024 * 1024)
+  };
+}
+
+export function estimateConversionMemoryCost(
+  width: number, 
+  height: number, 
+  targetFormat: string
+): number {
+  const pixels = width * height;
+  const rawBytes = pixels * 4; 
+  const canvasBytes = pixels * 4;
+
+  let encoderMultiplier = 1.5; 
+  if (targetFormat === 'avif') {
+    encoderMultiplier = 3.5; 
+  } else if (targetFormat === 'png') {
+    encoderMultiplier = 2.0;
+  } else if (targetFormat === 'pdf') {
+    encoderMultiplier = 2.0;
+  }
+
+  const encoderBytes = rawBytes * encoderMultiplier;
+  const peakCost = rawBytes + canvasBytes + encoderBytes;
+  return peakCost + (20 * 1024 * 1024);
+}
+
+export function estimateProcessingWorkload(
+  width: number, 
+  height: number, 
+  sourceFormat: string,
+  targetFormat: string,
+  
+): number {
+  const pixels = width * height;
+  const megapixels = pixels / 1_000_000;
+  
+  // Base cost depends on megapixels, minimum 0.5 to avoid zero division
+  let baseWork = Math.max(0.5, megapixels);
+  
+  // Apply multipliers based on format complexity
+  // Decoding complexity
+  if (sourceFormat.includes('avif')) baseWork *= 1.2;
+  if (sourceFormat.includes('heic')) baseWork *= 1.5;
+  
+  // Encoding complexity
+  if (targetFormat === 'avif') {
+    baseWork *= 4.0;
+  } else if (targetFormat === 'webp') {
+    baseWork *= 1.2;
+  } else if (targetFormat === 'pdf') {
+    baseWork *= 1.5;
+  } else if (targetFormat === 'png') {
+    baseWork *= 1.3;
+  }
+  
+  // Compression complexity
+  
+
+  return baseWork;
+}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../types';
-import { detectHardwareCapabilities, checkBatteryThrottling, getBatchThresholds } from '../lib/hardwareCapabilities';
+import { detectHardwareCapabilities, checkBatteryThrottling, getBatchThresholds, estimateDeviceMemoryBudget, estimateConversionMemoryCost, estimateProcessingWorkload } from '../lib/hardwareCapabilities';
 import { formatBytes, formatOutputFilename, getExtensionFromMime } from '../lib/utils';
 import { safeRandomUUID } from '../lib/capabilities';
 import { saveFilesToDirectory, downloadBlob } from '../lib/fileSystemAccess';
@@ -162,6 +162,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const batchStartTimeRef = useRef<number>(0);
   const completedBatchCountRef = useRef<number>(0);
   const totalBatchCountRef = useRef<number>(0);
+  const completedWorkloadRef = useRef<number>(0);
+  const totalWorkloadRef = useRef<number>(0);
+  const throughputHistoryRef = useRef<number[]>([]);
+  const lastEtaSecRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!hasConvertedInSession && files.some(f => f.status === 'success')) {
@@ -170,40 +174,99 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   }, [files, hasConvertedInSession]);
 
   const updateEtaMetrics = useCallback(() => {
-    if (completedBatchCountRef.current === 0) {
+    const completedItems = completedBatchCountRef.current;
+    const totalItems = totalBatchCountRef.current;
+    
+    if (completedItems === 0 || completedWorkloadRef.current === 0) {
       setEtaText('Estimating...');
       setProcessingSpeed('');
       return;
     }
 
     const elapsedMs = Math.max(1, Date.now() - batchStartTimeRef.current);
-    const completed = completedBatchCountRef.current;
-    const total = totalBatchCountRef.current;
-    const remaining = total - completed;
+    const elapsedSeconds = elapsedMs / 1000;
+    const remainingItems = totalItems - completedItems;
 
-    if (remaining <= 0) {
+    if (remainingItems <= 0) {
       setEtaText('Almost done...');
       setProcessingSpeed('');
       return;
     }
 
-    const elapsedSeconds = elapsedMs / 1000;
-    const itemsPerSec = completed / elapsedSeconds;
-    const estimatedRemainingSec = Math.ceil(remaining / itemsPerSec);
+    // Workload-based estimation
+    const completedWork = completedWorkloadRef.current;
+    const totalWork = totalWorkloadRef.current;
+    const remainingWork = Math.max(0, totalWork - completedWork);
+    
+    // Observed throughput (work units per second)
+    const currentThroughput = completedWork / elapsedSeconds;
+    
+    // Smoothing: maintain a history of throughputs to dampen wild swings
+    let smoothedThroughput = currentThroughput;
+    if (currentThroughput > 0) {
+      const history = throughputHistoryRef.current;
+      history.push(currentThroughput);
+      if (history.length > 5) {
+        history.shift();
+      }
+      smoothedThroughput = history.reduce((a, b) => a + b, 0) / history.length;
+    }
+
+    // Protect against division by zero or extremely low throughput
+    let estimatedRemainingSec = 0;
+    if (smoothedThroughput > 0.001) {
+      estimatedRemainingSec = remainingWork / smoothedThroughput;
+    } else {
+      // Fallback to simple item-based if workload metrics are broken
+      const itemsPerSec = completedItems / elapsedSeconds;
+      estimatedRemainingSec = remainingItems / (itemsPerSec || 1);
+    }
+    
+    // Cap wild fluctuations
+    if (lastEtaSecRef.current !== null) {
+       const prev = lastEtaSecRef.current;
+       if (estimatedRemainingSec > prev * 1.5) {
+         estimatedRemainingSec = prev * 1.5;
+       } else if (estimatedRemainingSec < prev * 0.5) {
+         estimatedRemainingSec = prev * 0.5;
+       }
+    }
+    
+    lastEtaSecRef.current = estimatedRemainingSec;
+    const displaySec = Math.ceil(estimatedRemainingSec);
 
     let formattedTime = '';
-    if (estimatedRemainingSec <= 3) {
+    if (displaySec <= 5) {
       formattedTime = 'A few seconds left';
-    } else if (estimatedRemainingSec < 60) {
-      formattedTime = `~${estimatedRemainingSec}s left`;
+    } else if (displaySec < 60) {
+      // Round to nearest 5 for stability if > 15
+      let s = displaySec;
+      if (s > 15) {
+        s = Math.round(s / 5) * 5;
+      }
+      formattedTime = `About ${s}s left`;
     } else {
-      const mins = Math.floor(estimatedRemainingSec / 60);
-      const secs = estimatedRemainingSec % 60;
-      formattedTime = `~${mins}m ${secs}s left`;
+      const mins = Math.floor(displaySec / 60);
+      const secs = displaySec % 60;
+      
+      // Keep it clean
+      if (secs < 10) {
+         formattedTime = `About ${mins}m left`;
+      } else {
+         let roundedSecs = Math.round(secs / 10) * 10;
+         if (roundedSecs === 60) {
+           formattedTime = `About ${mins + 1}m left`;
+         } else {
+           formattedTime = `About ${mins}m ${roundedSecs}s left`;
+         }
+      }
     }
 
     setEtaText(formattedTime);
-    setProcessingSpeed(`${itemsPerSec.toFixed(1)} img/s`);
+    
+    // Display friendly speed
+    const itemsPerSec = completedItems / elapsedSeconds;
+    setProcessingSpeed(`${itemsPerSec.toFixed(1)} items/s`);
   }, []);
 
   useEffect(() => {
@@ -463,7 +526,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
             convertedSize: result.convertedSize, 
             convertedUrl: result.convertedUrl,
             dimensions: result.dimensions,
-            originalFallback: result.originalFallback
+            originalFallback: result.originalFallback,
+            pdfImageData: result.pdfImageData,
+            pdfImageWidth: result.pdfImageWidth,
+            pdfImageHeight: result.pdfImageHeight
           };
         }
         return nextFiles;
@@ -584,6 +650,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     // Helper function for formatting filenames uniquely
     const getFormattedName = (file: ImageFileItem, i: number, usedNames: Set<string>) => {
+      if (file.id === 'multi-page-pdf') return file.file.name;
       const idx = files.findIndex(f => f.id === file.id);
       let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
       if (usedNames.has(fileName)) {
@@ -600,13 +667,57 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       return fileName;
     };
 
+    const pdfFiles = successfulFiles.filter(f => {
+      const tf = f.customTargetFormat || settings.targetFormat;
+      return tf === 'pdf' && f.pdfImageData && f.pdfImageWidth && f.pdfImageHeight;
+    });
+    
+    const nonPdfFiles = successfulFiles.filter(f => {
+      const tf = f.customTargetFormat || settings.targetFormat;
+      return tf !== 'pdf' || !f.pdfImageData;
+    });
+
+    let multiPagePdfBlob: Blob | null = null;
+    if (pdfFiles.length > 1) {
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF({ unit: 'px' });
+      pdf.deletePage(1);
+      for (const f of pdfFiles) {
+        const w = f.pdfImageWidth!;
+        const h = f.pdfImageHeight!;
+        const orientation = w > h ? 'l' : 'p';
+        pdf.addPage([w, h], orientation);
+        const buffer = await f.pdfImageData!.arrayBuffer();
+        pdf.addImage(new Uint8Array(buffer), 'JPEG', 0, 0, w, h);
+      }
+      multiPagePdfBlob = pdf.output('blob');
+    }
+
+    if (multiPagePdfBlob && nonPdfFiles.length === 0) {
+      downloadBlob(multiPagePdfBlob, `zapixal-document-${Date.now()}.pdf`);
+      return;
+    }
+
+    let filesToZip = successfulFiles;
+    if (multiPagePdfBlob) {
+      filesToZip = [...nonPdfFiles, {
+        id: 'multi-page-pdf',
+        status: 'success',
+        blob: multiPagePdfBlob,
+        convertedSize: multiPagePdfBlob.size,
+        originalSize: 0,
+        customTargetFormat: 'pdf',
+        file: new File([], `zapixal-document-${Date.now()}.pdf`)
+      } as unknown as ImageFileItem];
+    }
+
     // Chunked ZIP export strategy
     const zipSizeBudget = thresholds.optimalBatchBytes;
     const zipChunks: ImageFileItem[][] = [];
     let currentChunk: ImageFileItem[] = [];
     let currentChunkBytes = 0;
 
-    for (const file of successfulFiles) {
+    for (const file of filesToZip) {
       const fSize = file.blob?.size || file.convertedSize || file.originalSize;
       if (currentChunk.length > 0 && (currentChunkBytes + fSize > zipSizeBudget)) {
         zipChunks.push(currentChunk);
@@ -742,6 +853,18 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
         completedBatchCountRef.current = 0;
         totalBatchCountRef.current = currentChunk.length;
         batchStartTimeRef.current = Date.now();
+        lastEtaSecRef.current = null;
+        throughputHistoryRef.current = [];
+        completedWorkloadRef.current = 0;
+        
+        let chunkWorkload = 0;
+        for (const item of currentChunk) {
+           const tf = item.customTargetFormat || settings.targetFormat;
+           const w = item.dimensions?.width || 2048;
+           const h = item.dimensions?.height || 2048;
+           chunkWorkload += estimateProcessingWorkload(w, h, item.file.type, tf);
+        }
+        totalWorkloadRef.current = chunkWorkload;
         setEtaText(runChunked ? `Chunk ${chunkIndex + 1} of ${chunks.length}...` : 'Calculating...');
 
         // Update files in current chunk to 'processing'
@@ -754,6 +877,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
         let currentIndex = 0;
         let activeWorkers = 0;
+        let activeMemory = 0;
+        const memoryBudget = estimateDeviceMemoryBudget(hw);
+        const maxMemory = memoryBudget.safeWorkingBytes;
 
         await new Promise<void>((resolveChunk) => {
           const next = () => {
@@ -764,9 +890,33 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
               return;
             }
 
-            while (activeWorkers < maxConcurrent && currentIndex < currentChunk.length) {
+            while (currentIndex < currentChunk.length && activeWorkers < maxConcurrent) {
+              const peekItem = currentChunk[currentIndex];
+              const tf = peekItem.customTargetFormat || settings.targetFormat;
+              const w = peekItem.dimensions?.width || 2048;
+              const h = peekItem.dimensions?.height || 2048;
+              const cost = estimateConversionMemoryCost(w, h, tf);
+              const workCost = estimateProcessingWorkload(w, h, peekItem.file.type, tf);
+
+              if (activeWorkers > 0 && activeMemory + cost > maxMemory) {
+                break;
+              }
+
+              if (cost > maxMemory * 1.5 && activeWorkers === 0) {
+                setFiles(prev => prev.map(f => f.id === peekItem.id ? {
+                  ...f,
+                  status: 'error',
+                  error: `Image too large for available memory. Cost: ${formatBytes(cost)}`
+                } : f));
+                currentIndex++;
+                completedBatchCountRef.current++;
+                updateEtaMetrics();
+                continue;
+              }
+
               const item = currentChunk[currentIndex++];
               activeWorkers++;
+              activeMemory += cost;
 
               processor.convertSingleImage(item, settings, abortControllerRef.current?.signal)
                 .then(async result => {
@@ -810,6 +960,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                     convertedUrl: savedToFolder ? undefined : result.convertedUrl,
                     dimensions: result.dimensions,
                     originalFallback: result.originalFallback,
+                    pdfImageData: result.pdfImageData,
+                    pdfImageWidth: result.pdfImageWidth,
+                    pdfImageHeight: result.pdfImageHeight,
                     progress: 100,
                     savedToFolder,
                     folderSavePath: savedToFolder ? finalName : undefined,
@@ -825,7 +978,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                 })
                 .finally(() => {
                   activeWorkers--;
+                  activeMemory -= cost;
                   completedBatchCountRef.current++;
+                  completedWorkloadRef.current += workCost;
                   updateEtaMetrics();
                   
                   if (typeof (globalThis as any).scheduler?.yield === 'function') {
@@ -910,7 +1065,25 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     let currentIndex = 0;
     let activeWorkers = 0;
+    let activeMemory = 0;
+    const memoryBudget = estimateDeviceMemoryBudget(hardware);
+    const maxMemory = memoryBudget.safeWorkingBytes;
     const usedNamesInBatch = new Set<string>();
+    
+    completedBatchCountRef.current = 0;
+    totalBatchCountRef.current = itemsToReformat.length;
+    batchStartTimeRef.current = Date.now();
+    lastEtaSecRef.current = null;
+    throughputHistoryRef.current = [];
+    completedWorkloadRef.current = 0;
+    
+    let reformatWorkload = 0;
+    for (const item of itemsToReformat) {
+       const w = item.dimensions?.width || 2048;
+       const h = item.dimensions?.height || 2048;
+       reformatWorkload += estimateProcessingWorkload(w, h, item.file.type, newFormat);
+    }
+    totalWorkloadRef.current = reformatWorkload;
 
     return new Promise<void>((resolve) => {
       const next = () => {
@@ -923,9 +1096,30 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           return;
         }
 
-        while (activeWorkers < maxConcurrent && currentIndex < itemsToReformat.length) {
+        while (currentIndex < itemsToReformat.length && activeWorkers < maxConcurrent) {
+          const peekItem = itemsToReformat[currentIndex];
+          const w = peekItem.dimensions?.width || 2048;
+          const h = peekItem.dimensions?.height || 2048;
+          const cost = estimateConversionMemoryCost(w, h, newFormat);
+          const workCost = estimateProcessingWorkload(w, h, peekItem.file.type, newFormat);
+
+          if (activeWorkers > 0 && activeMemory + cost > maxMemory) {
+            break;
+          }
+
+          if (cost > maxMemory * 1.5 && activeWorkers === 0) {
+            setFiles(prev => prev.map(f => f.id === peekItem.id ? {
+              ...f,
+              status: 'error',
+              error: `Image too large for available memory. Cost: ${formatBytes(cost)}`
+            } : f));
+            currentIndex++;
+            continue;
+          }
+
           const item = itemsToReformat[currentIndex++];
           activeWorkers++;
+          activeMemory += cost;
 
           const itemSettings = {
             ...settings,
@@ -974,6 +1168,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                 convertedUrl: savedToFolder ? undefined : result.convertedUrl,
                 dimensions: result.dimensions,
                 originalFallback: result.originalFallback,
+                pdfImageData: result.pdfImageData,
+                pdfImageWidth: result.pdfImageWidth,
+                pdfImageHeight: result.pdfImageHeight,
                 progress: 100,
                 savedToFolder,
                 folderSavePath: savedToFolder ? finalName : undefined,
@@ -989,6 +1186,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
             })
             .finally(() => {
               activeWorkers--;
+              activeMemory -= cost;
+              completedBatchCountRef.current++;
+              completedWorkloadRef.current += workCost;
+              updateEtaMetrics();
               if (typeof (globalThis as any).scheduler?.yield === 'function') {
                 (globalThis as any).scheduler.yield().then(next);
               } else {

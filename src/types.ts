@@ -41,6 +41,9 @@ export interface ImageFileItem {
   dimensions?: ImageDimensions;
   convertedUrl?: string;
   originalFallback?: boolean;
+  pdfImageData?: Blob; // Cache the raw raster data used for PDF generation
+  pdfImageWidth?: number;
+  pdfImageHeight?: number;
   error?: string;
   blurRegions?: Array<{ x: number; y: number; width: number; height: number }>;
   blurMode?: 'blur' | 'pixelate';

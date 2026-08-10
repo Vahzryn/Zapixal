@@ -287,6 +287,9 @@ export async function convertSingleImage(
   dimensions: ImageDimensions;
   convertedUrl: string;
   originalFallback?: boolean;
+  pdfImageData?: Blob;
+  pdfImageWidth?: number;
+  pdfImageHeight?: number;
 }> {
   if (signal?.aborted) {
     throw new DOMException('The operation was aborted.', 'AbortError');
@@ -338,10 +341,6 @@ export async function convertSingleImage(
   const effectiveRotation = (((effectiveSettings.rotation || 0) + (item.rotation || 0)) % 360 + 360) % 360;
   const isRotated90or270 = effectiveRotation === 90 || effectiveRotation === 270;
 
-  if ((targetFormat as string) === 'pdf') {
-    throw new Error('PDF output is not supported as a raster image target format.');
-  }
-
   // Load image
   let loaded = await loadImageElement(item.file);
   let fallbackLoaded = null;
@@ -374,10 +373,13 @@ export async function convertSingleImage(
   const canvasHeight = targetDim.height;
 
   let convertedBlob: Blob | null = null;
+  let pdfImageData: Blob | undefined = undefined;
+  let pdfImageWidth: number | undefined = undefined;
+  let pdfImageHeight: number | undefined = undefined;
   let originalFallback = false;
 
   // Worker Path via workerPool
-  if (typeof OffscreenCanvas !== 'undefined' && loaded.img instanceof ImageBitmap && targetFormat !== 'ico') {
+  if (typeof OffscreenCanvas !== 'undefined' && loaded.img instanceof ImageBitmap && targetFormat !== 'ico' && targetFormat !== 'pdf') {
     let pooledWorker: PooledWorker | undefined;
     try {
       pooledWorker = await getWorkerPool().acquireWorker();
@@ -560,6 +562,26 @@ export async function convertSingleImage(
       } else {
         convertedBlob = await encodeWebp(canvas, quality);
       }
+    } else if (targetFormat === 'pdf') {
+      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const jpegBytes = await encodeJpeg(imgData, 0.9, canvas);
+      const pdfImageBlob = new Blob([jpegBytes.buffer], { type: 'image/jpeg' });
+      
+      const { jsPDF } = await import('jspdf');
+      const orientation = canvasWidth > canvasHeight ? 'l' : 'p';
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'px',
+        format: [canvasWidth, canvasHeight]
+      });
+      
+      pdf.addImage(jpegBytes, 'JPEG', 0, 0, canvasWidth, canvasHeight);
+      convertedBlob = pdf.output('blob');
+      
+      // Store the high-quality JPEG blob so it can be combined in handleDownloadAll
+      pdfImageData = pdfImageBlob;
+      pdfImageWidth = canvasWidth;
+      pdfImageHeight = canvasHeight;
     } else if (targetFormat === 'avif') {
       convertedBlob = await encodeAvif(canvas, quality);
     } else if (targetFormat === 'bmp') {
@@ -608,6 +630,9 @@ export async function convertSingleImage(
     dimensions: { width: canvasWidth, height: canvasHeight },
     convertedUrl,
     originalFallback,
+    pdfImageData,
+    pdfImageWidth,
+    pdfImageHeight,
   };
   } finally {
     if (loaded && loaded.img instanceof ImageBitmap) {
