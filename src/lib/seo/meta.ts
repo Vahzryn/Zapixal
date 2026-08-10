@@ -136,6 +136,7 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
   const fullUrl = `${DOMAIN}${path === '/' ? '' : path}`;
   const slug = path === '/' ? 'home' : path.slice(1);
 
+  // Handle article system routes
   if (path === '/articles' || path.startsWith('/articles/')) {
     if (path === '/articles') {
       return {
@@ -259,52 +260,80 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
     seoData = getNotFoundSeo(fullUrl, path);
   }
 
-  const related = RELATED_ROUTES_MAP[path];
-  if (related) seoData.relatedRoutes = related;
+  if (!seoData.relatedRoutes) {
+    seoData.relatedRoutes = RELATED_ROUTES_MAP[path] || null;
+  }
 
   return seoData;
 }
 
-export async function applySeoToHead(pathname: string): Promise<SeoRouteData> {
-  const seo = await parseSeoRoute(pathname);
+export function applySeoToHead(seoData: SeoRouteData) {
+  if (typeof document === 'undefined') return;
 
-  document.title = seo.metaTitle;
+  document.title = seoData.metaTitle;
 
-  const setMeta = (name: string, content: string, property = false) => {
-    const attr = property ? 'property' : 'name';
-    let el = document.head.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
+  const setMeta = (nameAttr: string, attrVal: string, contentVal: string) => {
+    let el = document.querySelector(`meta[${nameAttr}="${attrVal}"]`) as HTMLMetaElement;
     if (!el) {
       el = document.createElement('meta');
-      el.setAttribute(attr, name);
+      el.setAttribute(nameAttr, attrVal);
       document.head.appendChild(el);
     }
-    el.setAttribute('content', content);
+    el.setAttribute('content', contentVal);
   };
 
-  setMeta('description', seo.metaDescription);
-  setMeta('robots', seo.isIndexable ? 'index,follow' : 'noindex,nofollow');
-  setMeta('og:title', seo.metaTitle, true);
-  setMeta('og:description', seo.metaDescription, true);
-  setMeta('og:type', seo.pageCategory === 'resource' ? 'article' : 'website', true);
-  setMeta('og:url', seo.canonicalUrl, true);
+  setMeta('name', 'description', seoData.metaDescription);
 
-  let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-  if (!canonical) {
-    canonical = document.createElement('link');
-    canonical.rel = 'canonical';
-    document.head.appendChild(canonical);
+  const robotsVal = seoData.isIndexable
+    ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+    : 'noindex, follow';
+  setMeta('name', 'robots', robotsVal);
+  setMeta('name', 'googlebot', robotsVal);
+
+  let canonicalEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+  if (!canonicalEl) {
+    canonicalEl = document.createElement('link');
+    canonicalEl.setAttribute('rel', 'canonical');
+    document.head.appendChild(canonicalEl);
   }
-  canonical.href = seo.canonicalUrl;
+  canonicalEl.setAttribute('href', seoData.canonicalUrl);
 
-  if (seo.jsonLd) {
-    const existing = document.getElementById('zapixal-seo-jsonld');
-    if (existing) existing.remove();
-    const script = document.createElement('script');
-    script.id = 'zapixal-seo-jsonld';
-    script.type = 'application/ld+json';
-    script.textContent = JSON.stringify(seo.jsonLd);
-    document.head.appendChild(script);
+  setMeta('property', 'og:title', seoData.metaTitle);
+  setMeta('property', 'og:description', seoData.metaDescription);
+  setMeta('property', 'og:url', seoData.canonicalUrl);
+  setMeta('property', 'og:type', 'website');
+  setMeta('property', 'og:site_name', 'Zapixal');
+  setMeta('property', 'og:image', `${DOMAIN}/icon-512.png`);
+
+  setMeta('name', 'twitter:card', 'summary_large_image');
+  setMeta('name', 'twitter:title', seoData.metaTitle);
+  setMeta('name', 'twitter:description', seoData.metaDescription);
+  setMeta('name', 'twitter:image', `${DOMAIN}/icon-512.png`);
+
+  const injectJsonLd = (id: string, schemaObj: object | null | undefined) => {
+    let scriptEl = document.getElementById(id);
+    if (!schemaObj) {
+      if (scriptEl) scriptEl.remove();
+      return;
+    }
+    if (!scriptEl) {
+      scriptEl = document.createElement('script');
+      scriptEl.id = id;
+      scriptEl.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(scriptEl);
+    }
+    scriptEl.textContent = JSON.stringify(schemaObj).replace(/</g, '\\u003c');
+  };
+
+  if (seoData.jsonLd) {
+    if (seoData.jsonLd.article) {
+      injectJsonLd('jsonld-article', seoData.jsonLd.article);
+    }
+    injectJsonLd('jsonld-software', seoData.jsonLd.softwareApp);
+    injectJsonLd('jsonld-howto', seoData.jsonLd.howTo);
+    injectJsonLd('jsonld-faq', seoData.jsonLd.faqPage);
+    injectJsonLd('jsonld-breadcrumbs', seoData.jsonLd.breadcrumbs);
+    injectJsonLd('jsonld-organization', seoData.jsonLd.organization);
+    injectJsonLd('jsonld-website', seoData.jsonLd.website);
   }
-
-  return seo;
 }
