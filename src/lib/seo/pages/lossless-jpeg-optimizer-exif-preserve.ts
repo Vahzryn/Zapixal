@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'High-Fidelity JPEG Optimization & Progressive Encoding',
-      metaTitle: 'High-Fidelity JPEG Optimizer via WebAssembly | Zapixal',
+      metaTitle: 'Lossless JPEG Optimizer — Progressive WebAssembly Tool',
       metaDescription: 'Compress JPEG files by 10%-25% with visually lossless quality using MozJPEG compiled to WASM. Optimizes tables and converts to progressive scans in browser memory.',
       canonicalUrl: fullUrl,
       isIndexable: true,

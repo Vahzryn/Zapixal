@@ -158,6 +158,13 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     isProcessingRef.current = isProcessing;
   }, [isProcessing]);
 
+  const filesRef = useRef<ImageFileItem[]>(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  const lastEtaUpdateTsRef = useRef<number>(0);
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const batchStartTimeRef = useRef<number>(0);
   const completedBatchCountRef = useRef<number>(0);
@@ -165,6 +172,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const completedWorkloadRef = useRef<number>(0);
   const totalWorkloadRef = useRef<number>(0);
   const throughputHistoryRef = useRef<number[]>([]);
+  const recentWorkSamplesRef = useRef<{ timestamp: number; work: number }[]>([]);
   const lastEtaSecRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -173,19 +181,24 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     }
   }, [files, hasConvertedInSession]);
 
-  const updateEtaMetrics = useCallback(() => {
+  const updateEtaMetrics = useCallback((force?: boolean) => {
+    const now = Date.now();
+    if (!force && now - lastEtaUpdateTsRef.current < 100) {
+      return;
+    }
+    lastEtaUpdateTsRef.current = now;
+
     const completedItems = completedBatchCountRef.current;
     const totalItems = totalBatchCountRef.current;
+    const elapsedMs = Math.max(1, now - batchStartTimeRef.current);
+    const elapsedSeconds = elapsedMs / 1000;
+    const remainingItems = totalItems - completedItems;
     
     if (completedItems === 0 || completedWorkloadRef.current === 0) {
       setEtaText('Estimating...');
       setProcessingSpeed('');
       return;
     }
-
-    const elapsedMs = Math.max(1, Date.now() - batchStartTimeRef.current);
-    const elapsedSeconds = elapsedMs / 1000;
-    const remainingItems = totalItems - completedItems;
 
     if (remainingItems <= 0) {
       setEtaText('Almost done...');
@@ -196,39 +209,59 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     // Workload-based estimation
     const completedWork = completedWorkloadRef.current;
     const totalWork = totalWorkloadRef.current;
-    const remainingWork = Math.max(0, totalWork - completedWork);
+    const remainingWork = Math.max(remainingItems * 0.1, totalWork - completedWork);
     
-    // Observed throughput (work units per second)
-    const currentThroughput = completedWork / elapsedSeconds;
-    
-    // Smoothing: maintain a history of throughputs to dampen wild swings
-    let smoothedThroughput = currentThroughput;
-    if (currentThroughput > 0) {
-      const history = throughputHistoryRef.current;
-      history.push(currentThroughput);
-      if (history.length > 5) {
-        history.shift();
-      }
-      smoothedThroughput = history.reduce((a, b) => a + b, 0) / history.length;
+    // Long-term throughput across the entire batch runtime (work units per second)
+    const longTermThroughput = completedWork / elapsedSeconds;
+
+    // Keep at most 7 recent samples and prune older than 6000ms
+    recentWorkSamplesRef.current = recentWorkSamplesRef.current.filter(s => now - s.timestamp <= 6000);
+    if (recentWorkSamplesRef.current.length > 7) {
+      recentWorkSamplesRef.current = recentWorkSamplesRef.current.slice(-7);
+    }
+    const samples = recentWorkSamplesRef.current;
+
+    // Calculate short-term throughput from recent window
+    let shortTermThroughput = longTermThroughput;
+    if (samples.length >= 2) {
+      const windowDurationSec = Math.max(0.1, (now - samples[0].timestamp) / 1000);
+      const recentWorkSum = samples.slice(1).reduce((sum, s) => sum + s.work, 0);
+      shortTermThroughput = recentWorkSum / windowDurationSec;
+    } else if (samples.length === 1) {
+      const windowDurationSec = Math.max(0.1, (now - batchStartTimeRef.current) / 1000);
+      shortTermThroughput = samples[0].work / windowDurationSec;
     }
 
-    // Protect against division by zero or extremely low throughput
+    // Measure performance divergence between recent and historical throughput
+    const divergence = Math.abs(shortTermThroughput - longTermThroughput) / Math.max(0.001, longTermThroughput);
+
+    // Dynamic weighting:
+    // Stable performance (divergence ~ 0): alpha = 0.3 (70% longTerm, 30% shortTerm) for visual stability
+    // Substantial change (divergence >= 1.0): alpha up to 0.85 (15% longTerm, 85% shortTerm) for fast response
+    const alpha = Math.min(0.85, 0.3 + 0.55 * Math.min(1.0, divergence));
+    const effectiveThroughput = alpha * shortTermThroughput + (1 - alpha) * longTermThroughput;
+
+    // Estimate remaining seconds
     let estimatedRemainingSec = 0;
-    if (smoothedThroughput > 0.001) {
-      estimatedRemainingSec = remainingWork / smoothedThroughput;
+    if (effectiveThroughput > 0.001) {
+      estimatedRemainingSec = remainingWork / effectiveThroughput;
     } else {
       // Fallback to simple item-based if workload metrics are broken
       const itemsPerSec = completedItems / elapsedSeconds;
       estimatedRemainingSec = remainingItems / (itemsPerSec || 1);
     }
     
-    // Cap wild fluctuations
+    // Adaptive clamping:
+    // Use moderate bounds (0.5x..1.5x) when stable, but allow larger corrections (0.1x..4.0x) on major speed changes
     if (lastEtaSecRef.current !== null) {
        const prev = lastEtaSecRef.current;
-       if (estimatedRemainingSec > prev * 1.5) {
-         estimatedRemainingSec = prev * 1.5;
-       } else if (estimatedRemainingSec < prev * 0.5) {
-         estimatedRemainingSec = prev * 0.5;
+       const maxIncreaseFactor = 1.5 + 2.5 * Math.min(1.0, divergence);
+       const minDecreaseFactor = Math.max(0.1, 0.5 - 0.4 * Math.min(1.0, divergence));
+
+       if (estimatedRemainingSec > prev * maxIncreaseFactor) {
+         estimatedRemainingSec = prev * maxIncreaseFactor;
+       } else if (estimatedRemainingSec < prev * minDecreaseFactor) {
+         estimatedRemainingSec = prev * minDecreaseFactor;
        }
     }
     
@@ -603,21 +636,33 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     const a = document.createElement('a');
     a.href = file.convertedUrl;
     
-    const idx = files.findIndex(f => f.id === file.id);
+    const currentFiles = filesRef.current;
+    const idx = currentFiles.findIndex(f => f.id === file.id);
     const finalName = formatOutputFilename(file, idx !== -1 ? idx : 0, settings);
     a.download = finalName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [files, settings]);
+
+    // Release raw JPEG intermediate data after single download
+    if (file.pdfImageData) {
+      setFiles(prev => prev.map(f => f.id === file.id ? {
+        ...f,
+        pdfImageData: undefined,
+        pdfImageWidth: undefined,
+        pdfImageHeight: undefined
+      } : f));
+    }
+  }, [settings]);
 
   const handleDownloadToDirectory = useCallback(async () => {
-    const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
+    const currentFiles = filesRef.current;
+    const successfulFiles = currentFiles.filter(f => f.status === 'success' && f.blob);
     if (successfulFiles.length === 0) return false;
 
     const usedNames = new Set<string>();
     const res = await saveFilesToDirectory(successfulFiles, (file, i) => {
-      const idx = files.findIndex(f => f.id === file.id);
+      const idx = currentFiles.findIndex(f => f.id === file.id);
       let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
       if (usedNames.has(fileName)) {
         const dotIdx = fileName.lastIndexOf('.');
@@ -633,11 +678,22 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       return fileName;
     });
 
+    if (res.success) {
+      // Clear intermediate pdfImageData once saved to disk
+      setFiles(prev => prev.map(f => f.pdfImageData ? {
+        ...f,
+        pdfImageData: undefined,
+        pdfImageWidth: undefined,
+        pdfImageHeight: undefined
+      } : f));
+    }
+
     return res.success;
-  }, [files, settings]);
+  }, [settings]);
 
   const handleDownloadAll = useCallback(async () => {
-    const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
+    const currentFiles = filesRef.current;
+    const successfulFiles = currentFiles.filter(f => f.status === 'success' && f.blob);
     if (successfulFiles.length === 0) return;
 
     if (successfulFiles.length === 1) {
@@ -651,7 +707,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     // Helper function for formatting filenames uniquely
     const getFormattedName = (file: ImageFileItem, i: number, usedNames: Set<string>) => {
       if (file.id === 'multi-page-pdf') return file.file.name;
-      const idx = files.findIndex(f => f.id === file.id);
+      const idx = currentFiles.findIndex(f => f.id === file.id);
       let fileName = formatOutputFilename(file, idx !== -1 ? idx : i, settings);
       if (usedNames.has(fileName)) {
         const dotIdx = fileName.lastIndexOf('.');
@@ -693,6 +749,16 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       multiPagePdfBlob = pdf.output('blob');
     }
 
+    // Immediately release intermediate pdfImageData references once multi-page or individual PDFs are processed
+    if (pdfFiles.length > 0) {
+      setFiles(prev => prev.map(f => f.pdfImageData ? {
+        ...f,
+        pdfImageData: undefined,
+        pdfImageWidth: undefined,
+        pdfImageHeight: undefined
+      } : f));
+    }
+
     if (multiPagePdfBlob && nonPdfFiles.length === 0) {
       downloadBlob(multiPagePdfBlob, `zapixal-document-${Date.now()}.pdf`);
       return;
@@ -711,8 +777,11 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       } as unknown as ImageFileItem];
     }
 
-    // Chunked ZIP export strategy
-    const zipSizeBudget = thresholds.optimalBatchBytes;
+    // Chunked ZIP export strategy with hardware memory guard
+    const zipSizeBudget = hw.tier === 'LOW'
+      ? Math.min(thresholds.optimalBatchBytes, 25 * 1024 * 1024)
+      : (hw.tier === 'MID' ? Math.min(thresholds.optimalBatchBytes, 75 * 1024 * 1024) : thresholds.optimalBatchBytes);
+
     const zipChunks: ImageFileItem[][] = [];
     let currentChunk: ImageFileItem[] = [];
     let currentChunkBytes = 0;
@@ -738,10 +807,12 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       if (zipChunks.length <= 1) {
         const zip = new JSZip();
         const usedNames = new Set<string>();
-        for (let i = 0; i < successfulFiles.length; i++) {
-          const file = successfulFiles[i];
+        for (let i = 0; i < filesToZip.length; i++) {
+          const file = filesToZip[i];
           const fileName = getFormattedName(file, i, usedNames);
-          zip.file(fileName, file.blob!);
+          if (file.blob) {
+            zip.file(fileName, file.blob);
+          }
         }
         const content = await zip.generateAsync({ type: 'blob' });
         downloadBlob(content, `zapixal-converted-${Date.now()}.zip`);
@@ -756,7 +827,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           for (let i = 0; i < chunk.length; i++) {
             const file = chunk[i];
             const fileName = getFormattedName(file, i, globalUsedNames);
-            zip.file(fileName, file.blob!);
+            if (file.blob) {
+              zip.file(fileName, file.blob);
+            }
           }
 
           const content = await zip.generateAsync({ type: 'blob' });
@@ -764,24 +837,25 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           downloadBlob(content, partName);
 
           if (partIdx < totalParts - 1) {
-            await new Promise(res => setTimeout(res, 500));
+            await new Promise(res => setTimeout(res, 300));
           }
         }
       }
     } catch (err) {
       console.error('Failed to generate ZIP export:', err);
     }
-  }, [files, settings, handleDownloadSingle]);
+  }, [settings, handleDownloadSingle]);
 
   const handleDownloadDirect = useCallback(async () => {
-    const successfulFiles = files.filter(f => f.status === 'success' && f.blob);
+    const currentFiles = filesRef.current;
+    const successfulFiles = currentFiles.filter(f => f.status === 'success' && f.blob);
     for (let i = 0; i < successfulFiles.length; i++) {
       handleDownloadSingle(successfulFiles[i]);
       if (i < successfulFiles.length - 1) {
         await new Promise(res => setTimeout(res, 200));
       }
     }
-  }, [files, handleDownloadSingle]);
+  }, [handleDownloadSingle]);
 
   const stopProcessing = useCallback(() => {
     if (!isProcessing || isStopping) return;
@@ -795,7 +869,8 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     if (isProcessing) return;
     
     setStalledResetMessage(null);
-    const pendingFiles = files.filter(f => f.status === 'pending' || f.status === 'error');
+    const currentFiles = filesRef.current;
+    const pendingFiles = currentFiles.filter(f => f.status === 'pending' || f.status === 'error');
     if (pendingFiles.length === 0) return;
 
     const baseHw = detectHardwareCapabilities();
@@ -845,27 +920,32 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     const usedNamesInBatch = new Set<string>();
 
+    completedBatchCountRef.current = 0;
+    totalBatchCountRef.current = pendingFiles.length;
+    batchStartTimeRef.current = Date.now();
+    lastEtaSecRef.current = null;
+    throughputHistoryRef.current = [];
+    recentWorkSamplesRef.current = [];
+    completedWorkloadRef.current = 0;
+
+    let totalBatchWorkload = 0;
+    for (const item of pendingFiles) {
+       const tf = item.customTargetFormat || settings.targetFormat;
+       const w = item.dimensions?.width || 2048;
+       const h = item.dimensions?.height || 2048;
+       totalBatchWorkload += estimateProcessingWorkload(w, h, item.file.type, tf);
+    }
+    totalWorkloadRef.current = totalBatchWorkload;
+    setEtaText('Calculating...');
+
     try {
       for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
         if (abortControllerRef.current?.signal.aborted) break;
         
         const currentChunk = chunks[chunkIndex];
-        completedBatchCountRef.current = 0;
-        totalBatchCountRef.current = currentChunk.length;
-        batchStartTimeRef.current = Date.now();
-        lastEtaSecRef.current = null;
-        throughputHistoryRef.current = [];
-        completedWorkloadRef.current = 0;
-        
-        let chunkWorkload = 0;
-        for (const item of currentChunk) {
-           const tf = item.customTargetFormat || settings.targetFormat;
-           const w = item.dimensions?.width || 2048;
-           const h = item.dimensions?.height || 2048;
-           chunkWorkload += estimateProcessingWorkload(w, h, item.file.type, tf);
+        if (chunkIndex > 0 && completedBatchCountRef.current > 0) {
+          updateEtaMetrics();
         }
-        totalWorkloadRef.current = chunkWorkload;
-        setEtaText(runChunked ? `Chunk ${chunkIndex + 1} of ${chunks.length}...` : 'Calculating...');
 
         // Update files in current chunk to 'processing'
         setFiles(prev => prev.map(f => {
@@ -960,9 +1040,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                     convertedUrl: savedToFolder ? undefined : result.convertedUrl,
                     dimensions: result.dimensions,
                     originalFallback: result.originalFallback,
-                    pdfImageData: result.pdfImageData,
-                    pdfImageWidth: result.pdfImageWidth,
-                    pdfImageHeight: result.pdfImageHeight,
+                    pdfImageData: savedToFolder ? undefined : result.pdfImageData,
+                    pdfImageWidth: savedToFolder ? undefined : result.pdfImageWidth,
+                    pdfImageHeight: savedToFolder ? undefined : result.pdfImageHeight,
                     progress: 100,
                     savedToFolder,
                     folderSavePath: savedToFolder ? finalName : undefined,
@@ -981,6 +1061,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                   activeMemory -= cost;
                   completedBatchCountRef.current++;
                   completedWorkloadRef.current += workCost;
+                  recentWorkSamplesRef.current.push({ timestamp: Date.now(), work: workCost });
                   updateEtaMetrics();
                   
                   if (typeof (globalThis as any).scheduler?.yield === 'function') {
@@ -1014,7 +1095,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       setIsProcessing(false);
       setIsStopping(false);
     }
-  }, [files, isProcessing, settings, updateEtaMetrics]);
+  }, [isProcessing, settings, updateEtaMetrics, writeResultToDirectory]);
 
   const pendingCount = files.filter(f => f.status === 'pending' || f.status === 'error').length;
   const successCount = files.filter(f => f.status === 'success').length;
@@ -1028,7 +1109,8 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
   const handleReformatItems = useCallback(async (ids: string[], newFormat: TargetFormat) => {
     if (isProcessing) return;
-    const itemsToReformat = files.filter(f => ids.includes(f.id));
+    const currentFiles = filesRef.current;
+    const itemsToReformat = currentFiles.filter(f => ids.includes(f.id));
     if (itemsToReformat.length === 0) return;
 
     setIsProcessing(true);
@@ -1075,6 +1157,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     batchStartTimeRef.current = Date.now();
     lastEtaSecRef.current = null;
     throughputHistoryRef.current = [];
+    recentWorkSamplesRef.current = [];
     completedWorkloadRef.current = 0;
     
     let reformatWorkload = 0;
@@ -1168,9 +1251,9 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
                 convertedUrl: savedToFolder ? undefined : result.convertedUrl,
                 dimensions: result.dimensions,
                 originalFallback: result.originalFallback,
-                pdfImageData: result.pdfImageData,
-                pdfImageWidth: result.pdfImageWidth,
-                pdfImageHeight: result.pdfImageHeight,
+                pdfImageData: savedToFolder ? undefined : result.pdfImageData,
+                pdfImageWidth: savedToFolder ? undefined : result.pdfImageWidth,
+                pdfImageHeight: savedToFolder ? undefined : result.pdfImageHeight,
                 progress: 100,
                 savedToFolder,
                 folderSavePath: savedToFolder ? finalName : undefined,
@@ -1189,6 +1272,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
               activeMemory -= cost;
               completedBatchCountRef.current++;
               completedWorkloadRef.current += workCost;
+              recentWorkSamplesRef.current.push({ timestamp: Date.now(), work: workCost });
               updateEtaMetrics();
               if (typeof (globalThis as any).scheduler?.yield === 'function') {
                 (globalThis as any).scheduler.yield().then(next);
@@ -1210,7 +1294,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       setIsProcessing(false);
       setIsStopping(false);
     });
-  }, [files, isProcessing, settings]);
+  }, [isProcessing, settings, writeResultToDirectory]);
 
   const totalPendingBytes = files
     .filter(f => f.status === 'pending' || f.status === 'error')

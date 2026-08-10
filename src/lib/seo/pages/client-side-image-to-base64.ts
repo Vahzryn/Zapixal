@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Client-Side Image to Base64 String Encoder',
-      metaTitle: 'Image to Base64 Encoder | Zapixal',
+      metaTitle: 'Client-Side Image to Base64 Encoder — Free Utility',
       metaDescription: 'Convert images to Base64 strings, HTML Data URIs, and CSS background rules directly in browser memory. Private, offline, no POST payload limits.',
       canonicalUrl: fullUrl,
       isIndexable: true,

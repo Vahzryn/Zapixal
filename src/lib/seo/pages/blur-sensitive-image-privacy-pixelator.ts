@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Blur & Pixelate Sensitive Info Privately in Browser',
-    metaTitle: 'Blur & Pixelate Sensitive Info | Zapixal',
+    metaTitle: 'Blur & Pixelate Sensitive Photos — Redaction Utility',
     metaDescription: 'Obfuscate passwords, faces, and credentials in screenshots using pixel-destructive blur. Processed locally in browser RAM for complete privacy.',
     canonicalUrl: fullUrl,
     isIndexable: true,

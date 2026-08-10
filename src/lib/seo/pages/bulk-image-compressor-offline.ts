@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Multithreaded Client-Side Batch Compression for High-Volume Workflows',
-      metaTitle: 'Bulk Compress Images Offline in Browser | Zapixal',
+      metaTitle: 'Bulk Image Compressor — Offline Multithreaded Tool',
       metaDescription: 'Batch compress hundreds of images simultaneously using Web Workers and WASM. Offline-ready, multithreaded, zero server limits.',
       canonicalUrl: fullUrl,
       isIndexable: true,

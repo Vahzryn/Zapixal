@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Compress Images for Email Attachment Size Limits',
-    metaTitle: 'Compress Image for Email Limit | Offline Sizing | Zapixal',
+    metaTitle: 'Compress Image for Email Limits — Free Sizing Tool',
     metaDescription: 'Compress heavy image attachments for Outlook, Gmail, and Exchange limits locally. Keep text readable while fitting under server message size caps.',
     canonicalUrl: fullUrl,
     isIndexable: true,

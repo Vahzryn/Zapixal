@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Compress Static GIF Images & Extract First-Frame Previews',
-      metaTitle: 'Compress Static GIF Size & Flatten Animations | Zapixal',
+      metaTitle: 'Compress GIF File Size — Static Frame Optimization',
       metaDescription: 'Reduce static GIF file sizes and extract high-performance static preview frames from animated GIFs entirely in your browser. Processed offline.',
       canonicalUrl: fullUrl,
       isIndexable: true,

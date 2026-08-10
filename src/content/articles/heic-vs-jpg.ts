@@ -4,7 +4,7 @@ export const articleHeicVsJpg: Article = {
   slug: 'heic-vs-jpg',
   category: 'formats',
   title: 'HEIC vs JPG: Compression, Compatibility, and Quality Explained',
-  metaTitle: 'HEIC vs JPG: Compression, Quality & Browser Compatibility Explained',
+  metaTitle: 'HEIC vs JPG: Compression, Quality & Compatibility Guide',
   metaDescription: 'Discover the technical differences between Apple HEIC and standard JPG formats, including compression efficiency, browser compatibility, and private local conversion.',
   description: 'An in-depth technical analysis comparing High Efficiency Image Container (HEIC) with Joint Photographic Experts Group (JPG), covering compression mechanics, compatibility gaps, and client-side conversion.',
   author: 'Zapixal Architecture Team',

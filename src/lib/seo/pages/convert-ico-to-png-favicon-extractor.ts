@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Unpack Multi-Resolution ICO Favicons into Transparent PNGs',
-      metaTitle: 'Extract ICO Favicon to PNG | Zapixal',
+      metaTitle: 'Extract ICO Favicon to High-Res PNG — Local Utility',
       metaDescription: 'Extract embedded resolution frames from Windows ICO favicon containers into clean 32-bit transparent PNGs locally in browser RAM.',
       canonicalUrl: fullUrl,
       isIndexable: true,

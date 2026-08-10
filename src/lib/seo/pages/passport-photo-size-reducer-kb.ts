@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Compress Passport Photo File Size under KB Limits',
-      metaTitle: 'Passport Photo Size Reducer (KB Target) — Private Sizing | Zapixal',
+      metaTitle: 'Passport Photo Size Reducer — Free KB Sizing Tool',
       metaDescription: 'Compress passport & visa photos to exact kilobyte targets (e.g., under 50KB or 100KB) privately in your browser. Adjust size and quality with zero server uploads.',
       canonicalUrl: fullUrl,
       isIndexable: true,

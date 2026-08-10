@@ -4,7 +4,7 @@ export const articleCompressImageToKbLimitGuide: Article = {
   slug: 'compress-image-to-kb-limit-guide',
   category: 'workflows',
   title: 'How to Compress an Image to a Strict KB Limit Client-Side',
-  metaTitle: 'How to Compress Images to Strict KB Limits (50KB, 100KB, 200KB)',
+  metaTitle: 'Compress Images to KB Limits (50KB, 100KB, 200KB) Guide',
   metaDescription: 'Learn how to compress images to strict kilobyte limits for government forms, job applications, and passport portals using client-side Web Workers.',
   description: 'A practical workflow guide explaining why online forms enforce strict file-size limits and how binary-search compression algorithms meet exact KB caps in browser memory.',
   author: 'Zapixal Frontend & Optimization Team',

@@ -29,6 +29,12 @@ export interface SeoRouteData {
     faqs: { question: string; answer: string }[];
   } | null;
   relatedRoutes?: Array<{ path: string; label: string }> | null;
+  ogImage?: {
+    url: string;
+    width: number;
+    height: number;
+    alt: string;
+  };
   jsonLd?: {
     article?: object | null;
     softwareApp: object | null;

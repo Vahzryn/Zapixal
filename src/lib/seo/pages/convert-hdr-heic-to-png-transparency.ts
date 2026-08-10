@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Convert HDR HEIC to PNG with Transparency Online',
-    metaTitle: 'Convert HEIC to PNG with Transparency | Offline Sizing | Zapixal',
+    metaTitle: 'Convert iPhone HEIC to PNG — Preserve Transparency',
     metaDescription: 'Convert iPhone HEIC captures to high-depth transparent PNG files. Extract embedded alpha channels and Display P3 profiles locally via browser WebAssembly.',
     canonicalUrl: fullUrl,
     isIndexable: true,

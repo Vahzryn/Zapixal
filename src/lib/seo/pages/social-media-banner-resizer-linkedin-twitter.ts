@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Resize Social Media Banner Headers with Mobile Safety Overlays',
-      metaTitle: 'Social Media Cover Banner Resizer | Zapixal',
+      metaTitle: 'Social Media Cover Banner Resizer — Safe Zone Tool',
       metaDescription: 'Frame LinkedIn, Twitter/X, YouTube, and Facebook header banners with real-time mobile avatar safety overlays. Hardware accelerated client-side.',
       canonicalUrl: fullUrl,
       isIndexable: true,

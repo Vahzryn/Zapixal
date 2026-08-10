@@ -1,8 +1,43 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
+import { ALL_ARTICLES, getArticleBySlug, getArticlesByCategory, getCategoryInfo } from '../src/content/articles';
 
 const STATIC_ROUTES = ['/', '/about', '/privacy', '/terms'];
+
+function getRouteLastMod(routePath: string): string | null {
+  if (routePath === '/privacy') {
+    return '2026-08-06';
+  }
+
+  if (routePath === '/articles') {
+    const dates = ALL_ARTICLES.map((a) => a.dateModified).filter(Boolean);
+    if (dates.length > 0) {
+      return dates.sort().pop() || null;
+    }
+    return null;
+  }
+
+  if (routePath.startsWith('/articles/')) {
+    const subPath = routePath.replace(/^\/articles\//, '');
+    const article = getArticleBySlug(subPath);
+    if (article && article.dateModified) {
+      return article.dateModified;
+    }
+
+    const catInfo = getCategoryInfo(subPath);
+    if (catInfo) {
+      const catArticles = getArticlesByCategory(catInfo.id);
+      const catDates = catArticles.map((a) => a.dateModified).filter(Boolean);
+      if (catDates.length > 0) {
+        return catDates.sort().pop() || null;
+      }
+      return '2026-08-09';
+    }
+  }
+
+  return null;
+}
 
 function generateSitemap() {
   const routesSet = new Set<string>();
@@ -25,6 +60,10 @@ function generateSitemap() {
   const urlEntries = Array.from(routesSet).map((routePath) => {
     const formattedPath = routePath === '/' ? '' : (routePath.startsWith('/') ? routePath : `/${routePath}`);
     const loc = `${baseUrl}${formattedPath}`;
+    const lastmod = getRouteLastMod(routePath);
+    if (lastmod) {
+      return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`;
+    }
     return `  <url>\n    <loc>${loc}</loc>\n  </url>`;
   });
 
@@ -40,3 +79,4 @@ ${urlEntries.join('\n')}
 }
 
 generateSitemap();
+

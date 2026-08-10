@@ -50,6 +50,7 @@ const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (fullUrl: string,
   'discord-avatar-compressor-pfp-size': () => import('./pages/discord-avatar-compressor-pfp-size'),
   'reduce-image-size-to-1mb-online': () => import('./pages/reduce-image-size-to-1mb-online'),
   'etsy-image-resizer-batch-optimize': () => import('./pages/etsy-image-resizer-batch-optimize'),
+  'convert-pdf-pages-to-jpg-images': () => import('./pages/convert-pdf-pages-to-jpg-images'),
 };
 
 export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: string }>> = {
@@ -121,6 +122,12 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/compress-animated-gif-size-online', label: 'Compress GIF Size' },
     { path: '/compress-screenshot-png-size-fast', label: 'Compress Screenshot PNG' },
   ],
+  '/convert-pdf-pages-to-jpg-images': [
+    { path: '/compress-pdf-scanned-document-images', label: 'Scanned Document Image Quantizer' },
+    { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
+    { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+  ],
 };
 
 export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
@@ -135,7 +142,7 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
       return {
         path: '/articles',
         h1Title: 'Zapixal Editorial & Technical Guides',
-        metaTitle: 'Zapixal Editorial & Technical Guides | Image Optimization & Codec Hub',
+        metaTitle: 'Image Optimization & Codec Guides — Zapixal Editorial',
         metaDescription: 'In-depth architectural guides on image codecs, WebAssembly performance, EXIF metadata privacy risks, and client-side optimization workflows.',
         canonicalUrl: `${DOMAIN}/articles`,
         isIndexable: true,
@@ -257,6 +264,16 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
     seoData.relatedRoutes = RELATED_ROUTES_MAP[path] || null;
   }
 
+  if (!seoData.ogImage) {
+    const filename = path === '/' ? 'home' : path.replace(/^\//, '').replace(/\//g, '-');
+    seoData.ogImage = {
+      url: `${DOMAIN}/og-images/${filename}.png`,
+      width: 1200,
+      height: 630,
+      alt: seoData.metaTitle,
+    };
+  }
+
   return seoData;
 }
 
@@ -291,17 +308,21 @@ export function applySeoToHead(seoData: SeoRouteData) {
   }
   canonicalEl.setAttribute('href', seoData.canonicalUrl);
 
+  const ogImageUrl = seoData.ogImage?.url || `${DOMAIN}/icon-512.png`;
   setMeta('property', 'og:title', seoData.metaTitle);
   setMeta('property', 'og:description', seoData.metaDescription);
   setMeta('property', 'og:url', seoData.canonicalUrl);
   setMeta('property', 'og:type', 'website');
   setMeta('property', 'og:site_name', 'Zapixal');
-  setMeta('property', 'og:image', `${DOMAIN}/icon-512.png`);
+  setMeta('property', 'og:image', ogImageUrl);
+  setMeta('property', 'og:image:width', '1200');
+  setMeta('property', 'og:image:height', '630');
+  setMeta('property', 'og:image:alt', seoData.ogImage?.alt || seoData.metaTitle);
 
   setMeta('name', 'twitter:card', 'summary_large_image');
   setMeta('name', 'twitter:title', seoData.metaTitle);
   setMeta('name', 'twitter:description', seoData.metaDescription);
-  setMeta('name', 'twitter:image', `${DOMAIN}/icon-512.png`);
+  setMeta('name', 'twitter:image', ogImageUrl);
 
   const injectJsonLd = (id: string, schemaObj: object | null | undefined) => {
     let scriptEl = document.getElementById(id);

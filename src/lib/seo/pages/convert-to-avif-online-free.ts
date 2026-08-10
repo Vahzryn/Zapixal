@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Convert Image to AVIF: Free Next-Gen Online Optimizer',
-    metaTitle: 'Convert to AVIF | Free Next-Gen Image Optimizer | Zapixal',
+    metaTitle: 'Convert Image to Next-Gen AVIF — Free Browser Tool',
     metaDescription: 'Convert your images to AVIF for the best possible web performance. High-fidelity AV1 encoding performed 100% locally in your browser. 50% smaller than JPEG.',
     canonicalUrl: fullUrl,
     isIndexable: true,

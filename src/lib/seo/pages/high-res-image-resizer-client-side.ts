@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'High-Resolution Image Resizer: Fast Client-Side Scaling',
-    metaTitle: 'High-Res Image Resizer Client-Side | Zapixal',
+    metaTitle: 'High-Res Image Resizer — Private Client-Side Tool',
     metaDescription: 'Resize high-resolution 4K and 24MP+ photos in browser memory. Sub-pixel interpolation preserves fine detail with zero remote data transfers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

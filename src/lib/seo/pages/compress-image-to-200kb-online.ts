@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Compress Image to 200KB: Free Target-Size Optimization',
-    metaTitle: 'Compress Image to 200KB | Free Target-Size Optimization | Zapixal',
+    metaTitle: 'Compress Image to 200KB — Free KB Target Tool',
     metaDescription: 'Optimize your photos for a 200KB limit without quality loss. Use our precise target-size engine to hit 200KB goals locally. Fast, free, and private.',
     canonicalUrl: fullUrl,
     isIndexable: true,

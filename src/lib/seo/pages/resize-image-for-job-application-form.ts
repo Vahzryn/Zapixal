@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Resize Image for Job Application Form (No Signup)',
-    metaTitle: 'Resize Image for Job Application Form | No Signup | Zapixal',
+    metaTitle: 'Resize Image for Job Applications — Private Browser Tool',
     metaDescription: 'Resize and optimize career portal image attachments locally. No signup, no cloud storage, just local sizing directly in your browser.',
     canonicalUrl: fullUrl,
     isIndexable: true,

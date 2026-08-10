@@ -35,7 +35,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
       path,
       h1Title: 'Convert WebP to Transparent PNG Locally',
-      metaTitle: 'Convert WebP to PNG Transparently | Zapixal',
+      metaTitle: 'Convert WebP to PNG — Preserve Transparency Locally',
       metaDescription: 'Extract standard 32-bit PNG files from WebP assets locally in browser memory. Alpha channel preserved locally.',
       canonicalUrl: fullUrl,
       isIndexable: true,

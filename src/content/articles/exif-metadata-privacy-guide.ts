@@ -4,7 +4,7 @@ export const articleExifMetadataPrivacyGuide: Article = {
   slug: 'exif-metadata-privacy-guide',
   category: 'privacy',
   title: 'What EXIF Metadata Contains and Why It Matters for Privacy',
-  metaTitle: 'What is EXIF Metadata? Privacy Risks & In-Browser Scrubbing',
+  metaTitle: 'EXIF Metadata Privacy Risks & In-Browser Scrubbing Guide',
   metaDescription: 'Learn what EXIF tags reveal inside your photos, including GPS coordinates, camera serial numbers, and timestamps—and how to strip metadata locally in browser memory.',
   description: 'A comprehensive privacy guide exploring EXIF metadata tags inside digital photos, the risks of inadvertent location tracking, and how to scrub metadata locally using browser Canvas and WebAssembly.',
   author: 'Zapixal Privacy & Security Team',

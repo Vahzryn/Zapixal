@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Secure Scanned Signature Image Compressor',
-    metaTitle: 'Secure Digital Signature Compressor | Private Sizing | Zapixal',
+    metaTitle: 'Secure Digital Signature Compressor — Local Tool',
     metaDescription: 'Compress digital signature scans and document attachments safely. Keep your handwritten signatures private with local client-side processing.',
     canonicalUrl: fullUrl,
     isIndexable: true,

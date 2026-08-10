@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Extract Dominant Color Palette & HEX Codes Client-Side',
-    metaTitle: 'Image Color Palette Hex Extractor | Zapixal',
+    metaTitle: 'Image Color Palette Hex Extractor — In-Browser Tool',
     metaDescription: 'Extract dominant HEX and RGB color palettes from images instantly in browser memory. Local quantization with zero network transfers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

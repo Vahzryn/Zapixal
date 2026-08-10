@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Etsy Image Resizer: Free Batch Product Photo Optimizer',
-    metaTitle: 'Free Etsy Image Resizer | Batch Listing Photo Optimizer | Zapixal',
+    metaTitle: 'Etsy Listing Image Resizer — Batch Optimization Tool',
     metaDescription: 'Optimize your Etsy shop for more sales with professional, uniform product photos. Resize to 2000px, adjust aspect ratios, and compress locally. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,

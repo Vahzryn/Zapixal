@@ -8,7 +8,7 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     shortTitle: 'Formats',
     badge: 'Formats & Codecs',
     description: 'Technical breakdowns of HEIC, AVIF, WebP, JPEG, PNG, and SVG compression characteristics, compatibility matrixes, and codec tradeoffs.',
-    metaTitle: 'Image Format Guides & Codec Comparisons | Zapixal',
+    metaTitle: 'Image Format Guides & Codec Comparisons — Zapixal',
     metaDescription: 'Deep technical guides on HEIC, AVIF, WebP, PNG, and JPG formats. Compare compression ratios, browser support, and quality preservation.',
     iconName: 'FileImage',
     relatedTools: [
@@ -24,7 +24,7 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     shortTitle: 'Privacy',
     badge: 'Privacy & Security',
     description: 'Understanding metadata leaks, EXIF headers, GPS location security, and how local WebAssembly canvas processing guarantees data protection.',
-    metaTitle: 'Image Metadata & In-Browser Privacy Guides | Zapixal',
+    metaTitle: 'Image Metadata & In-Browser Privacy Guides — Zapixal',
     metaDescription: 'Learn how EXIF metadata leaks personal location data and how client-side WebAssembly processing strips sensitive tags without cloud servers.',
     iconName: 'ShieldCheck',
     relatedTools: [
@@ -40,7 +40,7 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     shortTitle: 'Workflows',
     badge: 'Optimization Workflows',
     description: 'Step-by-step optimization workflows for government portals, passport applications, e-commerce catalog image scaling, and email limits.',
-    metaTitle: 'Image Optimization & KB Target Workflows | Zapixal',
+    metaTitle: 'Image Optimization & KB Target Workflows — Zapixal',
     metaDescription: 'Practical workflows for meeting strict KB file limits (50KB, 100KB, 200KB), e-commerce catalog resizing, and digital form requirements.',
     iconName: 'Sliders',
     relatedTools: [
@@ -56,7 +56,7 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     shortTitle: 'Performance',
     badge: 'Engine & WASM',
     description: 'Under the hood of WebAssembly multithreading, Web Workers, client-side memory sandboxing, and browser Canvas rendering performance.',
-    metaTitle: 'WebAssembly & In-Browser Processing Tech Guides | Zapixal',
+    metaTitle: 'WebAssembly & In-Browser Processing Guides — Zapixal',
     metaDescription: 'Discover how WebAssembly (WASM), Web Workers, and HTML5 Canvas enable multi-threaded image compression entirely in browser RAM.',
     iconName: 'Cpu',
     relatedTools: [

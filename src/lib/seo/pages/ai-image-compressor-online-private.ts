@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'AI Image Compressor: Private & Intelligent Local Optimization',
-    metaTitle: 'AI Image Compressor | Private & Intelligent Optimization | Zapixal',
+    metaTitle: 'Smart Image Compressor — Private Client-Side Tool',
     metaDescription: 'Experience intelligent image compression without the privacy risks of the cloud. Content-aware local optimization for PNG, JPEG, and WebP. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,

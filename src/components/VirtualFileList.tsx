@@ -75,6 +75,21 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [columnCount, setColumnCount] = useState(1);
+  const [containerHeight, setContainerHeight] = useState(() => 
+    typeof window !== 'undefined' ? Math.max(400, Math.min(800, window.innerHeight - 280)) : 600
+  );
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (typeof window !== 'undefined') {
+        const ideal = Math.max(400, Math.min(800, window.innerHeight - 280));
+        setContainerHeight(ideal);
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize, { passive: true });
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   const rowHeights = useRef<Record<number, number>>({});
   const [heightsUpdated, setHeightsUpdated] = useState(0);
@@ -168,7 +183,6 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
     );
   }
 
-  const containerHeight = 500;
   const rowCount = Math.ceil(files.length / columnCount);
   
   const { offsets, totalHeight } = useMemo(() => {

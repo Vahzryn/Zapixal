@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'WebAssembly Lossless PNG Optimization without Pixel Quality Loss',
-      metaTitle: 'Lossless PNG Compressor via WebAssembly | Zapixal',
+      metaTitle: 'Lossless PNG Compressor — Client-Side WebAssembly',
       metaDescription: 'Optimize PNG images losslessly using Imagequant and UPNG compiled to WASM. Re-evaluates DEFLATE streams and delta filters with 0% visual degradation.',
       canonicalUrl: fullUrl,
       isIndexable: true,

@@ -163,9 +163,12 @@ self.onmessage = async (e: MessageEvent) => {
       originalFallback = true;
     }
 
+    const megapixels = (canvasWidth * canvasHeight) / 1000000;
+    const shouldRecycle = megapixels >= 12 || ((targetFormat === 'avif' || targetFormat === 'png') && megapixels >= 6);
+
     const buffer = await blob.arrayBuffer();
     // Post back with transfer list for zero-copy
-    (self as any).postMessage({ id, status: 'success', buffer, mimeType: blob.type, originalFallback }, [buffer]);
+    (self as any).postMessage({ id, status: 'success', buffer, mimeType: blob.type, originalFallback, shouldRecycle }, [buffer]);
 
     // Explicitly release canvas memory
     canvas.width = 0;

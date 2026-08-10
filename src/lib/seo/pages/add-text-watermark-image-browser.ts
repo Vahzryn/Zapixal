@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Apply Custom Text Watermarks to Photos Privately Client-Side',
-      metaTitle: 'Apply Text Watermark Client-Side | Zapixal',
+      metaTitle: 'Add Text Watermark to Image — Client-Side Utility',
       metaDescription: 'Protect artwork and photos with custom text watermarks rendered directly in browser RAM. Auto-stroke contrast, zero cloud exposure.',
       canonicalUrl: fullUrl,
       isIndexable: true,

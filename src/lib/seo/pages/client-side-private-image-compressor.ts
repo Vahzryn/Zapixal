@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Private Image Compressor: Offline & Sandbox Secured',
-      metaTitle: 'Private Image Compressor | Offline & Secured | Zapixal',
+      metaTitle: 'Private Image Compressor — Client-Side Browser Tool',
       metaDescription: 'Compress images privately in your browser memory without server uploads. Offline and sandbox secured for complete local data privacy.',
       canonicalUrl: fullUrl,
       isIndexable: true,

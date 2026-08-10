@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Shopify Image Optimizer: Free Bulk Product Photo Compression',
-    metaTitle: 'Free Shopify Image Optimizer | Bulk Product Photo Compression | Zapixal',
+    metaTitle: 'Shopify Product Image Optimizer — Free Batch Tool',
     metaDescription: 'Optimize your Shopify store speed with free bulk image compression. Convert product photos to WebP/AVIF locally. No apps, no fees, fully client-side.',
     canonicalUrl: fullUrl,
     isIndexable: true,

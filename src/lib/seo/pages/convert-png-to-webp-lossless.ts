@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Convert PNG to Lossless WebP with Alpha Transparency',
-    metaTitle: 'Convert PNG to WebP Lossless | Zapixal',
+    metaTitle: 'Convert PNG to WebP Lossless — Fast Browser Tool',
     metaDescription: 'Convert PNG to WebP losslessly in browser memory. Preserves full alpha transparency with 25-40% smaller file size and zero network transfers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

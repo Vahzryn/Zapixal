@@ -68,12 +68,25 @@ async function prerender() {
     const canonicalRegex = /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/g;
     html = html.replace(canonicalRegex, `<link rel="canonical" href="${seoData.canonicalUrl}" />`);
 
+    const ogImageUrl = seoData.ogImage?.url || 'https://zapixal.com/icon-512.png';
+    const ogImageAlt = seoData.ogImage?.alt || seoData.metaTitle;
+
     replaceMeta('property', 'og:title', seoData.metaTitle);
     replaceMeta('property', 'og:description', seoData.metaDescription);
     replaceMeta('property', 'og:url', seoData.canonicalUrl);
+    replaceMeta('property', 'og:image', ogImageUrl);
 
+    replaceMeta('name', 'twitter:card', 'summary_large_image');
     replaceMeta('name', 'twitter:title', seoData.metaTitle);
     replaceMeta('name', 'twitter:description', seoData.metaDescription);
+    replaceMeta('name', 'twitter:image', ogImageUrl);
+
+    if (!html.includes('og:image:width')) {
+      html = html.replace(
+        '<meta property="og:image"',
+        `<meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta property="og:image:alt" content="${ogImageAlt}" />\n    <meta property="og:image"`
+      );
+    }
 
     // Strip all existing json-ld scripts
     html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');

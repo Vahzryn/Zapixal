@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Bulk HEIC to JPG Converter: Fast, Private & Offline Batching',
-    metaTitle: 'Bulk HEIC to JPG Converter | Fast & Private Offline Batching | Zapixal',
+    metaTitle: 'Bulk HEIC to JPG Converter — Fast Offline Batching',
     metaDescription: 'Convert entire folders of iPhone HEIC photos to JPG instantly. Parallel multi-core processing running 100% locally in your browser. No uploads, total privacy.',
     canonicalUrl: fullUrl,
     isIndexable: true,

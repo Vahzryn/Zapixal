@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Discord Avatar Compressor: Free PFP & Banner Size Reducer',
-    metaTitle: 'Discord Avatar Compressor | Free PFP & Banner Size Reducer | Zapixal',
+    metaTitle: 'Discord Avatar & PFP Compressor — Free Sizing Tool',
     metaDescription: 'Shrink your Discord profile pictures and banners to fit the 8MB limit. 1:1 square cropping and high-fidelity compression for avatars. Fast, free, and private.',
     canonicalUrl: fullUrl,
     isIndexable: true,

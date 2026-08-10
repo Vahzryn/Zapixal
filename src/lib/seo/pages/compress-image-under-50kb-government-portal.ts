@@ -35,7 +35,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
       path,
       h1Title: 'Compress Image Under 50KB for Government Portals',
-      metaTitle: 'Compress Photo to 50KB for Official Portals | Zapixal',
+      metaTitle: 'Compress Photo Under 50KB — Free Browser Tool',
       metaDescription: 'Shrink photos, signatures, and document scans under 50KB or 20KB locally. Meet strict government upload limits with adjustable standard sizing.',
       canonicalUrl: fullUrl,
       isIndexable: true,

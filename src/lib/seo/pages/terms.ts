@@ -7,7 +7,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
       path,
       h1Title: 'Terms of Service',
-      metaTitle: 'Terms of Service | Zapixal',
+      metaTitle: 'Terms of Service & Usage — Zapixal',
       metaDescription: 'Zapixal Terms of Service. Read the terms and conditions for using our local client-side image processing tools.',
       canonicalUrl: fullUrl,
       isIndexable: true,

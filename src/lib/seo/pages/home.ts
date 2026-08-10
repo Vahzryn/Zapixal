@@ -27,7 +27,7 @@ export function getPageSeo(fullUrl: string, path: string): SeoRouteData {
   return {
     path,
     h1Title: 'Zapixal: Privacy-First Image Converter',
-    metaTitle: 'Zapixal | Offline Browser Image Converter',
+    metaTitle: 'Zapixal — Private In-Browser Image Converter & Compressor',
     metaDescription: 'Convert, compress, and crop images entirely inside your browser with WebAssembly. Images are processed locally and are not uploaded to servers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

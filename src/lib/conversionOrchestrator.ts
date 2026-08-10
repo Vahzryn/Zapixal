@@ -219,6 +219,69 @@ export async function generateThumbnail(file: File, maxDim: number = 200): Promi
     return URL.createObjectURL(file);
   }
   try {
+    // Fast path: try native createImageBitmap decode with downscaling
+    if (typeof createImageBitmap !== 'undefined') {
+      try {
+        let bmp = await createImageBitmap(file);
+        const width = bmp.width;
+        const height = bmp.height;
+        const scale = Math.min(maxDim / width, maxDim / height);
+
+        if (scale >= 1) {
+          bmp.close();
+          return URL.createObjectURL(file);
+        }
+
+        const targetW = Math.max(1, Math.round(width * scale));
+        const targetH = Math.max(1, Math.round(height * scale));
+
+        // Attempt downscaled decode directly at target dimensions
+        try {
+          const downscaled = await createImageBitmap(file, {
+            resizeWidth: targetW,
+            resizeHeight: targetH,
+            resizeQuality: 'medium'
+          });
+          bmp.close();
+          bmp = downscaled;
+        } catch (e) {
+          // Keep original bmp if browser resize option fails
+        }
+
+        let blob: Blob | null = null;
+        if (typeof OffscreenCanvas !== 'undefined') {
+          const canvas = new OffscreenCanvas(targetW, targetH);
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'medium';
+            ctx.drawImage(bmp, 0, 0, targetW, targetH);
+            blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.6 });
+          }
+        } else {
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'medium';
+            ctx.drawImage(bmp, 0, 0, targetW, targetH);
+            blob = await new Promise<Blob | null>((resolve) => {
+              canvas.toBlob(resolve, 'image/jpeg', 0.6);
+            });
+          }
+        }
+        bmp.close();
+
+        if (blob) {
+          return URL.createObjectURL(blob);
+        }
+      } catch (fastErr) {
+        // Fall back to standard loadImageElement
+      }
+    }
+
     const loaded = await loadImageElement(file);
     const { width, height } = loaded.dimensions;
     const scale = Math.min(maxDim / width, maxDim / height);
@@ -381,6 +444,7 @@ export async function convertSingleImage(
   // Worker Path via workerPool
   if (typeof OffscreenCanvas !== 'undefined' && loaded.img instanceof ImageBitmap && targetFormat !== 'ico' && targetFormat !== 'pdf') {
     let pooledWorker: PooledWorker | undefined;
+    let workerShouldRecycle = false;
     try {
       pooledWorker = await getWorkerPool().acquireWorker();
       if (signal?.aborted) {
@@ -389,7 +453,7 @@ export async function convertSingleImage(
 
       const workerInstance = pooledWorker.worker;
       const jobId = `${item.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      const result = await new Promise<{ buffer: ArrayBuffer; mimeType: string; originalFallback?: boolean }>(
+      const result = await new Promise<{ buffer: ArrayBuffer; mimeType: string; originalFallback?: boolean; shouldRecycle?: boolean }>(
         (resolve, reject) => {
           const timeoutId = setTimeout(() => {
             reject(new Error('Worker conversion timeout (25s)'));
@@ -422,6 +486,7 @@ export async function convertSingleImage(
                 buffer: e.data.buffer,
                 mimeType: e.data.mimeType || 'image/jpeg',
                 originalFallback: e.data.originalFallback,
+                shouldRecycle: e.data.shouldRecycle,
               });
             } else {
               reject(new Error(e.data.error || 'Worker conversion failed'));
@@ -459,6 +524,7 @@ export async function convertSingleImage(
 
       convertedBlob = new Blob([result.buffer], { type: result.mimeType });
       originalFallback = !!result.originalFallback;
+      workerShouldRecycle = !!result.shouldRecycle;
     } catch (err: any) {
       if (err.name === 'AbortError') {
         if (pooledWorker) {
@@ -474,7 +540,11 @@ export async function convertSingleImage(
       }
     } finally {
       if (pooledWorker) {
-        getWorkerPool().releaseWorker(pooledWorker);
+        const mp = (targetDim.width * targetDim.height) / 1000000;
+        getWorkerPool().releaseWorker(pooledWorker, {
+          shouldRecycle: workerShouldRecycle || mp >= 12,
+          megapixels: mp,
+        });
       }
     }
   }

@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Convert Modern AVIF Images to Universal JPEG Format',
-      metaTitle: 'Convert AVIF to JPG Offline | Zapixal',
+      metaTitle: 'Convert AVIF to JPG — Free Local Browser Converter',
       metaDescription: 'Convert AVIF images to universally compatible JPEG format in browser RAM. Tone-maps HDR, preserves sharpness, zero cloud processing.',
       canonicalUrl: fullUrl,
       isIndexable: true,

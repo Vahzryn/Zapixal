@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Reduce Image Size to 1MB: Free High-Fidelity Optimization',
-    metaTitle: 'Reduce Image Size to 1MB | Free High-Fidelity Optimization | Zapixal',
+    metaTitle: 'Reduce Image Size to 1MB — Free KB/MB Target Tool',
     metaDescription: 'Need to get an image under 1MB? Our precision target-size tool shrinks photos and scans to exactly 1MB while preserving high-fidelity detail. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,

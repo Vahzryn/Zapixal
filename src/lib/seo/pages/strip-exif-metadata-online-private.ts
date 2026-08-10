@@ -36,7 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
       path,
       h1Title: 'Remove EXIF Metadata & Geotags Locally',
-      metaTitle: 'Remove EXIF & Geotags from Photos Locally | Zapixal',
+      metaTitle: 'Remove EXIF Metadata & Geotags — Private Browser Tool',
       metaDescription: 'Erase hidden GPS coordinates, camera serials, and EXIF data from photos on your device. Complete local binary payload purge.',
       canonicalUrl: fullUrl,
       isIndexable: true,

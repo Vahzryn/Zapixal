@@ -26,6 +26,7 @@ import { FooterLinkHub } from './components/FooterLinkHub';
 import { ArticlesHubPage } from './components/Articles/ArticlesHubPage';
 import { ArticleCategoryPage } from './components/Articles/ArticleCategoryPage';
 import { ArticleViewPage } from './components/Articles/ArticleViewPage';
+import { PdfToJpgConverter } from './components/PdfToJpgConverter';
 import { getCategoryInfo, getArticleBySlug } from './content/articles';
 
 const PageLoadingFallback = () => (
@@ -282,6 +283,12 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
             article={getArticleBySlug(currentPath.replace(/^\/articles\//, ''))!} 
             onNavigate={handleNavigate} 
           />
+        ) : currentPath === '/convert-pdf-pages-to-jpg-images' ? (
+          <React.Fragment>
+            <PdfToJpgConverter onNavigate={handleNavigate} />
+            <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
+            <ValuePropsSection />
+          </React.Fragment>
         ) : (
           <React.Fragment>
             {files.length === 0 ? (

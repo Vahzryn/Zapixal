@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Convert JPG to WebP in Browser: Fast Local Processing',
-    metaTitle: 'Convert JPG to WebP Browser | Zapixal',
+    metaTitle: 'Convert JPG to WebP in Browser — Free Local Converter',
     metaDescription: 'Convert JPEG photos to WebP format in browser memory. Reduce file size by 30-50% for faster site loading with zero network transfers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

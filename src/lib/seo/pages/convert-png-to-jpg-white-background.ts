@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Convert Transparent PNG Graphics to Solid White Background JPEGs',
-      metaTitle: 'Convert PNG to JPG (White Fill) | Zapixal',
+      metaTitle: 'Convert PNG to JPG with White Background — Local Tool',
       metaDescription: 'Convert transparent PNG logos and graphics to solid white background JPEGs without black background artifacts. Processed securely in-browser.',
       canonicalUrl: fullUrl,
       isIndexable: true,

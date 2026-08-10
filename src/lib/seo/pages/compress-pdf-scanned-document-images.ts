@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Compress Scanned Document PDF Images Online',
-    metaTitle: 'Scanned Document Image Quantizer | Offline Sizing | Zapixal',
+    metaTitle: 'Compress Scanned Document Images — Binarization Tool',
     metaDescription: 'Compress scanned paper documents and PDF image pages locally using Otsu 1-bit binarization. Maximize text OCR accuracy and shrink file size entirely offline.',
     canonicalUrl: fullUrl,
     isIndexable: true,

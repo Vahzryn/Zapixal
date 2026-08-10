@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Change Image DPI & PPI Density Headers for Print Preflight',
-      metaTitle: 'Change Image DPI & PPI for Print | Zapixal',
+      metaTitle: 'Change Image DPI & PPI for Print — EXIF Metadata Tool',
       metaDescription: 'Recalibrate EXIF JFIF and PNG pHYs density metadata to 300 DPI or 600 DPI for commercial print preflight. Private browser processing, zero re-sampling loss.',
       canonicalUrl: fullUrl,
       isIndexable: true,

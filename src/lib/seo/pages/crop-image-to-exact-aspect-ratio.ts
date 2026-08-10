@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Crop Images to Exact Aspect Ratios Online Privately',
-    metaTitle: 'Crop Image to Custom Aspect Ratio | Offline Sizing | Zapixal',
+    metaTitle: 'Crop Image to Aspect Ratio — Free Pixel-Accurate Tool',
     metaDescription: 'Crop and frame images to exact aspect ratios (16:9, 4:3, 1:1) in your browser. Perform sub-pixel accurate alignment without transmitting your files.',
     canonicalUrl: fullUrl,
     isIndexable: true,

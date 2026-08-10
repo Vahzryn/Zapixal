@@ -214,6 +214,11 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
     label: 'Etsy Listing Image Resizer',
     category: 'use-case'
   },
+  {
+    path: '/convert-pdf-pages-to-jpg-images',
+    label: 'Convert PDF Pages to JPG Images',
+    category: 'converter'
+  },
 ];
 
 export const ARTICLE_CATEGORY_ROUTES = [

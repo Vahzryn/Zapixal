@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Convert TIFF and BMP Scans to Universal JPG Format',
-    metaTitle: 'Convert TIFF & BMP to JPG Offline | Zapixal',
+    metaTitle: 'Convert TIFF & BMP to JPG — Private Local Utility',
     metaDescription: 'Convert legacy TIFF and BMP images to universal JPEG format in your browser. Shrink scans by up to 95% with local offline processing.',
     canonicalUrl: fullUrl,
     isIndexable: true,

@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Bulk E-commerce Product Photo Resizer & Square Calibrator',
-    metaTitle: 'Bulk E-Commerce Catalog Resizer | Zapixal',
+    metaTitle: 'Bulk E-Commerce Catalog Resizer — Batch Browser Tool',
     metaDescription: 'Resize and standardize product photos for Shopify, Amazon, and eBay in browser memory. Batch process 1:1 square dimensions locally on your hardware.',
     canonicalUrl: fullUrl,
     isIndexable: true,

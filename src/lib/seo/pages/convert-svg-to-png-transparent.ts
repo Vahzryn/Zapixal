@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     return {
       path,
       h1Title: 'Rasterize SVG Vector Graphics to High-DPI Transparent PNG',
-      metaTitle: 'Convert SVG to Transparent PNG | Zapixal',
+      metaTitle: 'Convert SVG to PNG — High-Res Transparent Vector Tool',
       metaDescription: 'Convert SVG vector files to crisp PNG images with transparency and custom DPI scale multipliers. Rendered locally in browser memory.',
       canonicalUrl: fullUrl,
       isIndexable: true,

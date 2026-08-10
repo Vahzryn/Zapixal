@@ -32,7 +32,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'Compress PNG Screenshots Fast: Keep UI Text Razor Sharp',
-    metaTitle: 'Compress Screenshot PNG Fast | Zapixal',
+    metaTitle: 'Compress Screenshot PNG — Fast Client-Side Tool',
     metaDescription: 'Shrink Retina and 4K PNG screenshots by 60-80% in browser memory. Preserves crisp text and UI details with zero external data transfers.',
     canonicalUrl: fullUrl,
     isIndexable: true,

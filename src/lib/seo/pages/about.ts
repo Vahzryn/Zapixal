@@ -7,7 +7,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   return {
     path,
     h1Title: 'About Zapixal',
-    metaTitle: 'About Zapixal | Privacy-First Image Converter',
+    metaTitle: 'About Zapixal — Client-Side Privacy Image Utility',
     metaDescription: 'Zapixal is an ultra-fast, privacy-first image conversion engine that runs entirely inside your browser using WebAssembly.',
     canonicalUrl: fullUrl,
     isIndexable: true,

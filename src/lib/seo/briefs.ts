@@ -743,4 +743,22 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     contentGaps: ['Standard resizers distort the item; Zapixal uses smart padding to keep products centered.'],
     ctrDifferentiator: 'Handmade-Ready Etsy Optimizer'
   },
+  'convert-pdf-pages-to-jpg-images': {
+    slug: 'convert-pdf-pages-to-jpg-images',
+    searchIntent: 'format-conversion',
+    primaryTopic: 'convert pdf pages to jpg',
+    secondaryTopics: ['pdf to jpg image extract', 'convert pdf page to jpeg browser'],
+    userProblem: 'Need individual PDF pages converted into JPG images for web uploading or embedding without uploading private documents to cloud servers.',
+    desiredOutcome: 'High-quality JPG images rendered from selected PDF pages directly in browser memory.',
+    uniqueAngle: 'Client-side PDF page rasterization with page selection, DPI scale controls, zero server uploads, and ZIP bundling.',
+    verifiedCapabilities: ['privacy_network', 'performance_limits'],
+    verifiedLimitations: ['vector_rasterization'],
+    relevantTechnicalFacts: ['Uses PDF.js canvas rendering to convert vector page layouts into JPEG pixel grids entirely in browser RAM.'],
+    relevantExternalFacts: ['PDF pages contain vector and text streams that must be rasterized to produce image formats like JPG.'],
+    importantQuestions: ['Can I convert selected PDF pages?', 'Does PDF to JPG keep selectable text?'],
+    relatedTools: ['compress-pdf-scanned-document-images', 'secure-signature-compressor-pdf'],
+    internalLinkOpportunities: ['/compress-pdf-scanned-document-images'],
+    contentGaps: ['Most tools require server uploads; Zapixal renders PDF pages locally in browser memory.'],
+    ctrDifferentiator: 'In-Browser PDF Page Converter'
+  },
 };

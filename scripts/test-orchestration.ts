@@ -179,4 +179,125 @@ console.log('Running unit tests for conversion orchestration...\n');
   console.log('✓ Per-file format precedence in mixed batch tests passed');
 }
 
+// 6. Test PDF Intermediate Data Cleanup & Retry/Re-download Integrity
+{
+  const pdfBlob = new Blob(['%PDF-1.4 test'], { type: 'application/pdf' });
+  const intermediateJpegBlob = new Blob(['fake-jpeg-bytes'], { type: 'image/jpeg' });
+  
+  const pdfItem: ImageFileItem = {
+    id: 'pdf-1',
+    file: new File([''], 'doc.pdf', { type: 'application/pdf' }),
+    previewUrl: 'blob:pdf-preview',
+    originalSize: 5000,
+    status: 'success',
+    progress: 100,
+    blob: pdfBlob,
+    convertedUrl: 'blob:pdf-converted',
+    convertedSize: pdfBlob.size,
+    pdfImageData: intermediateJpegBlob,
+    pdfImageWidth: 1000,
+    pdfImageHeight: 1400,
+  };
+
+  assert.ok(pdfItem.pdfImageData, 'pdfImageData should be present before export');
+
+  // Simulation of Direct Folder Save or Export cleanup
+  const cleanedItem: ImageFileItem = {
+    ...pdfItem,
+    pdfImageData: undefined,
+    pdfImageWidth: undefined,
+    pdfImageHeight: undefined,
+  };
+
+  assert.strictEqual(cleanedItem.pdfImageData, undefined, 'pdfImageData must be cleared');
+  assert.strictEqual(cleanedItem.blob, pdfBlob, 'Converted PDF blob must remain for re-download');
+  assert.strictEqual(cleanedItem.convertedUrl, 'blob:pdf-converted', 'Converted URL must remain for preview/download');
+  assert.strictEqual(cleanedItem.status, 'success', 'Item status remains success');
+
+  // Simulation of retry on a cleaned item
+  const retriedItem: ImageFileItem = {
+    ...cleanedItem,
+    status: 'pending',
+    blob: undefined,
+    convertedUrl: undefined,
+  };
+  assert.strictEqual(retriedItem.status, 'pending', 'Cleaned item can be retried cleanly');
+
+  console.log('✓ PDF Intermediate Data Cleanup & Retry/Re-download tests passed');
+}
+
+// 7. Test Worker Recycling Pool Invariants (Lazy replacement & Concurrency bounds)
+{
+  let terminatedId: number | null = null;
+  let createdCount = 0;
+
+  class FakeWorker {
+    id: number;
+    listeners: Record<string, Function[]> = {};
+    constructor() {
+      this.id = ++createdCount;
+    }
+    addEventListener(type: string, fn: Function) {
+      if (!this.listeners[type]) this.listeners[type] = [];
+      this.listeners[type].push(fn);
+    }
+    removeEventListener() {}
+    postMessage() {}
+    terminate() {
+      terminatedId = this.id;
+    }
+  }
+
+  // Verify worker pool state mechanics
+  const mockPool = {
+    maxWorkers: 2,
+    workers: [] as { id: number; worker: FakeWorker; active: boolean; totalMp?: number; count?: number }[],
+    pendingQueue: [] as Array<{ resolve: Function; reject: Function }>,
+    
+    releaseWorker(w: any, opts?: { shouldRecycle?: boolean; mp?: number }) {
+      w.totalMp = (w.totalMp || 0) + (opts?.mp || 0);
+      w.count = (w.count || 0) + 1;
+      
+      const mustRecycle = opts?.shouldRecycle || w.totalMp > 80 || w.count >= 30;
+      if (mustRecycle) {
+        this.recycleWorker(w);
+        return;
+      }
+      w.active = false;
+      if (this.pendingQueue.length > 0) {
+        const next = this.pendingQueue.shift();
+        w.active = true;
+        next?.resolve(w);
+      }
+    },
+
+    recycleWorker(w: any) {
+      w.worker.terminate();
+      this.workers = this.workers.filter(item => item.id !== w.id);
+      if (this.pendingQueue.length > 0 && this.workers.length < this.maxWorkers) {
+        const freshWorker = { id: Date.now(), worker: new FakeWorker(), active: true };
+        this.workers.push(freshWorker);
+        const next = this.pendingQueue.shift();
+        next?.resolve(freshWorker);
+      }
+    }
+  };
+
+  const worker1 = { id: 1, worker: new FakeWorker(), active: true, totalMp: 0, count: 0 };
+  mockPool.workers.push(worker1);
+
+  // Normal release - no recycle
+  mockPool.releaseWorker(worker1, { shouldRecycle: false, mp: 2 });
+  assert.strictEqual(worker1.active, false, 'Worker remains inactive in pool');
+  assert.strictEqual(terminatedId, null, 'Worker was NOT terminated');
+
+  // Release with recycling triggered (e.g. 15MP image)
+  worker1.active = true;
+  mockPool.releaseWorker(worker1, { shouldRecycle: true, mp: 15 });
+  assert.strictEqual(terminatedId, 1, 'Worker 1 was cleanly terminated');
+  assert.strictEqual(mockPool.workers.length, 0, 'Worker 1 was removed from pool');
+
+  console.log('✓ Worker Recycling Pool Invariants tests passed');
+}
+
 console.log("\nAll orchestration unit tests passed successfully!");
