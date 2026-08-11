@@ -38,6 +38,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       metaDescription: 'Frame LinkedIn, Twitter/X, YouTube, and Facebook header banners with real-time mobile avatar safety overlays. Hardware accelerated client-side.',
       canonicalUrl: fullUrl,
       isIndexable: true,
+      presetResize: { maxWidth: 1584, maxHeight: 396 },
       pageCategory: 'use-case',
       breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Social Banner Resizer', url: path }],
       guideContent,

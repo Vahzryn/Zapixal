@@ -14,6 +14,7 @@ interface UseAppRoutingOptions {
 
 const STATIC_KNOWN_ROUTES = new Set([
   '/',
+  '/tools',
   '/about',
   '/privacy',
   '/terms',

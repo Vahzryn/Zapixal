@@ -476,16 +476,16 @@ function GlobalControlsComponent({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-4 w-full lg:w-auto flex-1">
           {/* Format Selection - Hide if format is locked to focus on primary intent */}
           {!isLockedFormat && (
-            <div className="flex flex-col gap-1 sm:gap-1.5 w-full sm:w-auto">
+            <div className="flex flex-col gap-1">
               <label className="text-[10px] sm:text-xs font-black text-neutral-500 dark:text-[#9aa0a6] uppercase tracking-wider">
                 Output Format
               </label>
-              <div className="relative">
+              <div className="relative inline-block min-w-[140px]">
                 <select
                   disabled={disabled}
                   value={settings.targetFormat}
                   onChange={(e) => onChange({ ...settings, targetFormat: e.target.value as TargetFormat })}
-                  className="w-full sm:w-48 appearance-none bg-blue-50 dark:bg-[#1e293b] border-2 border-blue-200 dark:border-[#384c6c] text-blue-700 dark:text-[#8ab4f8] text-[11px] min-[360px]:text-xs sm:text-base font-black rounded-lg sm:rounded-xl px-2.5 py-1.5 min-[360px]:px-3 min-[360px]:py-2 sm:px-4 sm:py-3 cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all shadow-xs"
+                  className="w-full appearance-none bg-blue-50 dark:bg-[#1e293b] border-2 border-blue-200 dark:border-[#384c6c] text-blue-700 dark:text-[#8ab4f8] text-xs sm:text-sm font-bold rounded-lg px-3 py-2 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-sm"
                   title="Select the target output format for all images"
                 >
                   <option value="webp">WebP (Recommended)</option>
@@ -496,8 +496,8 @@ function GlobalControlsComponent({
                   <option value="ico">ICO (Favicon)</option>
                   <option value="pdf">PDF (Document)</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 min-[360px]:px-3 sm:px-4 text-blue-700 dark:text-[#8ab4f8]">
-                  <svg className="fill-current h-3.5 w-3.5 sm:h-4 sm:w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-blue-700 dark:text-[#8ab4f8]">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
               </div>
             </div>
@@ -507,31 +507,36 @@ function GlobalControlsComponent({
           {mode === 'compress' ? (
             <div className="flex flex-col gap-2.5 flex-1 w-full mt-1 sm:mt-0">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-                <div className="flex flex-col gap-1 w-full sm:w-auto">
+                <div className="flex flex-col gap-1">
                   <label className="text-[10px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider whitespace-nowrap">
                     Compression Type
                   </label>
-                  <select
-                    disabled={disabled}
-                    value={settings.targetMaxKB ? 'target' : (localQuality > 0.95 ? 'lossless' : 'quality')}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === 'target') {
-                        handleMaxKBChange(localMaxKB || '200');
-                      } else if (val === 'lossless') {
-                        handleQualityChange(1);
-                        onChange({ ...settings, targetMaxKB: undefined, quality: 1 });
-                      } else {
-                        handleQualityChange(0.8);
-                        onChange({ ...settings, targetMaxKB: undefined, quality: 0.8 });
-                      }
-                    }}
-                    className="w-full sm:w-48 appearance-none bg-emerald-50 dark:bg-[#1e3427] border-2 border-emerald-200 dark:border-[#2d523c] text-emerald-700 dark:text-emerald-300 text-[11px] min-[360px]:text-xs sm:text-base font-black rounded-lg sm:rounded-xl px-2.5 py-1.5 min-[360px]:px-3 min-[360px]:py-2 sm:px-4 sm:py-3 cursor-pointer focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all shadow-xs"
-                  >
-                    <option value="quality">Auto Quality (Lossy)</option>
-                    <option value="target">Strict KB Target</option>
-                    <option value="lossless">Lossless (Original Quality)</option>
-                  </select>
+                  <div className="relative inline-block min-w-[140px]">
+                    <select
+                      disabled={disabled}
+                      value={settings.targetMaxKB ? 'target' : (localQuality > 0.95 ? 'lossless' : 'quality')}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === 'target') {
+                          handleMaxKBChange(localMaxKB || '200');
+                        } else if (val === 'lossless') {
+                          handleQualityChange(1);
+                          onChange({ ...settings, targetMaxKB: undefined, quality: 1 });
+                        } else {
+                          handleQualityChange(0.8);
+                          onChange({ ...settings, targetMaxKB: undefined, quality: 0.8 });
+                        }
+                      }}
+                      className="w-full appearance-none bg-emerald-50 dark:bg-[#1e3427] border-2 border-emerald-200 dark:border-[#2d523c] text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold rounded-lg px-3 py-2 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all shadow-sm"
+                    >
+                      <option value="quality">Auto Quality (Lossy)</option>
+                      <option value="target">Strict KB Target</option>
+                      <option value="lossless">Lossless (Original Quality)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-emerald-700 dark:text-emerald-300">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                  </div>
                 </div>
 
                 {settings.targetMaxKB !== undefined ? (

@@ -12,7 +12,7 @@ export function getEtsyResizerContent(): RouteEditorialContent {
     section1Title: 'Boosting Etsy visibility with professional, uniform product photography',
     section1Body: 'For Etsy sellers, visual consistency is the single most important factor for building trust and driving sales. Inconsistent listing photo sizes can make a shop look unprofessional and slow down the browsing experience for customers. Zapixal’s Etsy image resizer is specifically calibrated for the platform’s 2000px width recommendation. By batch-optimizing your listing photos locally, you ensure that every product thumbnail and detail view loads instantly, giving your handmade or vintage shop a competitive edge in the Etsy search rankings.',
     section2Title: 'Meeting Etsy’s aspect ratio standards without distorting your products',
-    section2Body: 'Etsy recommends 4:3 or 5:4 aspect ratios for the best presentation across search results and listing pages. Naive resizing tools often stretch or crop your products destructively. Zapixal uses intelligent padding and cropping algorithms to ensure your items remain perfectly centered and undistorted. Our tool also supports automatic white background fill, which is essential for that clean, professional marketplace look. Best of all, because we process everything locally in your browser, your high-resolution commercial assets never leave your device.',
+    section2Body: 'Etsy recommends 4:3 or 5:4 aspect ratios for the best presentation across search results and listing pages. Naive resizing tools often stretch or crop your products destructively. Zapixal uses precise padding and cropping algorithms to ensure your items remain perfectly centered and undistorted. Our tool also supports automatic white background fill, which is essential for that clean, professional marketplace look. Best of all, because we process everything locally in your browser, your high-resolution commercial assets never leave your device.',
     steps: [
       'Upload your product photos to the bulk Etsy resizer queue.',
       'Select the 2000px width preset and choose your preferred aspect ratio.',
@@ -36,6 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Optimize your Etsy shop for more sales with professional, uniform product photos. Resize to 2000px, adjust aspect ratios, and compress locally. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    presetResize: { maxWidth: 2000, maxHeight: 2000 },
     pageCategory: 'use-case',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Etsy Resizer', url: path }],
     guideContent,

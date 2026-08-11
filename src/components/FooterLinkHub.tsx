@@ -14,10 +14,8 @@ const logoImg = '/assets/logo.webp';
 interface FooterLinkHubProps {
   currentPath: string;
   onNavigate: (path: string) => void;
-  onOpenInstall?: () => void;
 }
-
-export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: FooterLinkHubProps) {
+export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     e.preventDefault();
     onNavigate(path);
@@ -140,6 +138,11 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
             </div>
             <ul className="space-y-2 text-xs font-medium">
               <li>
+                <a href="/tools" onClick={(e) => handleClick(e, '/tools')} className="font-bold text-blue-600 dark:text-blue-400 hover:underline transition-colors flex items-center gap-1">
+                  <span>All 42 Tools Directory (/tools)</span>
+                </a>
+              </li>
+              <li>
                 <a href="/convert-heic-to-jpg-locally" onClick={(e) => handleClick(e, '/convert-heic-to-jpg-locally')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   Convert HEIC to JPG Locally
                 </a>
@@ -194,6 +197,14 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
                   Open Source Code (GitHub)
                 </a>
               </li>
+              <li>
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('zapixal-open-feedback'))} 
+                  className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                >
+                  Submit Feedback
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -204,16 +215,7 @@ export function FooterLinkHub({ currentPath, onNavigate, onOpenInstall }: Footer
             <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>
           </div>
 
-          {onOpenInstall && (
-            <button
-              onClick={onOpenInstall}
-              className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-sans"
-            >
-              Install Offline App (PWA)
-            </button>
-          )}
         </div>
-
       </div>
     </footer>
   );

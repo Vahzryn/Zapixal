@@ -37,6 +37,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Convert iPhone HEIC captures to high-depth transparent PNG files. Extract embedded alpha channels and Display P3 profiles locally via browser WebAssembly.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    toFormat: 'png',
     pageCategory: 'converter',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Convert HEIC to PNG', url: path }],
     guideContent,

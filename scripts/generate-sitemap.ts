@@ -3,7 +3,7 @@ import path from 'node:path';
 import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
 import { ALL_ARTICLES, getArticleBySlug, getArticlesByCategory, getCategoryInfo } from '../src/content/articles';
 
-const STATIC_ROUTES = ['/', '/about', '/privacy', '/terms'];
+const STATIC_ROUTES = ['/', '/tools', '/about', '/privacy', '/terms'];
 
 function getRouteLastMod(routePath: string): string | null {
   if (routePath === '/privacy') {

@@ -4,6 +4,9 @@
     <loc>https://zapixal.com</loc>
   </url>
   <url>
+    <loc>https://zapixal.com/tools</loc>
+  </url>
+  <url>
     <loc>https://zapixal.com/about</loc>
   </url>
   <url>
@@ -167,5 +170,8 @@
   </url>
   <url>
     <loc>https://zapixal.com/etsy-image-resizer-batch-optimize</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/convert-pdf-pages-to-jpg-images</loc>
   </url>
 </urlset>

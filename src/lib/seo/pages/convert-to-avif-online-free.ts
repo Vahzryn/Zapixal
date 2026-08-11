@@ -36,6 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Convert your images to AVIF for the best possible web performance. High-fidelity AV1 encoding performed 100% locally in your browser. 50% smaller than JPEG.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    toFormat: 'avif',
     pageCategory: 'converter',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Convert to AVIF', url: path }],
     guideContent,

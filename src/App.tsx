@@ -5,6 +5,7 @@ import { HeaderNavbar } from './components/HeaderNavbar';
 import { HeroHeader } from './components/Converter/HeroHeader';
 import { CompleteView } from './components/Converter/CompleteView';
 import { ValuePropsSection } from './components/Converter/ValuePropsSection';
+import { PopularToolsSection } from './components/Converter/PopularToolsSection';
 import { SeoGuideContent } from './components/Converter/SeoGuideContent';
 import { QueueSection } from './components/Converter/QueueSection';
 import { ModalsOrchestrator } from './components/Modals/ModalsOrchestrator';
@@ -13,7 +14,6 @@ import { RegionSelector } from './components/RegionSelector';
 import { FileEditModal } from './components/Modals/FileEditModal';
 
 import { useAppRouting } from './hooks/useAppRouting';
-import { usePwaInstall } from './hooks/usePwaInstall';
 import { useShareActions } from './hooks/useShareActions';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useBatchConversion } from './hooks/useBatchConversion';
@@ -22,11 +22,13 @@ import { Loader2, AlertTriangle, X } from 'lucide-react';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { AboutPage } from './components/AboutPage';
+import { ToolsDirectoryPage } from './components/ToolsDirectoryPage';
 import { FooterLinkHub } from './components/FooterLinkHub';
 import { ArticlesHubPage } from './components/Articles/ArticlesHubPage';
 import { ArticleCategoryPage } from './components/Articles/ArticleCategoryPage';
 import { ArticleViewPage } from './components/Articles/ArticleViewPage';
 import { PdfToJpgConverter } from './components/PdfToJpgConverter';
+import { FeedbackWidget } from './components/FeedbackWidget';
 import { getCategoryInfo, getArticleBySlug } from './content/articles';
 
 const PageLoadingFallback = () => (
@@ -91,14 +93,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
   }, []);
 
   const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-  const [hasDismissedPwaBanner, setHasDismissedPwaBanner] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setHasDismissedPwaBanner(localStorage.getItem('zapixal_pwa_banner_dismissed') === 'true');
-    }
-  }, []);
 
   const [editingFileId, setEditingFileId] = useState<string | null>(null);
   const [comparingFileId, setComparingFileId] = useState<string | null>(null);
@@ -114,9 +109,6 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
     touchedKeys
   });
   const { isDarkMode, setIsDarkMode } = useDarkMode();
-  const { deferredPrompt, handleInstallPWA } = usePwaInstall({
-    onOpenInstallModal: () => setIsInstallModalOpen(true),
-  });
 
   const {
     files,
@@ -186,13 +178,6 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
   const handleOpenRedact = useCallback((item: ImageFileItem) => setRedactingFileId(item.id), []);
   const handleCloseRedact = useCallback(() => setRedactingFileId(null), []);
 
-  const handleClosePwaBanner = useCallback(() => {
-    setHasDismissedPwaBanner(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('zapixal_pwa_banner_dismissed', 'true');
-    }
-  }, []);
-
   const handleReformatItem = useCallback((id: string, format: TargetFormat) => {
     handleReformatItems([id], format);
   }, [handleReformatItems]);
@@ -201,6 +186,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
     currentPath === '/privacy' ||
     currentPath === '/terms' ||
     currentPath === '/about' ||
+    currentPath === '/tools' ||
     currentPath === '/articles' ||
     currentPath.startsWith('/articles/') ||
     seoData.isNotFound;
@@ -220,7 +206,6 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
         onNavigate={handleNavigate}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-        onInstallApp={handleInstallPWA}
         onOpenDonate={() => setIsDonateModalOpen(true)}
         onShareApp={handleShareApp}
         isCopiedShareLink={isCopiedShareLink}
@@ -271,6 +256,8 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
           <TermsOfService />
         ) : currentPath === '/about' ? (
           <AboutPage />
+        ) : currentPath === '/tools' ? (
+          <ToolsDirectoryPage onNavigate={handleNavigate} />
         ) : currentPath === '/articles' ? (
           <ArticlesHubPage onNavigate={handleNavigate} />
         ) : getCategoryInfo(currentPath.replace(/^\/articles\//, '')) ? (
@@ -369,6 +356,9 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
               <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
             )}
 
+            {/* Popular Image Tools Section */}
+            <PopularToolsSection onNavigate={handleNavigate} />
+
             {/* Value Propositions / Why choose Zapixal */}
             <ValuePropsSection />
           </React.Fragment>
@@ -379,7 +369,6 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
       <FooterLinkHub 
         currentPath={currentPath} 
         onNavigate={handleNavigate} 
-        onOpenInstall={() => setIsInstallModalOpen(true)}
       />
 
       {/* Low-tier warning modal */}
@@ -430,15 +419,19 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
         compareItem={compareItem}
         inspectItem={inspectItem}
         isDonateModalOpen={isDonateModalOpen}
-        isInstallModalOpen={isInstallModalOpen}
-        hasConvertedInSession={hasConvertedInSession}
-        hasDismissedPwaBanner={hasDismissedPwaBanner}
-        deferredPrompt={deferredPrompt}
         onCloseCompare={handleCloseCompare}
         onCloseInspect={handleCloseInspect}
         onCloseDonate={() => setIsDonateModalOpen(false)}
-        onCloseInstall={() => setIsInstallModalOpen(false)}
-        onClosePwaBanner={handleClosePwaBanner}
+      />
+
+      {/* Persistent Minimal Feedback System */}
+      <FeedbackWidget
+        currentPath={currentPath}
+        currentToolName={seoData?.h1Title}
+        fileCount={files.length}
+        hasErrors={files.some(f => f.status === 'error')}
+        stalledMessage={stalledResetMessage}
+        settings={settings}
       />
     </div>
   );

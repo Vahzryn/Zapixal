@@ -24,6 +24,7 @@ async function prerender() {
 
   const staticRoutes = [
     '/',
+    '/tools',
     ...PSEO_ROUTES_LIST.map(r => r.path),
     ...ALL_ARTICLE_SYSTEM_ROUTES,
     '/about',

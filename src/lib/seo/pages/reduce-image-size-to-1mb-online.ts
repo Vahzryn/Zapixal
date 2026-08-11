@@ -36,6 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Need to get an image under 1MB? Our precision target-size tool shrinks photos and scans to exactly 1MB while preserving high-fidelity detail. 100% Client-Side.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    targetMaxKB: 1000,
     pageCategory: 'compression',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Reduce to 1MB', url: path }],
     guideContent,

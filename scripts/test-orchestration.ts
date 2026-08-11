@@ -168,13 +168,23 @@ console.log('Running unit tests for conversion orchestration...\n');
       customTargetFormat: 'png',
       blob: new Blob(['fake-png'], { type: 'image/png' }),
     },
+    {
+      id: 'file-e',
+      file: new File([''], 'photo-e.heic', { type: 'image/heic' }),
+      previewUrl: '',
+      originalSize: 5120,
+      status: 'success',
+      progress: 100,
+      customTargetFormat: undefined,
+      blob: new Blob(['fake-webp'], { type: 'image/webp' }),
+    },
   ];
 
   const filenames = batch.map((item, idx) => formatOutputFilename(item, idx, globalSettings));
   assert.deepStrictEqual(
     filenames,
-    ['photo-a.avif', 'photo-b.ico', 'photo-c.jpg', 'photo-d.png'],
-    'Mixed-format batch files must output exact per-file format extensions ignoring global default'
+    ['photo-a.avif', 'photo-b.ico', 'photo-c.jpg', 'photo-d.png', 'photo-e.webp'],
+    'Mixed-format batch files must output exact per-file format extensions ignoring global default, while undefined correctly uses the global default'
   );
   console.log('✓ Per-file format precedence in mixed batch tests passed');
 }

@@ -4,8 +4,6 @@ import { ImageFileItem } from '../../types';
 const CompareModal = lazy(() => import('../CompareModal').then(m => ({ default: m.CompareModal })));
 const ImageDetailsModal = lazy(() => import('../ImageDetailsModal').then(m => ({ default: m.ImageDetailsModal })));
 const DonateModal = lazy(() => import('../DonateModal').then(m => ({ default: m.DonateModal })));
-const InstallModal = lazy(() => import('../InstallModal').then(m => ({ default: m.InstallModal })));
-const PwaBanner = lazy(() => import('../PwaBanner').then(m => ({ default: m.PwaBanner })));
 
 function ModalLoadingFallback() {
   return (
@@ -21,30 +19,18 @@ interface ModalsOrchestratorProps {
   compareItem: ImageFileItem | null;
   inspectItem: ImageFileItem | null;
   isDonateModalOpen: boolean;
-  isInstallModalOpen: boolean;
-  hasConvertedInSession: boolean;
-  hasDismissedPwaBanner: boolean;
-  deferredPrompt: any;
   onCloseCompare: () => void;
   onCloseInspect: () => void;
   onCloseDonate: () => void;
-  onCloseInstall: () => void;
-  onClosePwaBanner: () => void;
 }
 
 export const ModalsOrchestrator = React.memo<ModalsOrchestratorProps>(function ModalsOrchestrator({
   compareItem,
   inspectItem,
   isDonateModalOpen,
-  isInstallModalOpen,
-  hasConvertedInSession,
-  hasDismissedPwaBanner,
-  deferredPrompt,
   onCloseCompare,
   onCloseInspect,
   onCloseDonate,
-  onCloseInstall,
-  onClosePwaBanner,
 }) {
   return (
     <>
@@ -53,24 +39,16 @@ export const ModalsOrchestrator = React.memo<ModalsOrchestratorProps>(function M
           <CompareModal item={compareItem} onClose={onCloseCompare} />
         </Suspense>
       )}
+
       {inspectItem && (
         <Suspense fallback={<ModalLoadingFallback />}>
           <ImageDetailsModal item={inspectItem} onClose={onCloseInspect} />
         </Suspense>
       )}
+
       {isDonateModalOpen && (
         <Suspense fallback={<ModalLoadingFallback />}>
           <DonateModal isOpen={isDonateModalOpen} onClose={onCloseDonate} />
-        </Suspense>
-      )}
-      {/* InstallModal is kept for manual click on "Install App" in Navbar */}
-      {isInstallModalOpen && (
-        <Suspense fallback={<ModalLoadingFallback />}>
-          <InstallModal
-            isOpen={isInstallModalOpen}
-            onClose={onCloseInstall}
-            deferredPrompt={deferredPrompt}
-          />
         </Suspense>
       )}
     </>

@@ -1,0 +1,13 @@
+--- src/components/FooterLinkHub.tsx
++++ src/components/FooterLinkHub.tsx
+@@ -215,8 +215,8 @@
+             <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>
+           </div>
+-
+-      </div>
+-      </div>
++        </div>
++      </div>
+     </footer>
+   );
+ }

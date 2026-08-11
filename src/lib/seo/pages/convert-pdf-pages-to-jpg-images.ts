@@ -41,6 +41,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Convert selected PDF pages to JPG images in your browser. Choose individual pages or multiple pages and download the resulting images without uploading the PDF to a server.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    toFormat: 'jpg',
     pageCategory: 'converter',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Convert PDF Pages to JPG', url: path }],
     guideContent,

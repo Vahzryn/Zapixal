@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DownloadCloud, Github, Moon, Sun, Heart, Zap, BookOpen } from 'lucide-react';
+import { Github, Moon, Sun, Heart, Zap, BookOpen, Grid } from 'lucide-react';
 import { cn } from '../lib/utils';
+
 const logoImg = '/assets/logo.webp';
 
 interface HeaderNavbarProps {
@@ -8,7 +9,6 @@ interface HeaderNavbarProps {
   onNavigate: (path: string) => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
-  onInstallApp: () => void;
   onOpenDonate?: () => void;
   onShareApp?: () => void;
   isCopiedShareLink?: boolean;
@@ -19,7 +19,6 @@ export function HeaderNavbar({
   onNavigate,
   isDarkMode,
   onToggleDarkMode,
-  onInstallApp,
   onOpenDonate,
 }: HeaderNavbarProps) {
   const [isOffline, setIsOffline] = useState(false);
@@ -28,6 +27,7 @@ export function HeaderNavbar({
     if (typeof navigator !== 'undefined') {
       setIsOffline(!navigator.onLine);
     }
+    
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
@@ -71,7 +71,6 @@ export function HeaderNavbar({
               </span>
             </button>
           </div>
-
           
           {/* Dynamic Status Badge */}
           <div className={cn(
@@ -82,14 +81,14 @@ export function HeaderNavbar({
           )}>
             {isOffline ? (
               <>
-                <span>✈️</span>
-                <span>Offline</span>
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>Ready offline</span>
               </>
             ) : (
               <>
-                <span>🟢</span>
-                <span className="hidden xl:inline">Online · 100% Local Processing</span>
-                <span className="inline xl:hidden">Local Processing</span>
+                <Zap className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="hidden xl:inline">Processed locally in your browser</span>
+                <span className="inline xl:hidden">Local processing</span>
               </>
             )}
           </div>
@@ -97,6 +96,21 @@ export function HeaderNavbar({
 
         {/* Right Action Cluster */}
         <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+          {/* All Tools Directory Button */}
+          <button
+            onClick={() => onNavigate('/tools')}
+            className={cn(
+              "flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer active:scale-95 shadow-2xs sm:px-3",
+              currentPath === '/tools'
+                ? "bg-blue-600 text-white"
+                : "text-neutral-700 dark:text-[#e8eaed] bg-neutral-100 hover:bg-neutral-200 dark:bg-[#303134] dark:hover:bg-[#3c4043] border border-neutral-200 dark:border-transparent"
+            )}
+            title="Browse All 42 Tools"
+          >
+            <Grid className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Tools</span>
+          </button>
+
           {/* Articles & Guides Button */}
           <button
             onClick={() => onNavigate('/articles')}
@@ -136,16 +150,6 @@ export function HeaderNavbar({
             <Github className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="sr-only">Zapixal Open Source Project on GitHub</span>
           </a>
-
-          {/* Install App Button */}
-          <button 
-            onClick={onInstallApp}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-neutral-700 dark:text-[#e8eaed] bg-neutral-100 hover:bg-neutral-200 dark:bg-[#303134] dark:hover:bg-[#3c4043] border border-neutral-200 dark:border-transparent rounded-full transition-all shadow-2xs cursor-pointer active:scale-95 sm:px-3"
-            title="Install Zapixal Progressive Web App"
-          >
-            <DownloadCloud className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Install App</span>
-          </button>
 
           {/* Dark Mode Toggle */}
           <button

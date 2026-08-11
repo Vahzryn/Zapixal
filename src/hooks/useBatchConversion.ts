@@ -422,7 +422,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
           status,
           error,
           progress: 0,
-          customTargetFormat: settings.targetFormat,
+          customTargetFormat: undefined,
         });
       });
 

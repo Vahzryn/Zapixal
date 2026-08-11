@@ -36,6 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Convert entire folders of iPhone HEIC photos to JPG instantly. Parallel multi-core processing running 100% locally in your browser. No uploads, total privacy.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    toFormat: 'jpg',
     pageCategory: 'converter',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Bulk HEIC to JPG', url: path }],
     guideContent,

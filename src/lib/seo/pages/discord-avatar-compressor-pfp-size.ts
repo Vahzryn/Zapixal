@@ -36,6 +36,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     metaDescription: 'Shrink your Discord profile pictures and banners to fit the 8MB limit. 1:1 square cropping and high-fidelity compression for avatars. Fast, free, and private.',
     canonicalUrl: fullUrl,
     isIndexable: true,
+    presetResize: { maxWidth: 512, maxHeight: 512 },
     pageCategory: 'compression',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Discord Compressor', url: path }],
     guideContent,

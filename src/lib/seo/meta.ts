@@ -55,7 +55,7 @@ const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (fullUrl: string,
 
 export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: string }>> = {
   '/client-side-private-image-compressor': [
-    { path: '/ai-image-compressor-online-private', label: 'AI Image Compressor' },
+    { path: '/ai-image-compressor-online-private', label: 'Adaptive Image Compressor' },
     { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
     { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
     { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
@@ -79,7 +79,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/dpi-ppi-converter-change-image-resolution', label: 'Change Image DPI' },
   ],
   '/bulk-image-compressor-offline': [
-    { path: '/ai-image-compressor-online-private', label: 'AI Image Compressor' },
+    { path: '/ai-image-compressor-online-private', label: 'Adaptive Image Compressor' },
     { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk E-commerce Resizer' },
     { path: '/compress-image-for-email-attachment-limit', label: 'Compress for Email' },
     { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
@@ -94,12 +94,157 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/convert-svg-to-png-transparent', label: 'SVG to High-Res PNG' },
     { path: '/convert-png-to-webp-lossless', label: 'PNG to Lossless WebP' },
     { path: '/convert-jpg-to-webp-browser', label: 'JPG to WebP Browser' },
+    { path: '/convert-hdr-heic-to-png-transparency', label: 'HEIC to Transparent PNG' },
   ],
   '/passport-photo-size-reducer-kb': [
     { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
     { path: '/resize-image-for-job-application-form', label: 'Job Application Resizer' },
     { path: '/dpi-ppi-converter-change-image-resolution', label: 'Change Image DPI' },
     { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
+  ],
+  '/convert-avif-to-jpg-converter': [
+    { path: '/convert-to-avif-online-free', label: 'Convert to AVIF' },
+    { path: '/convert-jpg-to-webp-browser', label: 'JPG to WebP Browser' },
+    { path: '/convert-tiff-bmp-to-jpg', label: 'TIFF & BMP to JPG' },
+    { path: '/convert-heic-to-jpg-locally', label: 'HEIC to JPG Locally' },
+  ],
+  '/resize-image-for-job-application-form': [
+    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
+    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Reducer' },
+    { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
+    { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
+  ],
+  '/secure-signature-compressor-pdf': [
+    { path: '/compress-pdf-scanned-document-images', label: 'Scanned Document Quantizer' },
+    { path: '/convert-pdf-pages-to-jpg-images', label: 'Convert PDF Pages to JPG' },
+    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
+    { path: '/resize-image-for-job-application-form', label: 'Job Application Resizer' },
+  ],
+  '/client-side-image-to-base64': [
+    { path: '/palette-color-extractor-image-hex', label: 'Palette Hex Extractor' },
+    { path: '/convert-svg-to-png-transparent', label: 'SVG to High-Res PNG' },
+    { path: '/convert-ico-to-png-favicon-extractor', label: 'Extract ICO Favicon' },
+    { path: '/dpi-ppi-converter-change-image-resolution', label: 'Change Image DPI' },
+  ],
+  '/convert-svg-to-png-transparent': [
+    { path: '/convert-webp-to-png-transparent', label: 'WebP to PNG Transparent' },
+    { path: '/convert-ico-to-png-favicon-extractor', label: 'Extract ICO Favicon' },
+    { path: '/client-side-image-to-base64', label: 'Image to Base64 Encoder' },
+    { path: '/convert-png-to-jpg-white-background', label: 'PNG to JPG (White Fill)' },
+  ],
+  '/compress-animated-gif-size-online': [
+    { path: '/discord-avatar-compressor-pfp-size', label: 'Discord Avatar Compressor' },
+    { path: '/compress-screenshot-png-size-fast', label: 'Compress Screenshot PNG' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Custom Aspect Ratio' },
+    { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
+  ],
+  '/convert-png-to-webp-lossless': [
+    { path: '/convert-jpg-to-webp-browser', label: 'JPG to WebP Browser' },
+    { path: '/convert-to-avif-online-free', label: 'Convert to AVIF' },
+    { path: '/compress-png-lossless-webassembly', label: 'Lossless PNG Compressor' },
+    { path: '/convert-webp-to-png-transparent', label: 'WebP to PNG Transparent' },
+  ],
+  '/crop-image-to-exact-aspect-ratio': [
+    { path: '/social-media-banner-resizer-linkedin-twitter', label: 'Social Banner Resizer' },
+    { path: '/discord-avatar-compressor-pfp-size', label: 'Discord Avatar Compressor' },
+    { path: '/high-res-image-resizer-client-side', label: 'High-Res Image Resizer' },
+    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Reducer' },
+  ],
+  '/add-text-watermark-image-browser': [
+    { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Info' },
+    { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Custom Aspect Ratio' },
+    { path: '/palette-color-extractor-image-hex', label: 'Palette Hex Extractor' },
+  ],
+  '/convert-tiff-bmp-to-jpg': [
+    { path: '/convert-png-to-jpg-white-background', label: 'PNG to JPG White Fill' },
+    { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG' },
+    { path: '/convert-avif-to-jpg-converter', label: 'AVIF to JPG Converter' },
+    { path: '/convert-pdf-pages-to-jpg-images', label: 'PDF Pages to JPG' },
+  ],
+  '/high-res-image-resizer-client-side': [
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Aspect Ratio' },
+    { path: '/dpi-ppi-converter-change-image-resolution', label: 'Change Image DPI' },
+    { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk Catalog Resizer' },
+    { path: '/social-media-banner-resizer-linkedin-twitter', label: 'Social Banner Resizer' },
+  ],
+  '/dpi-ppi-converter-change-image-resolution': [
+    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Reducer' },
+    { path: '/high-res-image-resizer-client-side', label: 'High-Res Image Resizer' },
+    { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+    { path: '/lossless-jpeg-optimizer-exif-preserve', label: 'Lossless JPEG Optimizer' },
+  ],
+  '/compress-image-for-email-attachment-limit': [
+    { path: '/reduce-image-size-to-1mb-online', label: 'Reduce Size to 1MB' },
+    { path: '/compress-image-to-200kb-online', label: 'Compress to 200KB' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
+  ],
+  '/convert-jpg-to-webp-browser': [
+    { path: '/convert-png-to-webp-lossless', label: 'PNG to Lossless WebP' },
+    { path: '/convert-to-avif-online-free', label: 'Convert to AVIF' },
+    { path: '/convert-webp-to-png-transparent', label: 'WebP to PNG Transparent' },
+    { path: '/lossless-jpeg-optimizer-exif-preserve', label: 'Lossless JPEG Optimizer' },
+  ],
+  '/compress-screenshot-png-size-fast': [
+    { path: '/compress-png-lossless-webassembly', label: 'Lossless PNG Compressor' },
+    { path: '/convert-png-to-webp-lossless', label: 'PNG to Lossless WebP' },
+    { path: '/convert-png-to-jpg-white-background', label: 'PNG to JPG White Fill' },
+    { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Info' },
+  ],
+  '/convert-ico-to-png-favicon-extractor': [
+    { path: '/convert-svg-to-png-transparent', label: 'SVG to High-Res PNG' },
+    { path: '/convert-webp-to-png-transparent', label: 'WebP to PNG Transparent' },
+    { path: '/client-side-image-to-base64', label: 'Image to Base64 Encoder' },
+    { path: '/palette-color-extractor-image-hex', label: 'Palette Hex Extractor' },
+  ],
+  '/bulk-image-resizer-ecommerce-catalog': [
+    { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
+    { path: '/etsy-image-resizer-batch-optimize', label: 'Etsy Image Resizer' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/high-res-image-resizer-client-side', label: 'High-Res Image Resizer' },
+  ],
+  '/convert-png-to-jpg-white-background': [
+    { path: '/convert-png-to-webp-lossless', label: 'PNG to Lossless WebP' },
+    { path: '/compress-png-lossless-webassembly', label: 'Lossless PNG Compressor' },
+    { path: '/convert-tiff-bmp-to-jpg', label: 'TIFF & BMP to JPG' },
+    { path: '/convert-heic-to-jpg-locally', label: 'HEIC to JPG Locally' },
+  ],
+  '/blur-sensitive-image-privacy-pixelator': [
+    { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+    { path: '/add-text-watermark-image-browser', label: 'Apply Text Watermark' },
+    { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
+    { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
+  ],
+  '/convert-hdr-heic-to-png-transparency': [
+    { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG' },
+    { path: '/bulk-heic-to-jpg-converter-offline', label: 'Bulk HEIC to JPG' },
+    { path: '/convert-webp-to-png-transparent', label: 'WebP to PNG Transparent' },
+    { path: '/convert-svg-to-png-transparent', label: 'SVG to High-Res PNG' },
+  ],
+  '/social-media-banner-resizer-linkedin-twitter': [
+    { path: '/discord-avatar-compressor-pfp-size', label: 'Discord Avatar Compressor' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Custom Aspect Ratio' },
+    { path: '/high-res-image-resizer-client-side', label: 'High-Res Image Resizer' },
+    { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk Catalog Resizer' },
+  ],
+  '/palette-color-extractor-image-hex': [
+    { path: '/client-side-image-to-base64', label: 'Image to Base64 Encoder' },
+    { path: '/convert-ico-to-png-favicon-extractor', label: 'Extract ICO Favicon' },
+    { path: '/add-text-watermark-image-browser', label: 'Apply Text Watermark' },
+    { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Info' },
+  ],
+  '/lossless-jpeg-optimizer-exif-preserve': [
+    { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+    { path: '/convert-jpg-to-webp-browser', label: 'JPG to WebP Browser' },
+    { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
+    { path: '/dpi-ppi-converter-change-image-resolution', label: 'Change Image DPI' },
+  ],
+  '/compress-pdf-scanned-document-images': [
+    { path: '/convert-pdf-pages-to-jpg-images', label: 'Convert PDF Pages to JPG' },
+    { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
+    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
+    { path: '/resize-image-for-job-application-form', label: 'Job Application Resizer' },
   ],
   '/shopify-image-optimizer-bulk-free': [
     { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk E-commerce Resizer' },
@@ -111,16 +256,49 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/convert-jpg-to-webp-browser', label: 'JPG to WebP Browser' },
     { path: '/convert-png-to-webp-lossless', label: 'PNG to Lossless WebP' },
     { path: '/convert-avif-to-jpg-converter', label: 'AVIF to JPG Converter' },
+    { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
+  ],
+  '/ai-image-compressor-online-private': [
+    { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
+    { path: '/lossless-jpeg-optimizer-exif-preserve', label: 'Lossless JPEG Optimizer' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/compress-png-lossless-webassembly', label: 'Lossless PNG Compressor' },
   ],
   '/compress-image-to-100kb-online': [
     { path: '/compress-image-to-200kb-online', label: 'Compress to 200KB' },
     { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
     { path: '/reduce-image-size-to-1mb-online', label: 'Reduce to 1MB' },
+    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Reducer' },
+  ],
+  '/compress-image-to-200kb-online': [
+    { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
+    { path: '/reduce-image-size-to-1mb-online', label: 'Reduce to 1MB' },
+    { path: '/compress-image-for-email-attachment-limit', label: 'Compress for Email' },
+    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB' },
+  ],
+  '/bulk-heic-to-jpg-converter-offline': [
+    { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG Locally' },
+    { path: '/convert-hdr-heic-to-png-transparency', label: 'iPhone HEIC to PNG' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
   ],
   '/discord-avatar-compressor-pfp-size': [
-    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Aspect Ratio' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Custom Aspect Ratio' },
     { path: '/compress-animated-gif-size-online', label: 'Compress GIF Size' },
     { path: '/compress-screenshot-png-size-fast', label: 'Compress Screenshot PNG' },
+    { path: '/social-media-banner-resizer-linkedin-twitter', label: 'Social Banner Resizer' },
+  ],
+  '/reduce-image-size-to-1mb-online': [
+    { path: '/compress-image-to-200kb-online', label: 'Compress to 200KB' },
+    { path: '/compress-image-for-email-attachment-limit', label: 'Compress for Email' },
+    { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+  ],
+  '/etsy-image-resizer-batch-optimize': [
+    { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
+    { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk Catalog Resizer' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop Custom Aspect Ratio' },
+    { path: '/convert-png-to-jpg-white-background', label: 'PNG to JPG White Fill' },
   ],
   '/convert-pdf-pages-to-jpg-images': [
     { path: '/compress-pdf-scanned-document-images', label: 'Scanned Document Image Quantizer' },
@@ -135,6 +313,38 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
   const path = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : (rawPath || '/');
   const fullUrl = `${DOMAIN}${path === '/' ? '' : path}`;
   const slug = path === '/' ? 'home' : path.slice(1);
+
+  // Handle tools directory route
+  if (path === '/tools') {
+    return {
+      path: '/tools',
+      h1Title: 'Zapixal Tools Directory — All 42 Image Utilities',
+      metaTitle: 'All 42 Free Client-Side Image Tools & Converters | Zapixal',
+      metaDescription: 'Complete directory of 42 privacy-first image tools. Convert formats (HEIC, WebP, AVIF, PNG, JPG, SVG, PDF), compress to exact KB targets, and edit images 100% locally.',
+      canonicalUrl: `${DOMAIN}/tools`,
+      isIndexable: true,
+      pageCategory: 'resource',
+      breadcrumbs: [
+        { name: 'Home', url: '/' },
+        { name: 'Tools Directory', url: '/tools' },
+      ],
+      jsonLd: {
+        softwareApp: null,
+        howTo: null,
+        faqPage: null,
+        breadcrumbs: {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: DOMAIN },
+            { '@type': 'ListItem', position: 2, name: 'Tools Directory', item: `${DOMAIN}/tools` },
+          ],
+        },
+        organization: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Zapixal', url: DOMAIN, logo: `${DOMAIN}/icon-512.png` },
+        website: { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Zapixal', url: DOMAIN },
+      },
+    };
+  }
 
   // Handle article system routes
   if (path === '/articles' || path.startsWith('/articles/')) {
