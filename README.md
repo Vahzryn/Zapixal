@@ -47,7 +47,7 @@ npm run build
 
 The production output is generated in dist/.
 
-###Testing
+##Testing
 
 Run the test suite:
 ```
@@ -59,27 +59,33 @@ Run TypeScript checks:
 npm run lint
 ```
 
-###Embeds
+##Embeds
 
 Zapixal provides optional public integrations for websites and blogs.
 
-Web Component
-<script src="https://zapixal.com/zapixal-web-component.js" defer></script>
+### Web Component
 
+```html
+<script src="https://zapixal.com/zapixal-web-component.js" defer></script>
 <zapixal-blog-tool></zapixal-blog-tool>
-Widget
+```
+
+### Widget
+
+```html
 <div id="zapixal-widget"></div>
 <script src="https://zapixal.com/widget.js" defer></script>
+```
 
 These integrations are provided free of charge and process supported images locally in the user's browser.
 
-###Privacy
+##Privacy
 
 Zapixal's core image processing is client-side. Image files are processed in the user's browser rather than uploaded to a conversion server.
 
 Feedback is handled separately through a Cloudflare Function.
 
-###Deployment
+##Deployment
 
 Zapixal is designed for static deployment on platforms such as Cloudflare Pages.
 
