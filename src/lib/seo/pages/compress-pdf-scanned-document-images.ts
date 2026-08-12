@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Compress Scanned Document PDF Images Online',
     metaTitle: 'Compress Scanned Document Images — Local Tool',
-    metaDescription: 'Compress scanned paper documents and PDF image pages locally using client-side rendering. Shrink file size entirely offline.',
+    metaDescription: 'Compress scanned paper documents and PDF image pages locally using client-side rendering. Shrink file size entirely local.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'use-case',

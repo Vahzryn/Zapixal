@@ -61,7 +61,7 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     iconName: 'Cpu',
     relatedTools: [
       { path: '/compress-png-lossless-webassembly', label: 'Lossless WASM PNG Compressor', description: 'Quantize PNG palettes using WebAssembly imagequant.' },
-      { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor', description: 'Multi-threaded worker pool processing hundreds of files.' },
+      { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor', description: 'Multi-threaded worker pool processing hundreds of files.' },
       { path: '/client-side-image-to-base64', label: 'In-Browser Base64 Encoder', description: 'Encode images directly to data URIs without network calls.' },
     ],
   },

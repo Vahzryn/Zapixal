@@ -10,7 +10,7 @@ function makeFaq(question: string, answer: string) {
 
 export function getClientSidePrivateCompressorContent(): RouteEditorialContent {
   return {
-    badge: 'Offline & Sandbox Secured',
+    badge: 'local & Sandbox Secured',
     section1Title: 'The shift from cloud-dependent processing to browser-native sandboxing',
     section1Body: 'Zapixal processes all images within the local browser memory. Processing files locally removes the need to pipe your raw image data across the public internet to a remote server. Zapixal utilizes WebAssembly (WASM) to execute high-performance compression codecs directly within your browser’s RAM. By keeping the entire compute cycle local, your files are processed in a secure sandbox, ensuring that not a single byte of your original image ever reaches a third-party server.',
     section2Title: 'Eliminating the "Server Round-Trip" for faster, more secure iterations',
@@ -33,9 +33,9 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   const guideContent = getClientSidePrivateCompressorContent();
     return {
       path,
-      h1Title: 'Private Image Compressor: Offline & Sandbox Secured',
+      h1Title: 'Private Image Compressor: local & Sandbox Secured',
       metaTitle: 'Private Image Compressor — Client-Side Browser Tool',
-      metaDescription: 'Compress images privately in your browser memory without server uploads. Offline and sandbox secured for complete local data privacy.',
+      metaDescription: 'Compress images privately in your browser memory without server uploads. local and sandbox secured for complete local data privacy.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'compression',

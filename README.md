@@ -1,6 +1,6 @@
 # Zapixal Image Converter
 
-Zapixal is a lightning-fast, 100% private, client-side batch image converter. It processes files like HEIC, JPG, PNG, WEBP, and AVIF entirely within the user's web browser memory. Unlike traditional converters, it never uploads photos to a server, guaranteeing full privacy and offline capability.
+Zapixal is a lightning-fast, 100% private, client-side batch image converter. It processes files like HEIC, JPG, PNG, WEBP, and AVIF entirely within the user's web browser memory. Unlike traditional converters, it never uploads photos to a server, guaranteeing full privacy and local client-side processing.
 
 ## Features
 
@@ -43,18 +43,26 @@ This project is fully static and optimized for Edge networks.
 
 2. The compiled assets will be in the `/dist` directory. You can configure your hosting provider (e.g., Cloudflare Pages) to use this directory as the build output.
 
-## Embedding the Widget
+## Embeds & External Integrations
 
-To embed the Zapixal converter on any external site, simply include the script and custom element. It is highly recommended to include a `<noscript>` fallback for users with JavaScript disabled:
+Zapixal provides lightweight public assets for third-party websites and blogs to integrate image conversion tools directly into their pages:
 
-```html
-<script src="https://zapixal.com/zapixal-web-component.js" defer></script>
-<zapixal-blog-tool>
-  <noscript>
-    <div style="padding: 2rem; text-align: center; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 1rem; color: #475569;">
-      <strong>JavaScript is Required</strong><br>
-      Zapixal processes images securely in your browser to protect your privacy. Please enable JavaScript to use this tool.
-    </div>
-  </noscript>
-</zapixal-blog-tool>
-```
+1. **Web Component Embed (`public/zapixal-web-component.js`)**:
+   Provides the `<zapixal-blog-tool>` custom element. It renders an in-browser dropzone powered by local Canvas and HEIC decoders without requiring iframes.
+
+   ```html
+   <script src="https://zapixal.com/zapixal-web-component.js" defer></script>
+   <zapixal-blog-tool>
+     <noscript>
+       <div style="padding: 2rem; text-align: center; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 1rem; color: #475569;">
+         <strong>JavaScript is Required</strong><br>
+         Zapixal processes images securely in your browser to protect your privacy. Please enable JavaScript to use this tool.
+       </div>
+     </noscript>
+   </zapixal-blog-tool>
+   ```
+
+2. **Promo Callout Badge (`public/widget.js`)**:
+   A lightweight helper script that injects a compact informational box into `<div id="zapixal-widget"></div>` with a link to launch the main Zapixal application.
+
+*Note: These assets are separate optional integration surfaces that operate completely client-side.*

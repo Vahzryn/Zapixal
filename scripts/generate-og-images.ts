@@ -91,7 +91,7 @@ async function generateAllOgImages() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const staticRoutes = ['/', '/about', '/privacy', '/terms'];
+  const staticRoutes = ['/', '/tools', '/about', '/privacy', '/terms'];
   const allRoutes = Array.from(
     new Set([
       ...staticRoutes,

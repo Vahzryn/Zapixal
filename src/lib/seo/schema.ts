@@ -20,7 +20,7 @@ export function generateJsonLdSchemas(
     'browserRequirements': 'Requires Modern Web Browser with WebAssembly (WASM) support',
     'license': 'https://opensource.org/licenses/MIT',
     'isAccessibleForFree': true,
-    'keywords': ['image converter', 'image compressor', 'offline image tool', 'private image converter', 'HEIC to JPG', 'PNG to WebP'],
+    'keywords': ['image converter', 'image compressor', 'client-side image tool', 'private image converter', 'HEIC to JPG', 'PNG to WebP'],
     'offers': {
       '@type': 'Offer',
       'price': '0',
@@ -31,8 +31,7 @@ export function generateJsonLdSchemas(
       '100% Client-Side In-Browser Image Processing',
       'Zero Cloud Server Uploads & Total Privacy',
       'WebAssembly (WASM) & Web Worker Multithreading Speed',
-      'Unlimited Batch File Processing',
-      'Offline Progressive Web App (PWA) Capability',
+      'Adaptive Batch Image Processing',
       'Practical guidance for compatibility, accessibility, and file-size targets',
     ],
     'description': description,

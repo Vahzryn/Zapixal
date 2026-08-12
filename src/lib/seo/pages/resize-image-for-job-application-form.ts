@@ -15,7 +15,7 @@ export function getResizeJobApplicationContent(): RouteEditorialContent {
     section2Title: 'Consistent resizing for job application uploads',
     section2Body: 'When submitting application materials, your headshots and certificates should maintain clear dimensions and a lightweight byte profile. Our client-side resizing engine maintains crisp sub-pixel detail while optimizing your files to your target size limit. Adjust your scaling parameters in real-time and export precisely sized files directly from your browser tab.',
     steps: [
-      'Load your resume headshot or certificate scan directly into the offline browser workspace.',
+      'Load your resume headshot or certificate scan directly into the local browser workspace.',
       'Specify target resolution parameters or choose custom height and width constraints.',
       'Adjust compression levels locally to fit under portal requirements and save your file.'
     ],

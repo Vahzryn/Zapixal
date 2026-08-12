@@ -26,7 +26,7 @@ export const VERIFIED_FACTS: Record<string, FactCategory> = {
     assertions: [
       'Images are processed locally in your browser and are not uploaded to Zapixal\'s image-processing servers.',
       'All pixel decoding, canvas compositing, and quantization calculations execute locally within the client-side browser memory sandboxed environment.',
-      'Network requests are limited purely to downloading initial static website assets, WebAssembly (WASM) binary workers, and PWA manifest files.',
+      'Network requests are limited purely to downloading initial static website assets and WebAssembly (WASM) binary workers.',
       'No tracking beacons or telemetry scripts are loaded or active during image processing.'
     ]
   },

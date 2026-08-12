@@ -12,7 +12,7 @@ export function getConvertSvgToPngContent(): RouteEditorialContent {
   return {
     badge: 'Vector Support Status',
     section1Title: 'Scalable Vector Graphics to Raster Formats',
-    section1Body: 'SVG vector graphics offer infinite resolution scaling for web applications, but software like legacy image editors, email clients, social media platforms, and video editing suites often lack native SVG rendering support. Converting SVG to PNG requires precise vector rasterization that preserves path geometry, gradient fills, and transparent canvas backgrounds. Currently, Zapixal focuses exclusively on raster image formats and does not support SVG conversion in order to maintain a secure, offline, and lightweight processing pipeline.',
+    section1Body: 'SVG vector graphics offer infinite resolution scaling for web applications, but software like legacy image editors, email clients, social media platforms, and video editing suites often lack native SVG rendering support. Converting SVG to PNG requires precise vector rasterization that preserves path geometry, gradient fills, and transparent canvas backgrounds. Currently, Zapixal focuses exclusively on raster image formats and does not support SVG conversion in order to maintain a secure, local, and lightweight processing pipeline.',
     section2Title: 'Alternative workflows for SVG rasterization',
     section2Body: 'While you cannot currently convert SVGs directly in Zapixal, you can export your vector designs from tools like Figma or Adobe Illustrator directly to PNG or WebP, and then use Zapixal to compress those raster files efficiently in your browser without uploading them to external servers.',
     steps: [

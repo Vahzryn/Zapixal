@@ -296,9 +296,9 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   console.log('✓ Unsupported Format Error Messaging tests passed');
 }
 
-// 7. Test PWA Cache Strategy & Exclusion Rules
+// 7. Test Cache Strategy & Exclusion Rules
 {
-  // Replicating sw.js logic for caching checks to assert rules correctness
+  // Simulating caching checks to assert rules correctness
   function shouldCacheSimulated(urlStr: string, method: string, responseSizeMB?: number) {
     const url = new URL(urlStr);
     const path = url.pathname.toLowerCase();
@@ -354,7 +354,7 @@ console.log('Running unit tests for codecs, SEO parsing, and target dimensions..
   // 4. Non-http protocols (e.g. user files via blob URLs) exclusion
   assert.strictEqual(shouldCacheSimulated('blob:https://zapixal.com/463dfg-dfg4', 'GET'), false, 'Blob URLs of user files must be excluded');
 
-  console.log('✓ PWA Cache Exclusion strategy tests passed');
+  console.log('✓ Cache Exclusion strategy tests passed');
 }
 
 // 8. Test Adaptive WebP Conversion Pipeline & Size Optimization Logic

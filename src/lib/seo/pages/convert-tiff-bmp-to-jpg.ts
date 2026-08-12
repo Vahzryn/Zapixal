@@ -34,7 +34,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Convert TIFF and BMP Scans to Universal JPG Format',
     metaTitle: 'Convert TIFF & BMP to JPG — Private Local Utility',
-    metaDescription: 'Convert legacy BMP images (and TIFF in Safari) to universal JPEG format in your browser. Shrink scans by up to 95% with local offline processing.',
+    metaDescription: 'Convert legacy BMP images (and TIFF in Safari) to universal JPEG format in your browser. Shrink scans by up to 95% with local local processing.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'converter',

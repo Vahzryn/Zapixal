@@ -53,9 +53,9 @@ export function AboutPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
-              <Globe className="w-5 h-5 text-blue-500" /> Offline Capable
+              <Globe className="w-5 h-5 text-blue-500" /> Client-Side Processing
             </h3>
-            <p className="text-sm">Once loaded, you can disconnect from the internet and continue converting files completely offline.</p>
+            <p className="text-sm">Once loaded in your browser, image conversion and compression run locally inside client memory.</p>
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">

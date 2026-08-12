@@ -1,7 +1,0 @@
---- src/components/FooterLinkHub.tsx
-+++ src/components/FooterLinkHub.tsx
-@@ -216,3 +216,4 @@
-           <div className="flex items-center gap-3 text-center sm:text-left">
-             <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>
-           </div>
-+        </div>

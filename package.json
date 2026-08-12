@@ -7,7 +7,7 @@
   "keywords": [
     "image-converter",
     "image-compressor",
-    "offline-converter",
+    "local-converter",
     "heic-to-jpg",
     "privacy-first"
   ],
@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts"
+    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts && tsx scripts/test-feedback.ts"
   },
   "dependencies": {
     "@jsquash/avif": "^2.1.1",

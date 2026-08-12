@@ -35,7 +35,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       path,
       h1Title: 'Convert HEIC to JPG Locally on Your Device',
       metaTitle: 'Convert HEIC to JPG Locally — Free Browser Tool',
-      metaDescription: 'Convert Apple HEIC photos to JPEG without server uploads. WASM iPhone local decoder ensures offline security and color fidelity.',
+      metaDescription: 'Convert Apple HEIC photos to JPEG without server uploads. WASM iPhone local decoder ensures local security and color fidelity.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'converter',

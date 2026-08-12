@@ -66,7 +66,7 @@ export function HeaderNavbar({
                   Zapixal
                 </span>
                 <span className="mt-1 hidden text-[11px] font-semibold text-neutral-500 dark:text-[#9aa0a6] lg:block">
-                  Offline image converter & compressor
+                  Local image converter & compressor
                 </span>
               </span>
             </button>
@@ -82,7 +82,7 @@ export function HeaderNavbar({
             {isOffline ? (
               <>
                 <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span>Ready offline</span>
+                <span>Local processing ready</span>
               </>
             ) : (
               <>

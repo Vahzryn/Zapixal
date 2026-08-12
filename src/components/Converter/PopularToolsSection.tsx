@@ -30,7 +30,7 @@ export const FEATURED_HOMEPAGE_TOOLS: ToolLinkItem[] = [
   {
     name: 'HEIC to JPG Converter',
     path: '/convert-heic-to-jpg-locally',
-    desc: 'Convert iPhone HEIC photos to universal JPG format completely offline.',
+    desc: 'Convert iPhone HEIC photos to universal JPG format locally in browser.',
     badge: 'HEIC -> JPG',
     category: 'convert'
   },

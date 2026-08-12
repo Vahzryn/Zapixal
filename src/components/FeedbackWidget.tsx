@@ -142,14 +142,13 @@ export function FeedbackWidget({
       });
 
       if (!response.ok) {
-        // Fallback for dev mode / static previews where local API route is unhosted
-        console.warn('Feedback API response not 200, completing locally.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to submit feedback.');
       }
 
       setStep('success');
-    } catch {
-      // Offline or preview fallback
-      setStep('success');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Network error. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }

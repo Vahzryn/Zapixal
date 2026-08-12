@@ -31,7 +31,7 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
   },
   {
     path: '/bulk-image-compressor-offline',
-    label: 'Bulk Offline Image Compressor',
+    label: 'Bulk Local Image Compressor',
     category: 'compression'
   },
   {
@@ -196,7 +196,7 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
   },
   {
     path: '/bulk-heic-to-jpg-converter-offline',
-    label: 'Bulk HEIC to JPG (Offline)',
+    label: 'Bulk HEIC to JPG (Local)',
     category: 'converter'
   },
   {

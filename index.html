@@ -199,8 +199,7 @@
         "HEIC to JPG/PNG Converter",
         "PNG to WebP/AVIF Batch Compressor",
         "PDF Document Export & Image Merging",
-        "Unlimited Batch File Processing",
-        "Offline Progressive Web App (PWA) Capability"
+        "Adaptive Batch Image Processing"
       ],
       "description": "Zapixal is a 100% free, open-source, client-side WebAssembly batch image converter and compressor. Converts HEIC, PNG, JPG, WebP, AVIF, and PDF locally in browser memory with zero server uploads."
     }
@@ -231,15 +230,15 @@
           "name": "Why is Zapixal better than single-image tools like Squoosh or cloud converters?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Unlike single-file tools like Squoosh or privacy-invading cloud converters that require slow server uploads, Zapixal processes unlimited batch files concurrently with multi-threaded WASM speed, zero queue wait times, and total data privacy."
+            "text": "Unlike single-file tools like Squoosh or privacy-invading cloud converters that require slow server uploads, Zapixal processes high-volume batch files concurrently with multi-threaded WASM speed, zero queue wait times, and total data privacy."
           }
         },
         {
           "@type": "Question",
-          "name": "Does Zapixal work offline?",
+          "name": "Does Zapixal work completely locally?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Zapixal is an offline-capable Progressive Web App (PWA). Once loaded in your browser, you can convert and compress images without an active internet connection."
+            "text": "Yes. Zapixal processes all images directly in your browser using local WebAssembly. No files are ever sent to a remote server."
           }
         }
       ]
@@ -252,7 +251,7 @@
     {
       "@context": "https://schema.org",
       "@type": "HowTo",
-      "name": "How to Batch Convert and Compress Images Offline",
+      "name": "How to Batch Convert and Compress Images Locally",
       "description": "Learn how to easily convert HEIC, PNG, JPG, and WebP images locally in your browser using Zapixal's client-side converter without uploading any files to a server.",
       "totalTime": "PT1M",
       "step": [

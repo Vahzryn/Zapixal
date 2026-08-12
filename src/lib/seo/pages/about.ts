@@ -14,6 +14,6 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     pageCategory: 'use-case',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }],
     guideContent: { badge: '', section1Title: '', section1Body: '', section2Title: '', section2Body: '', steps: [], faqs: [] },
-    jsonLd: generateJsonLdSchemas('About Zapixal', 'About Zapixal offline image converter.', fullUrl, [], [{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }], 'legal')
+    jsonLd: generateJsonLdSchemas('About Zapixal', 'About Zapixal local image converter.', fullUrl, [], [{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }], 'legal')
   };
 }

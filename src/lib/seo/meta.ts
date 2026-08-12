@@ -56,7 +56,7 @@ const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (fullUrl: string,
 export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: string }>> = {
   '/client-side-private-image-compressor': [
     { path: '/ai-image-compressor-online-private', label: 'Adaptive Image Compressor' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
     { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
     { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
   ],
@@ -177,7 +177,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
   '/compress-image-for-email-attachment-limit': [
     { path: '/reduce-image-size-to-1mb-online', label: 'Reduce Size to 1MB' },
     { path: '/compress-image-to-200kb-online', label: 'Compress to 200KB' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
     { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
   ],
   '/convert-jpg-to-webp-browser': [
@@ -201,7 +201,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
   '/bulk-image-resizer-ecommerce-catalog': [
     { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
     { path: '/etsy-image-resizer-batch-optimize', label: 'Etsy Image Resizer' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
     { path: '/high-res-image-resizer-client-side', label: 'High-Res Image Resizer' },
   ],
   '/convert-png-to-jpg-white-background': [
@@ -261,7 +261,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
   '/ai-image-compressor-online-private': [
     { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' },
     { path: '/lossless-jpeg-optimizer-exif-preserve', label: 'Lossless JPEG Optimizer' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
     { path: '/compress-png-lossless-webassembly', label: 'Lossless PNG Compressor' },
   ],
   '/compress-image-to-100kb-online': [
@@ -279,7 +279,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
   '/bulk-heic-to-jpg-converter-offline': [
     { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG Locally' },
     { path: '/convert-hdr-heic-to-png-transparency', label: 'iPhone HEIC to PNG' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
     { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
   ],
   '/discord-avatar-compressor-pfp-size': [
@@ -292,7 +292,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/compress-image-to-200kb-online', label: 'Compress to 200KB' },
     { path: '/compress-image-for-email-attachment-limit', label: 'Compress for Email' },
     { path: '/compress-image-to-100kb-online', label: 'Compress to 100KB' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
   ],
   '/etsy-image-resizer-batch-optimize': [
     { path: '/shopify-image-optimizer-bulk-free', label: 'Shopify Image Optimizer' },
@@ -304,7 +304,7 @@ export const RELATED_ROUTES_MAP: Record<string, Array<{ path: string; label: str
     { path: '/compress-pdf-scanned-document-images', label: 'Scanned Document Image Quantizer' },
     { path: '/secure-signature-compressor-pdf', label: 'Signature Compressor' },
     { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG' },
-    { path: '/bulk-image-compressor-offline', label: 'Bulk Offline Compressor' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor' },
   ],
 };
 
@@ -324,6 +324,12 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
       canonicalUrl: `${DOMAIN}/tools`,
       isIndexable: true,
       pageCategory: 'resource',
+      ogImage: {
+        url: `${DOMAIN}/og-images/tools.png`,
+        width: 1200,
+        height: 630,
+        alt: 'All 42 Free Client-Side Image Tools & Converters | Zapixal',
+      },
       breadcrumbs: [
         { name: 'Home', url: '/' },
         { name: 'Tools Directory', url: '/tools' },
@@ -357,6 +363,12 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
         canonicalUrl: `${DOMAIN}/articles`,
         isIndexable: true,
         pageCategory: 'resource',
+        ogImage: {
+          url: `${DOMAIN}/og-images/articles.png`,
+          width: 1200,
+          height: 630,
+          alt: 'Image Optimization & Codec Guides — Zapixal Editorial',
+        },
         breadcrumbs: [
           { name: 'Home', url: '/' },
           { name: 'Articles', url: '/articles' },
@@ -392,6 +404,12 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
         canonicalUrl: catUrl,
         isIndexable: true,
         pageCategory: 'resource',
+        ogImage: {
+          url: `${DOMAIN}/og-images/articles-${categoryInfo.slug}.png`,
+          width: 1200,
+          height: 630,
+          alt: categoryInfo.metaTitle,
+        },
         breadcrumbs: [
           { name: 'Home', url: '/' },
           { name: 'Articles', url: '/articles' },
@@ -447,6 +465,12 @@ export async function parseSeoRoute(pathname: string): Promise<SeoRouteData> {
         canonicalUrl: artUrl,
         isIndexable: true,
         pageCategory: 'resource',
+        ogImage: {
+          url: `${DOMAIN}/og-images/articles-${article.slug}.png`,
+          width: 1200,
+          height: 630,
+          alt: article.metaTitle,
+        },
         breadcrumbs: articleBreadcrumbs,
         relatedRoutes: article.relatedTools,
         jsonLd: articleJsonLd,

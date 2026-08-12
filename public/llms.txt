@@ -1,8 +1,8 @@
 # Zapixal
 
-> Zapixal is a free, 100% browser-local image converter and compressor operating entirely client-side via WebAssembly and Canvas API. Zero server uploads, unlimited batch file processing, and EXIF metadata stripping.
+> Zapixal is a free, 100% browser-local image converter and compressor operating entirely client-side via WebAssembly and Canvas API. Zero server uploads, adaptive batch file processing, and EXIF metadata stripping.
 
-Zapixal processes images fully offline inside browser memory to preserve maximum user privacy and zero data leakage.
+Zapixal processes images fully locally inside browser memory to preserve maximum user privacy and zero data leakage.
 
 ## Core Features
 - [HEIC to JPG](/convert-heic-to-jpg-locally): Convert HEIC files to JPG format locally in browser.

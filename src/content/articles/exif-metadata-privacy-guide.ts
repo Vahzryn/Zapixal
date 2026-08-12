@@ -80,7 +80,7 @@ export const articleExifMetadataPrivacyGuide: Article = {
     },
     {
       type: 'paragraph',
-      text: 'By loading the image onto an isolated HTML5 Canvas or stripping the APP1 metadata marker bytes from the file stream directly in browser RAM, Zapixal outputs clean image files containing zero location or camera telemetry—completely offline.',
+      text: 'By loading the image onto an isolated HTML5 Canvas or stripping the APP1 metadata marker bytes from the file stream directly in browser RAM, Zapixal outputs clean image files containing zero location or camera telemetry—processed entirely client-side.',
     },
     {
       type: 'toolCallout',

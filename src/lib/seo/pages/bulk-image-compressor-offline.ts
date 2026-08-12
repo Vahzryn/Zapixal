@@ -8,7 +8,7 @@ function makeFaq(question: string, answer: string) {
   return { question, answer };
 }
 
-export function getBulkCompressOfflineContent(): RouteEditorialContent {
+export function getBulkCompresslocalContent(): RouteEditorialContent {
   return {
     badge: 'Multithreaded Local Engine',
     section1Title: 'Overcoming batch processing bottlenecks in high-volume workflows',
@@ -21,7 +21,7 @@ export function getBulkCompressOfflineContent(): RouteEditorialContent {
       'Monitor real-time parallel worker progress and export all assets in a single zip or direct save.'
     ],
     faqs: [
-      makeFaq('Does bulk compressing offline consume my internet bandwidth?', 'Not a single kilobyte. All processing happens locally on your computer’s processor, meaning you can compress hundreds of photos even when completely offline without internet access.'),
+      makeFaq('Does bulk compressing local consume my internet bandwidth?', 'Not a single kilobyte. All processing happens locally on your computer’s processor, meaning you can compress hundreds of photos even when completely local without internet access.'),
       makeFaq('How does Zapixal handle multi-core CPUs during batch jobs?', 'Our worker pool automatically detects your hardware thread count (e.g., 4, 8, or 16 cores) and distributes files across isolated Web Workers to maximize throughput without freezing your screen.'),
       makeFaq('Can I bulk compress different file types at the same time?', 'Yes. You can mix PNG, JPEG, WebP, and HEIC files in the same queue and convert them all to a uniform target format or apply format-specific rules per item.')
     ]
@@ -30,23 +30,23 @@ export function getBulkCompressOfflineContent(): RouteEditorialContent {
 
 export function getPageSeo(fullUrl: string): SeoRouteData {
   const path = '/bulk-image-compressor-offline';
-  const guideContent = getBulkCompressOfflineContent();
+  const guideContent = getBulkCompresslocalContent();
     return {
       path,
       h1Title: 'Multithreaded Client-Side Batch Compression for High-Volume Workflows',
-      metaTitle: 'Bulk Image Compressor — Offline Multithreaded Tool',
-      metaDescription: 'Batch compress hundreds of images simultaneously using Web Workers and WASM. Offline-ready, multithreaded, zero server limits.',
+      metaTitle: 'Bulk Image Compressor — local Multithreaded Tool',
+      metaDescription: 'Batch compress hundreds of images simultaneously using Web Workers and WASM. local-ready, multithreaded, zero server limits.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'compression',
-      breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Bulk Offline Compressor', url: path }],
+      breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Bulk local Compressor', url: path }],
       guideContent,
       jsonLd: generateJsonLdSchemas(
         'Multithreaded Client-Side Batch Compression for High-Volume Workflows',
         'Batch compress hundreds of images simultaneously using Web Workers and WASM locally in browser memory.',
         fullUrl,
         guideContent.faqs,
-        [{ name: 'Home', url: '/' }, { name: 'Bulk Offline Compressor', url: path }],
+        [{ name: 'Home', url: '/' }, { name: 'Bulk local Compressor', url: path }],
         'compression',
         guideContent.steps
       )

@@ -13,7 +13,7 @@ export function useShareActions({ files }: UseShareActionsOptions) {
     const shareUrl = "https://www.zapixal.com";
     const sharePayload = {
       title: "Zapixal - Fast & Private Image Converter",
-      text: "Check out Zapixal! Free batch image converter that works offline.",
+      text: "Check out Zapixal! Free batch image converter that processes files locally.",
       url: shareUrl,
     };
 

@@ -159,7 +159,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
               </li>
               <li>
                 <a href="/bulk-image-compressor-offline" onClick={(e) => handleClick(e, '/bulk-image-compressor-offline')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  Bulk Offline Image Compressor
+                  Bulk Local Image Compressor
                 </a>
               </li>
               <li>
@@ -209,7 +209,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & PWA */}
+        {/* Bottom Bar: Copyright */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400 font-sans">
           <div className="flex items-center gap-3 text-center sm:text-left">
             <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>

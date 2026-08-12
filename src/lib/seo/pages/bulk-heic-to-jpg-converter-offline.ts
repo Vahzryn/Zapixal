@@ -20,7 +20,7 @@ export function getBulkHeicContent(): RouteEditorialContent {
     ],
     faqs: [
       makeFaq('Can I convert 100+ HEIC files at once?', 'Yes. Zapixal is designed for high-throughput bulk processing. We utilize Web Workers to process multiple files concurrently using your local hardware.'),
-      makeFaq('Why use an offline converter for HEIC?', 'Speed and privacy. Offline conversion avoids the slow process of uploading large HEIC files to a server and keeps your personal photos strictly on your own device.'),
+      makeFaq('Why use an local converter for HEIC?', 'Speed and privacy. local conversion avoids the slow process of uploading large HEIC files to a server and keeps your personal photos strictly on your own device.'),
       makeFaq('Will my iPhone photos lose quality when converted to JPG?', 'HEIC is a highly efficient format. When converting to JPG, there is a minor re-encoding pass, but Zapixal uses high-quality MozJPEG settings to ensure the visual difference is imperceptible.')
     ]
   };
@@ -31,8 +31,8 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   const guideContent = getBulkHeicContent();
   return {
     path,
-    h1Title: 'Bulk HEIC to JPG Converter: Fast, Private & Offline Batching',
-    metaTitle: 'Bulk HEIC to JPG Converter — Fast Offline Batching',
+    h1Title: 'Bulk HEIC to JPG Converter: Fast, Private & local Batching',
+    metaTitle: 'Bulk HEIC to JPG Converter — Fast local Batching',
     metaDescription: 'Convert entire folders of iPhone HEIC photos to JPG instantly. Parallel multi-core processing running 100% locally in your browser. No uploads, total privacy.',
     canonicalUrl: fullUrl,
     isIndexable: true,
