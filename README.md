@@ -85,6 +85,14 @@ Zapixal is designed for static deployment on platforms such as Cloudflare Pages.
 
 The production build generates the static application and required SEO assets.
 
-License
+## License
 
-See the repository license for usage terms.
+Copyright © 2026 Zapixal. All rights reserved.
+
+Zapixal is proprietary software. The source code is provided publicly for
+transparency and reference, but no permission is granted to copy, modify,
+redistribute, or commercially reuse the software without written permission.
+
+Third-party dependencies are distributed under their respective licenses.
+
+For permissions or commercial licensing inquiries, contact the Zapixal owner.
