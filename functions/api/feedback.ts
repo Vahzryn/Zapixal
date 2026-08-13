@@ -345,19 +345,27 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       { name: 'Category', value: sanitizeMentions(category || (isPositive ? 'General Praise' : 'Unspecified')), inline: true },
     ];
 
-    if (diagnostics?.currentRoute) {
-      fields.push({ name: 'Route', value: `\`${sanitizeMentions(diagnostics.currentRoute)}\``, inline: true });
-    }
+    if (diagnostics) {
+      const diagLines = [];
+      diagLines.push(`Browser: ${diagnostics.browserName || 'Unknown'} on ${diagnostics.osName || 'Unknown'}`);
+      diagLines.push(`User Agent: ${diagnostics.userAgent || 'Unknown'}`);
+      diagLines.push(`Screen: ${diagnostics.screenWidth}x${diagnostics.screenHeight}, Viewport: ${diagnostics.viewportWidth}x${diagnostics.viewportHeight}, DPR: ${diagnostics.devicePixelRatio}`);
+      if (diagnostics.deviceMemoryGb) diagLines.push(`RAM: ${diagnostics.deviceMemoryGb}GB`);
+      if (diagnostics.cpuCores) diagLines.push(`CPU Cores: ${diagnostics.cpuCores}`);
+      diagLines.push(`Language: ${diagnostics.language} | Timezone: ${diagnostics.timezone}`);
+      diagLines.push(`Route: ${diagnostics.currentRoute} | Tool: ${diagnostics.currentToolName}`);
+      diagLines.push(`Queue: ${diagnostics.fileCount} files | Format: ${diagnostics.targetFormat} | Max KB: ${diagnostics.targetMaxKB || 'N/A'} | Quality: ${diagnostics.quality}`);
+      diagLines.push(`Errors: ${diagnostics.hasErrors ? 'Yes' : 'No'}${diagnostics.stalledMessage ? ` | Stalled: ${diagnostics.stalledMessage}` : ''}`);
+      diagLines.push(`App Version: ${diagnostics.appVersion} | Client-side: ${diagnostics.isClientSideOnly} | Timestamp: ${diagnostics.timestamp}`);
 
-    if (diagnostics?.browserName) {
-      fields.push({ name: 'Environment', value: `${diagnostics.browserName} on ${diagnostics.osName} (${diagnostics.viewportWidth}x${diagnostics.viewportHeight})`, inline: false });
-    }
+      const diagStr = diagLines.map(line => sanitizeMentions(line)).join('\n');
+      // Truncate just in case it exceeds 1010 chars, Discord limit is 1024 for field value
+      const safeDiagStr = diagStr.length > 1000 ? diagStr.substring(0, 1000) + '...' : diagStr;
 
-    if (diagnostics?.fileCount !== undefined) {
-      fields.push({ 
-        name: 'Queue Specs', 
-        value: `Files: ${diagnostics.fileCount} | Target Format: ${diagnostics.targetFormat}${diagnostics.targetMaxKB ? ` (${diagnostics.targetMaxKB}KB target)` : ''}`, 
-        inline: false 
+      fields.push({
+        name: 'Technical Diagnostics',
+        value: `\`\`\`\n${safeDiagStr}\n\`\`\``,
+        inline: false
       });
     }
 

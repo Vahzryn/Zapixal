@@ -117,6 +117,13 @@ export const CompleteView = React.memo<CompleteViewProps>(function CompleteView(
           {isCopiedShareLink ? <Check className="w-5 h-5 text-emerald-600" /> : <Share2 className="w-5 h-5" />}
           {isCopiedShareLink ? 'Link Copied!' : 'Share App'}
         </button>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('zapixal-open-feedback'))}
+          className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-neutral-700 dark:text-[#e8eaed] bg-white dark:bg-[#303134] hover:bg-neutral-50 border border-neutral-200 dark:border-[#3c4043] rounded-2xl shadow-sm active:scale-95 transition-all"
+        >
+          <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M14.8 9A2 2 0 0 0 11 9.5v.5h-2"></path><path d="M11 9.5A2 2 0 0 0 7.2 9"></path><path d="M7.2 9c-1 1-1 3.5 1 5.5l2.8 2.8 2.8-2.8c2-2 2-4.5 1-5.5"></path></svg>
+          Submit Feedback
+        </button>
       </div>
       
       <button

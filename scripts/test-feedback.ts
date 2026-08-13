@@ -35,6 +35,22 @@ async function main() {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options) => {
     if (typeof url === 'string' && url.includes('discord.com/api/webhooks')) {
+      if (options?.body instanceof FormData) {
+        const payloadJsonStr = options.body.get('payload_json') as string;
+        if (payloadJsonStr) {
+          const payload = JSON.parse(payloadJsonStr);
+          const fields = payload.embeds?.[0]?.fields || [];
+          
+          // Verify that if diagnostics were sent in the mock (via specific category), it's formatted as Technical Diagnostics
+          if (payload.embeds?.[0]?.description?.includes('TestDiagDelivery')) {
+             const hasTechDiag = fields.some((f: any) => f.name === 'Technical Diagnostics' && f.value.includes('Browser:') && f.value.includes('Screen:'));
+             if (!hasTechDiag) {
+               return new Response('Diagnostics Missing', { status: 400 });
+             }
+          }
+        }
+      }
+
       if (url.includes('fail-webhook')) {
         return new Response('Not Found', { status: 404 });
       }
@@ -232,6 +248,13 @@ async function main() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Origin': 'https://zapixal.com' },
     body: JSON.stringify({ isHelpful: true, category: 'UI', message: 'Nice design', diagnostics: diag })
+  }), envWithWebhook, 200);
+
+  // Test diagnostics delivery path in Discord webhook payload
+  await assertStatus('Diagnostics correctly formats into Technical Diagnostics embed field', new Request('http://localhost:3000/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Origin': 'https://zapixal.com' },
+    body: JSON.stringify({ isHelpful: true, category: 'Bug', message: 'TestDiagDelivery', diagnostics: diag })
   }), envWithWebhook, 200);
 
   globalThis.fetch = originalFetch;

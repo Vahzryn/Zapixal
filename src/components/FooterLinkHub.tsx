@@ -194,7 +194,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
               </li>
               <li>
                 <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  Open Source Code (GitHub)
+                  GitHub Repository
                 </a>
               </li>
               <li>

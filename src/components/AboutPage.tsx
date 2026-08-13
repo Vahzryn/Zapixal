@@ -59,9 +59,9 @@ export function AboutPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
-              <Github className="w-5 h-5 text-neutral-800 dark:text-white" /> Open Source
+              <Github className="w-5 h-5 text-neutral-800 dark:text-white" /> GitHub Repository
             </h3>
-            <p className="text-sm">Review our code, contribute, or run it locally. We are proud to be transparent.</p>
+            <p className="text-sm">Review our public codebase or run it locally. We are proud to be transparent.</p>
           </div>
         </div>
       </div>
