@@ -1,0 +1,341 @@
+export interface ToolDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: 'images' | 'documents' | 'developer' | 'text' | 'utilities';
+  route: string;
+  status: 'active' | 'partial' | 'planned' | 'deprecated' | 'alias' | 'internal';
+  indexable: boolean;
+  capabilities: string[];
+  searchIntents: string[];
+  relatedTools: string[];
+  featured: boolean;
+}
+
+export const TOOL_REGISTRY: ToolDefinition[] = [
+  {
+    id: 'client-side-private-image-compressor',
+    name: 'Client-Side Private Image Compressor',
+    description: 'Compress PNG, JPEG, WebP and AVIF images locally in browser memory using WebAssembly.',
+    category: 'images',
+    route: '/client-side-private-image-compressor',
+    status: 'active',
+    indexable: true,
+    capabilities: ['compression', 'wasm', 'batch'],
+    searchIntents: ['compress image offline', 'private image compressor', 'wasm jpeg compressor'],
+    relatedTools: ['bulk-image-compressor-offline', 'compress-png-images-online', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'convert-heic-to-jpg-locally',
+    name: 'Convert HEIC to JPG Locally',
+    description: 'Decode iPhone HEIC and HEIF photos locally in browser memory and convert them to standard JPEG.',
+    category: 'images',
+    route: '/convert-heic-to-jpg-locally',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'heic', 'batch'],
+    searchIntents: ['convert heic to jpg', 'heic viewer offline', 'apple heic converter'],
+    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-image-to-exact-size-kb'],
+    featured: true
+  },
+  {
+    id: 'strip-exif-metadata-online-private',
+    name: 'Strip EXIF Metadata Privately',
+    description: 'Remove sensitive GPS coordinates, camera models, and timestamps from image files locally.',
+    category: 'images',
+    route: '/strip-exif-metadata-online-private',
+    status: 'active',
+    indexable: true,
+    capabilities: ['privacy', 'metadata', 'exif'],
+    searchIntents: ['remove exif metadata', 'strip image location online', 'privacy metadata cleaner'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'bulk-image-compressor-offline',
+    name: 'Bulk Local Image Compressor',
+    description: 'Compress and optimize dozens or hundreds of images simultaneously in browser memory.',
+    category: 'images',
+    route: '/bulk-image-compressor-offline',
+    status: 'active',
+    indexable: true,
+    capabilities: ['batch', 'compression', 'zip'],
+    searchIntents: ['bulk image compressor', 'batch resize images offline', 'multiple image optimizer'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'compress-png-images-online',
+    name: 'Lossless WebAssembly PNG Compressor',
+    description: 'Optimize PNG files with advanced WebAssembly quantizers for maximum size reduction.',
+    category: 'images',
+    route: '/compress-png-images-online',
+    status: 'active',
+    indexable: true,
+    capabilities: ['compression', 'png', 'wasm'],
+    searchIntents: ['compress png lossless', 'png quantizer online', 'shrink png size'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-webp-to-png-transparent',
+    name: 'Convert WebP to PNG (Alpha Intact)',
+    description: 'Convert WebP images to standard PNG format while preserving alpha channel transparency.',
+    category: 'images',
+    route: '/convert-webp-to-png-transparent',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'webp', 'png'],
+    searchIntents: ['convert webp to png', 'transparent webp converter'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-avif-to-jpg-converter',
+    name: 'Convert AVIF to JPG Converter',
+    description: 'Decode AVIF image files and convert them to widely compatible JPEG format locally.',
+    category: 'images',
+    route: '/convert-avif-to-jpg-converter',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'avif', 'jpg'],
+    searchIntents: ['convert avif to jpg', 'avif decoder online'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-svg-to-png-transparent',
+    name: 'Convert SVG to High-Res PNG',
+    description: 'Rasterize vector SVG files into high-resolution PNG images with transparent backgrounds.',
+    category: 'images',
+    route: '/convert-svg-to-png-transparent',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'svg', 'rasterize'],
+    searchIntents: ['convert svg to png', 'vector to raster online'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-png-to-webp-lossless',
+    name: 'Convert PNG to Lossless WebP',
+    description: 'Convert heavy PNG graphics into modern WebP format with lossless compression.',
+    category: 'images',
+    route: '/convert-png-to-webp-lossless',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'png', 'webp'],
+    searchIntents: ['convert png to webp', 'lossless webp encoder'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'crop-image-to-exact-aspect-ratio',
+    name: 'Crop Image to Custom Aspect Ratio',
+    description: 'Crop images precisely to square, 16:9, 4:3, or custom dimensions client-side.',
+    category: 'images',
+    route: '/crop-image-to-exact-aspect-ratio',
+    status: 'active',
+    indexable: true,
+    capabilities: ['crop', 'editing', 'resize'],
+    searchIntents: ['crop image aspect ratio', 'square photo cropper online'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'add-text-watermark-image-browser',
+    name: 'Apply Text Watermark Client-Side',
+    description: 'Overlay custom text watermarks onto your image files securely in browser memory.',
+    category: 'images',
+    route: '/add-text-watermark-image-browser',
+    status: 'active',
+    indexable: true,
+    capabilities: ['watermark', 'editing', 'security'],
+    searchIntents: ['add text watermark to image', 'watermark photos offline'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-tiff-bmp-to-jpg',
+    name: 'Convert TIFF & BMP to JPG',
+    description: 'Convert legacy TIFF and BMP raster images into standard JPEG format.',
+    category: 'images',
+    route: '/convert-tiff-bmp-to-jpg',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'tiff', 'bmp'],
+    searchIntents: ['convert tiff to jpg', 'bmp converter online'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'dpi-ppi-converter-change-image-resolution',
+    name: 'Change Image DPI & PPI for Print',
+    description: 'Adjust image resolution metadata (DPI/PPI) for printing and document submission.',
+    category: 'images',
+    route: '/dpi-ppi-converter-change-image-resolution',
+    status: 'active',
+    indexable: true,
+    capabilities: ['resolution', 'dpi', 'print'],
+    searchIntents: ['change image dpi online', 'ppi resizer tool'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-jpg-to-webp-browser',
+    name: 'Convert JPG to WebP in Browser',
+    description: 'Convert standard JPEG photos to high-compression WebP format.',
+    category: 'images',
+    route: '/convert-jpg-to-webp-browser',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'jpg', 'webp'],
+    searchIntents: ['convert jpg to webp', 'jpeg to webp converter'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'compress-image-to-exact-size-kb',
+    name: 'Exact Size Image Compressor (KB)',
+    description: 'Compress images precisely to target file sizes in kilobytes (e.g. 50KB, 100KB, 200KB).',
+    category: 'images',
+    route: '/compress-image-to-exact-size-kb',
+    status: 'active',
+    indexable: true,
+    capabilities: ['compression', 'target-size', 'kb'],
+    searchIntents: ['compress image to kb', 'shrink photo to 100kb', 'image size reducer kb'],
+    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-image-to-exact-size-kb'],
+    featured: true
+  },
+  {
+    id: 'convert-ico-to-png-favicon-extractor',
+    name: 'Extract ICO Favicon to PNG',
+    description: 'Extract multi-resolution ICO icon files into individual transparent PNG images.',
+    category: 'images',
+    route: '/convert-ico-to-png-favicon-extractor',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'ico', 'favicon'],
+    searchIntents: ['convert ico to png', 'extract favicon online'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-png-to-jpg-white-background',
+    name: 'Convert PNG to JPG (White Fill)',
+    description: 'Flatten transparent PNG images onto a clean white background and convert to JPEG.',
+    category: 'images',
+    route: '/convert-png-to-jpg-white-background',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'png', 'jpg', 'flatten'],
+    searchIntents: ['convert png to jpg white background', 'remove transparency jpeg'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'blur-sensitive-image-privacy-pixelator',
+    name: 'Blur & Pixelate Sensitive Info',
+    description: 'Obscure sensitive text, faces, or personal data on images locally before sharing.',
+    category: 'images',
+    route: '/blur-sensitive-image-privacy-pixelator',
+    status: 'active',
+    indexable: true,
+    capabilities: ['privacy', 'blur', 'pixelate'],
+    searchIntents: ['blur sensitive image data', 'pixelate face online private'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'convert-to-avif-online-free',
+    name: 'Convert Images to AVIF Format',
+    description: 'Encode JPEG and PNG images into modern AVIF format with superior compression.',
+    category: 'images',
+    route: '/convert-to-avif-online-free',
+    status: 'active',
+    indexable: true,
+    capabilities: ['conversion', 'avif', 'compression'],
+    searchIntents: ['convert to avif online', 'image to avif encoder'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  },
+  {
+    id: 'merge-pdf',
+    name: 'Merge PDF Files Online',
+    description: 'Combine multiple PDF documents into a single file securely in your browser with zero server uploads.',
+    category: 'documents',
+    route: '/merge-pdf',
+    status: 'active',
+    indexable: true,
+    capabilities: ['pdf', 'merge', 'offline'],
+    searchIntents: ['merge pdf files online', 'combine pdfs offline', 'join pdf documents free'],
+    relatedTools: ['split-pdf', 'convert-pdf-pages-to-jpg-images', 'secure-document-compressor-pdf', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'split-pdf',
+    name: 'Split PDF Pages Online Free',
+    description: 'Extract specific pages or page ranges from PDF files instantly in your browser.',
+    category: 'documents',
+    route: '/split-pdf',
+    status: 'active',
+    indexable: true,
+    capabilities: ['pdf', 'split', 'extraction'],
+    searchIntents: ['split pdf pages online', 'extract pdf pages offline', 'pdf page separator'],
+    relatedTools: ['merge-pdf', 'convert-pdf-pages-to-jpg-images', 'secure-document-compressor-pdf', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'convert-pdf-pages-to-jpg-images',
+    name: 'Extract PDF Pages to JPG Images',
+    description: 'Render PDF document pages into high-resolution JPG images locally in browser memory.',
+    category: 'documents',
+    route: '/convert-pdf-pages-to-jpg-images',
+    status: 'active',
+    indexable: true,
+    capabilities: ['pdf', 'conversion', 'extraction'],
+    searchIntents: ['convert pdf pages to jpg', 'extract images from pdf offline'],
+    relatedTools: ['merge-pdf', 'split-pdf', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'secure-document-compressor-pdf',
+    name: 'Secure Document Compressor (PDF)',
+    description: 'Optimize PDF files locally in your browser with privacy guarantees.',
+    category: 'documents',
+    route: '/secure-document-compressor-pdf',
+    status: 'active',
+    indexable: true,
+    capabilities: ['pdf', 'compression', 'security'],
+    searchIntents: ['compress pdf offline', 'secure document compressor'],
+    relatedTools: ['merge-pdf', 'split-pdf', 'convert-pdf-pages-to-jpg-images', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'client-side-image-to-base64',
+    name: 'Client-Side Image to Base64 Encoder',
+    description: 'Encode images into Base64 data URIs instantly for web development and CSS embedding.',
+    category: 'developer',
+    route: '/client-side-image-to-base64',
+    status: 'active',
+    indexable: true,
+    capabilities: ['developer', 'base64', 'encoding'],
+    searchIntents: ['image to base64 converter', 'encode image data uri'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: true
+  },
+  {
+    id: 'palette-color-extractor-image-hex',
+    name: 'Image Color Palette Extractor (HEX)',
+    description: 'Extract dominant color palettes and HEX codes from any image instantly.',
+    category: 'utilities',
+    route: '/palette-color-extractor-image-hex',
+    status: 'active',
+    indexable: true,
+    capabilities: ['design', 'colors', 'palette'],
+    searchIntents: ['extract color palette from image', 'image color hex picker'],
+    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    featured: false
+  }
+];

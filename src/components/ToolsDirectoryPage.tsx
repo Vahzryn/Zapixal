@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Breadcrumbs } from './Breadcrumbs';
-import { PSEO_ROUTES_LIST, SeoRouteItem } from '../lib/seo/routes';
+import { TOOL_REGISTRY, ToolDefinition } from '../lib/toolRegistry';
 import { 
   Zap, 
   Sliders, 
@@ -11,14 +11,16 @@ import {
   Cpu, 
   Layers, 
   Grid,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Code
 } from 'lucide-react';
 
 interface ToolsDirectoryPageProps {
   onNavigate: (path: string) => void;
 }
 
-type CategoryKey = 'all' | 'compression' | 'converter' | 'use-case' | 'resource';
+type CategoryKey = 'all' | 'images' | 'documents' | 'developer' | 'utilities';
 
 interface CategoryMeta {
   key: CategoryKey;
@@ -33,35 +35,35 @@ const CATEGORY_DEFINITIONS: Record<CategoryKey, CategoryMeta> = {
     key: 'all',
     title: 'All Tools',
     badge: 'Directory',
-    description: 'Complete collection of 42 client-side WebAssembly image processing tools.',
+    description: 'Complete collection of secure, offline-first browser utilities.',
     icon: Grid,
   },
-  converter: {
-    key: 'converter',
-    title: 'Format Converters',
-    badge: 'Codecs',
-    description: 'Convert between HEIC, WebP, AVIF, PNG, JPG, SVG, ICO, TIFF, BMP, and PDF.',
+  images: {
+    key: 'images',
+    title: 'Image Tools',
+    badge: 'Optimization & Codecs',
+    description: 'Compress, convert, resize, crop, and strip metadata from image files locally.',
     icon: FileImage,
   },
-  compression: {
-    key: 'compression',
-    title: 'Image Compression',
-    badge: 'Optimization',
-    description: 'Shrink file sizes to strict KB targets with WebAssembly quantizers.',
-    icon: Zap,
+  documents: {
+    key: 'documents',
+    title: 'PDF & Documents',
+    badge: 'Local Documents',
+    description: 'Extract PDF pages, render images, and compress documents in browser memory.',
+    icon: FileText,
   },
-  'use-case': {
-    key: 'use-case',
-    title: 'Workflows & Resizers',
-    badge: 'Specialty',
-    description: 'Tailored tools for job forms, passports, e-commerce, social media, and PDFs.',
-    icon: Sliders,
+  developer: {
+    key: 'developer',
+    title: 'Developer Tools',
+    badge: 'Code & Encoding',
+    description: 'Encode images to Base64 data URIs and inspect data securely offline.',
+    icon: Code,
   },
-  resource: {
-    key: 'resource',
-    title: 'Utilities & Metadata',
-    badge: 'Privacy & Dev',
-    description: 'Strip EXIF geolocation tags, encode Base64 arrays, and extract color palettes.',
+  utilities: {
+    key: 'utilities',
+    title: 'Utilities & Design',
+    badge: 'Color & Analysis',
+    description: 'Extract color palettes, analyze HEX codes, and manage visual assets.',
     icon: ShieldCheck,
   },
 };
@@ -76,27 +78,28 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
   ];
 
   const filteredTools = useMemo(() => {
-    return PSEO_ROUTES_LIST.filter((tool) => {
+    return TOOL_REGISTRY.filter((tool) => {
       const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
       const query = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !query ||
-        tool.label.toLowerCase().includes(query) ||
-        tool.path.toLowerCase().includes(query) ||
-        tool.category.toLowerCase().includes(query);
+        tool.name.toLowerCase().includes(query) ||
+        tool.description.toLowerCase().includes(query) ||
+        tool.route.toLowerCase().includes(query) ||
+        tool.searchIntents.some(intent => intent.toLowerCase().includes(query));
       return matchesCategory && matchesSearch;
     });
   }, [selectedCategory, searchQuery]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CategoryKey, number> = {
-      all: PSEO_ROUTES_LIST.length,
-      compression: 0,
-      converter: 0,
-      'use-case': 0,
-      resource: 0,
+      all: TOOL_REGISTRY.length,
+      images: 0,
+      documents: 0,
+      developer: 0,
+      utilities: 0,
     };
-    PSEO_ROUTES_LIST.forEach((t) => {
+    TOOL_REGISTRY.forEach((t) => {
       if (counts[t.category as CategoryKey] !== undefined) {
         counts[t.category as CategoryKey]++;
       }
@@ -111,19 +114,19 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
         <Breadcrumbs items={breadcrumbs} onNavigate={onNavigate} />
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100/80 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
           <Grid className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>All 42 Single-Purpose Client-Side Image Tools</span>
+          <span>Multi-Category Client-Side Utility Hub</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-black text-neutral-900 dark:text-white tracking-tight">
           Zapixal Tools Directory
         </h1>
         <p className="max-w-2xl mx-auto text-xs sm:text-base text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
-          Private, browser-based utilities for image compression, format conversion, metadata editing, and workflow optimization. Zero cloud uploads for image conversions.
+          Private, browser-based utilities for image optimization, PDF document extraction, format conversion, and developer encoding. Zero server uploads for core processing.
         </p>
       </div>
 
       {/* Category Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        {(['converter', 'compression', 'use-case', 'resource'] as CategoryKey[]).map((catKey) => {
+        {(['images', 'documents', 'developer', 'utilities'] as CategoryKey[]).map((catKey) => {
           const cat = CATEGORY_DEFINITIONS[catKey];
           const Icon = cat.icon;
           const isActive = selectedCategory === catKey;
@@ -167,7 +170,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by format, tool name, or task (e.g. HEIC, 100KB, Crop, PDF)..."
+              placeholder="Search by tool name, format, or task (e.g. HEIC, PDF, Base64, Crop)..."
               className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-neutral-50 dark:bg-[#1a1b1e] border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
             {searchQuery && (
@@ -182,7 +185,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
 
           {/* Category Quick Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none shrink-0">
-            {(['all', 'converter', 'compression', 'use-case', 'resource'] as CategoryKey[]).map((catKey) => {
+            {(['all', 'images', 'documents', 'developer', 'utilities'] as CategoryKey[]).map((catKey) => {
               const cat = CATEGORY_DEFINITIONS[catKey];
               const isSelected = selectedCategory === catKey;
               return (
@@ -207,7 +210,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
       <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-            Showing {filteredTools.length} of {PSEO_ROUTES_LIST.length} tools
+            Showing {filteredTools.length} of {TOOL_REGISTRY.length} registered tools
             {selectedCategory !== 'all' && ` in ${CATEGORY_DEFINITIONS[selectedCategory].title}`}
             {searchQuery && ` matching "${searchQuery}"`}
           </span>
@@ -236,22 +239,22 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
               }}
               className="px-4 py-2 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors"
             >
-              View All 42 Tools
+              View All Registered Tools
             </button>
           </div>
         ) : (
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTools.map((tool) => {
-              const catDef = CATEGORY_DEFINITIONS[tool.category as CategoryKey] || CATEGORY_DEFINITIONS.resource;
+              const catDef = CATEGORY_DEFINITIONS[tool.category as CategoryKey] || CATEGORY_DEFINITIONS.images;
               const Icon = catDef.icon;
 
               return (
                 <a
-                  key={tool.path}
-                  href={tool.path}
+                  key={tool.route}
+                  href={tool.route}
                   onClick={(e) => {
                     e.preventDefault();
-                    onNavigate(tool.path);
+                    onNavigate(tool.route);
                   }}
                   className="group p-4 rounded-2xl bg-white dark:bg-[#282a2e] border border-neutral-200/80 dark:border-neutral-700/80 hover:border-blue-400 dark:hover:border-blue-500 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
                 >
@@ -262,13 +265,16 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
                         {catDef.badge}
                       </span>
                       <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[120px]">
-                        {tool.path}
+                        {tool.route}
                       </span>
                     </div>
 
                     <h2 className="text-sm font-black text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
-                      {tool.label}
+                      {tool.name}
                     </h2>
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">
+                      {tool.description}
+                    </p>
                   </div>
 
                   <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
@@ -307,3 +313,4 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
     </div>
   );
 };
+

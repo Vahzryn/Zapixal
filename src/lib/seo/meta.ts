@@ -2,6 +2,7 @@ import { SeoRouteData, getNotFoundSeo } from '../seoEngine';
 import { applySeoToHead } from './head';
 import { getArticleBySlug, getCategoryInfo } from '../../content/articles';
 import { generateArticleJsonLdSchema } from './schema';
+import { TOOL_REGISTRY } from '../toolRegistry';
 
 export { applySeoToHead };
 
@@ -52,6 +53,10 @@ export const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (url: stri
   'convert-to-avif-online-free': () => import('./pages/convert-to-avif-online-free'),
   'compress-image-to-exact-size-kb': () => import('./pages/compress-image-to-exact-size-kb'),
   'convert-pdf-pages-to-jpg-images': () => import('./pages/convert-pdf-pages-to-jpg-images'),
+  'merge-pdf': () => import('./pages/merge-pdf'),
+  'split-pdf': () => import('./pages/split-pdf'),
+  'client-side-image-to-base64': () => import('./pages/client-side-image-to-base64'),
+  'palette-color-extractor-image-hex': () => import('./pages/palette-color-extractor-image-hex'),
   'embed': () => import('./pages/embed'),
   'widget': () => import('./pages/widget'),
   'tools': () => import('./pages/tools'),
@@ -80,8 +85,6 @@ export const ROUTE_ALIASES: Record<string, string> = {
   'convert-hdr-heic-to-png-transparency': 'convert-heic-to-jpg-locally',
   'lossless-jpeg-optimizer-exif-preserve': 'client-side-private-image-compressor',
   'high-res-image-resizer-client-side': 'client-side-private-image-compressor',
-  'client-side-image-to-base64': 'client-side-private-image-compressor',
-  'palette-color-extractor-image-hex': 'client-side-private-image-compressor',
   'ai-image-compressor-online-private': 'client-side-private-image-compressor',
   'compress-animated-gif-size-online': 'client-side-private-image-compressor',
 };
@@ -151,6 +154,41 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
       const module = await PAGE_IMPORTS[key]();
       const targetUrl = `https://zapixal.com${key === 'home' ? '' : `/${key}`}`;
       const seoRes = module.getPageSeo(targetUrl, normalizedPath);
+      
+      const toolData = TOOL_REGISTRY.find(t => t.id === key || t.route === `/${key}`);
+      if (toolData) {
+        // Auto-generate relatedRoutes from TOOL_REGISTRY if not hardcoded (or to override)
+        const relatedRoutes = toolData.relatedTools.map(relId => {
+          const relTool = TOOL_REGISTRY.find(t => t.id === relId);
+          return relTool ? { path: relTool.route, label: relTool.name } : null;
+        }).filter(Boolean) as { path: string; label: string }[];
+
+        // Auto-generate breadcrumbs from TOOL_REGISTRY category
+        const catMap: Record<string, string> = {
+          'images': 'Image Tools',
+          'documents': 'Document Tools',
+          'developer': 'Developer Tools',
+          'text': 'Text Tools',
+          'utilities': 'Utilities'
+        };
+        const catTitle = catMap[toolData.category] || 'Tools';
+        const breadcrumbs = [
+          { name: 'Home', url: '/' },
+          { name: 'Tools', url: '/tools' },
+          { name: catTitle, url: `/tools?category=${toolData.category}` },
+          { name: toolData.name, url: toolData.route }
+        ];
+
+        return { 
+          ...seoRes, 
+          path: normalizedPath,
+          canonicalUrl: targetUrl,
+          isIndexable: !isAlias,
+          relatedRoutes: relatedRoutes.length > 0 ? relatedRoutes : seoRes.relatedRoutes,
+          breadcrumbs: breadcrumbs
+        };
+      }
+
       return { 
         ...seoRes, 
         path: normalizedPath,

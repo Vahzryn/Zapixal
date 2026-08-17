@@ -19,7 +19,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts && tsx scripts/test-feedback.ts"
+    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts && tsx scripts/test-feedback.ts && tsx scripts/test-pdf-split-merge.ts"
   },
   "dependencies": {
     "@jsquash/avif": "^2.1.1",
@@ -33,6 +33,7 @@
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.546.0",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",

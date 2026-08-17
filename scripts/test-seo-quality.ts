@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import { PSEO_ROUTES_LIST } from '../src/lib/seo/routes';
+import { TOOL_REGISTRY } from "../src/lib/toolRegistry";
 import { parseSeoRoute, ROUTE_ALIASES } from '../src/lib/seo/meta';
 import { PSEO_PAGE_BRIEFS } from '../src/lib/seo/briefs';
 import { VERIFIED_FACTS } from '../src/lib/seo/facts';
@@ -109,7 +110,7 @@ async function runSeoQualityTests() {
       assert.ok(pageData.relatedRoutes.length >= 2, `SEO best practice: At least 2 related internal routes are required for "${path}"`);
       for (const rel of pageData.relatedRoutes) {
         assert.ok(rel.path.startsWith('/'), `Related link path "${rel.path}" must be a valid relative root path.`);
-        assert.ok(PSEO_ROUTES_LIST.some(r => r.path === rel.path), `Related link to invalid path: "${rel.path}" on page "${path}"`);
+        assert.ok(PSEO_ROUTES_LIST.some(r => r.path === rel.path) || TOOL_REGISTRY.some(t => t.route === rel.path), `Related link to invalid path: "${rel.path}" on page "${path}"`);
       }
     }
 

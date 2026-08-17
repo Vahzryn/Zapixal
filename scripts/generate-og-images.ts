@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import { parseSeoRoute } from '../src/lib/seo/meta';
+import { TOOL_REGISTRY } from "../src/lib/toolRegistry";
 import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, SeoRouteItem } from '../src/lib/seo/routes';
 import { SeoRouteData } from '../src/lib/seoEngine';
 
@@ -484,7 +485,7 @@ async function generateAllOgImages() {
   const allRoutes = Array.from(
     new Set([
       ...staticRoutes,
-      ...ALL_ARTICLE_SYSTEM_ROUTES,
+      ...ALL_ARTICLE_SYSTEM_ROUTES, ...TOOL_REGISTRY.map((t) => t.route),
       ...PSEO_ROUTES_LIST.map((r: SeoRouteItem) => r.path),
     ])
   );

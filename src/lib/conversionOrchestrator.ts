@@ -747,13 +747,6 @@ export async function convertSingleImage(
   }
 }
 
-export async function generateCombinedPdf(
-  _items: ImageFileItem[],
-  _settings: ConversionSettings
-): Promise<Blob> {
-  throw new Error('PDF output is not supported as a raster image target format.');
-}
-
 export async function generateBatchZip(
   files: ImageFileItem[],
   settings: ConversionSettings,

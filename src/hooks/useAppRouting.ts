@@ -105,8 +105,6 @@ const REDIRECTS_MAP: Record<string, string> = {
   '/high-res-image-resizer-client-side': '/client-side-private-image-compressor',
   
   // Features we don't have
-  '/client-side-image-to-base64': '/client-side-private-image-compressor',
-  '/palette-color-extractor-image-hex': '/client-side-private-image-compressor',
   '/ai-image-compressor-online-private': '/client-side-private-image-compressor',
   '/compress-animated-gif-size-online': '/client-side-private-image-compressor',
 };

@@ -477,7 +477,7 @@ export function PdfToJpgConverter({ onNavigate }: PdfToJpgConverterProps) {
 
             {/* Pages Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[360px] overflow-y-auto p-1 scrollbar-thin">
-              {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
+              {Array.from({ length: Math.min(numPages, 100) }, (_, i) => i + 1).map((pageNum) => {
                 const isSelected = selectedPages.has(pageNum);
                 const thumb = thumbnails[pageNum];
 
@@ -523,6 +523,13 @@ export function PdfToJpgConverter({ onNavigate }: PdfToJpgConverterProps) {
                   </button>
                 );
               })}
+              {numPages > 100 && (
+                <div className="col-span-full py-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
+                  Preview grid is limited to the first 100 pages for performance.
+                  <br/>
+                  You can still use the <strong>Select Range</strong> input above to select any page up to {numPages}.
+                </div>
+              )}
             </div>
           </div>
 

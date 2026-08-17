@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
+import { TOOL_REGISTRY } from '../src/lib/toolRegistry';
+import { ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
 import { ALL_ARTICLES, getArticleBySlug, getArticlesByCategory, getCategoryInfo } from '../src/content/articles';
 import { ROUTE_ALIASES } from '../src/lib/seo/meta';
 
@@ -49,11 +50,11 @@ function generateSitemap() {
   // Add article system routes
   ALL_ARTICLE_SYSTEM_ROUTES.forEach((r) => routesSet.add(r));
 
-  // Add pSEO routes
+  // Add registered tool routes
   const aliasKeys = new Set(Object.keys(ROUTE_ALIASES).map((k) => `/${k}`));
-  PSEO_ROUTES_LIST.forEach((item) => {
-    if (item.path && !aliasKeys.has(item.path)) {
-      routesSet.add(item.path);
+  TOOL_REGISTRY.forEach((item) => {
+    if (item.route && item.indexable && !aliasKeys.has(item.route)) {
+      routesSet.add(item.route);
     }
   });
 
@@ -81,4 +82,5 @@ ${urlEntries.join('\n')}
 }
 
 generateSitemap();
+
 

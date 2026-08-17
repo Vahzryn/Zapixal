@@ -3,6 +3,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { parseSeoRoute, PSEO_ROUTES_LIST } from '../src/lib/seoEngine';
 import { ALL_ARTICLE_SYSTEM_ROUTES } from '../src/lib/seo/routes';
+import { TOOL_REGISTRY } from '../src/lib/toolRegistry';
 
 async function prerender() {
   const distDir = path.resolve(process.cwd(), 'dist');
@@ -22,11 +23,14 @@ async function prerender() {
   const { renderApp } = await import(pathToFileURL(ssrEntryPath).href);
   const templateHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 
+  const toolRoutes = TOOL_REGISTRY.map(t => t.route);
+
   const staticRoutes = [
     '/',
     '/tools',
     ...PSEO_ROUTES_LIST.map(r => r.path),
     ...ALL_ARTICLE_SYSTEM_ROUTES,
+    ...toolRoutes,
     '/about',
     '/privacy',
     '/terms',

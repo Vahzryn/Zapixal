@@ -220,3 +220,79 @@ export function generateArticleJsonLdSchema(
   };
 }
 
+export function generateSoftwareAppSchema(name: string, description: string, url: string, subCategory: string = 'PDFTool') {
+  return {
+    '@context': 'https://schema.org',
+    '@type': ['SoftwareApplication', 'WebApplication'],
+    'name': `Zapixal - ${name}`,
+    'applicationCategory': 'MultimediaApplication',
+    'applicationSubCategory': subCategory,
+    'softwareVersion': '1.0.0',
+    'operatingSystem': 'All (Windows, macOS, Linux, iOS, Android)',
+    'browserRequirements': 'Requires Modern Web Browser with WebAssembly (WASM) support',
+    'license': 'Proprietary',
+    'isAccessibleForFree': true,
+    'offers': {
+      '@type': 'Offer',
+      'price': '0',
+      'priceCurrency': 'USD',
+      'availability': 'https://schema.org/InStock',
+    },
+    'description': description,
+    'url': url,
+    'screenshot': `${DOMAIN}/icon-512.png`,
+    'author': {
+      '@type': 'Organization',
+      'name': 'Zapixal',
+      'url': DOMAIN,
+    }
+  };
+}
+
+export function generateFaqSchema(faqs: { question: string; answer: string }[]) {
+  if (!faqs || faqs.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faqs.map((faq) => ({
+      '@type': 'Question',
+      'name': faq.question,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': faq.answer,
+      },
+    })),
+  };
+}
+
+export function generateBreadcrumbSchema(breadcrumbs: { name: string; url: string }[]) {
+  if (!breadcrumbs || breadcrumbs.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': breadcrumbs.map((b, idx) => ({
+      '@type': 'ListItem',
+      'position': idx + 1,
+      'name': b.name,
+      'item': b.url.startsWith('http') ? b.url : `${DOMAIN}${b.url}`,
+    })),
+  };
+}
+
+export function generateHowToSchema(name: string, description: string, steps: string[]) {
+  if (!steps || steps.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    'name': name,
+    'description': description,
+    'totalTime': 'PT1M',
+    'step': steps.map((s, idx) => ({
+      '@type': 'HowToStep',
+      'name': `Step ${idx + 1}`,
+      'text': s,
+    })),
+  };
+}
+
+

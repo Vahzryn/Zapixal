@@ -31,6 +31,11 @@ const ArticlesHubPage = lazy(() => import('./components/Articles/ArticlesHubPage
 const ArticleCategoryPage = lazy(() => import('./components/Articles/ArticleCategoryPage').then(module => ({ default: module.ArticleCategoryPage })));
 const ArticleViewPage = lazy(() => import('./components/Articles/ArticleViewPage').then(module => ({ default: module.ArticleViewPage })));
 const PdfToJpgConverter = lazy(() => import('./components/PdfToJpgConverter').then(module => ({ default: module.PdfToJpgConverter })));
+const PdfCompressorPage = lazy(() => import('./components/PdfCompressorPage').then(module => ({ default: module.PdfCompressorPage })));
+const PdfMergerPage = lazy(() => import('./components/PdfMergerPage').then(module => ({ default: module.PdfMergerPage })));
+const PdfSplitterPage = lazy(() => import('./components/PdfSplitterPage').then(module => ({ default: module.PdfSplitterPage })));
+const ImageToBase64Converter = lazy(() => import('./components/ImageToBase64Converter').then(module => ({ default: module.ImageToBase64Converter })));
+const ColorPaletteExtractor = lazy(() => import('./components/ColorPaletteExtractor').then(module => ({ default: module.ColorPaletteExtractor })));
 const EmbedWidget = lazy(() => import('./components/Widget/EmbedWidget'));
 const WidgetDocumentationPage = lazy(() => import('./components/Widget/WidgetDocumentationPage'));
 const BenchmarkPage = lazy(() => import('./components/Articles/BenchmarkPage'));
@@ -289,9 +294,27 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
             article={getArticleBySlug(currentPath.replace(/^\/articles\//, ''))!} 
             onNavigate={handleNavigate} 
           />
+        ) : currentPath === '/merge-pdf' ? (
+          <PdfMergerPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/split-pdf' ? (
+          <PdfSplitterPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/secure-document-compressor-pdf' ? (
+          <PdfCompressorPage seoData={seoData} onNavigate={handleNavigate} />
         ) : currentPath === '/convert-pdf-pages-to-jpg-images' ? (
           <React.Fragment>
             <PdfToJpgConverter onNavigate={handleNavigate} />
+            <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
+            <ValuePropsSection />
+          </React.Fragment>
+        ) : currentPath === '/client-side-image-to-base64' ? (
+          <React.Fragment>
+            <ImageToBase64Converter onNavigate={handleNavigate} />
+            <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
+            <ValuePropsSection />
+          </React.Fragment>
+        ) : currentPath === '/palette-color-extractor-image-hex' ? (
+          <React.Fragment>
+            <ColorPaletteExtractor onNavigate={handleNavigate} />
             <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
             <ValuePropsSection />
           </React.Fragment>
