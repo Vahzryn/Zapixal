@@ -19,7 +19,7 @@ export const ToolCalloutCard: React.FC<ToolCalloutCardProps> = ({ tool, onNaviga
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />
-              100% Client-Side Private
+              Client-Side Private
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-neutral-900 dark:text-white tracking-tight">

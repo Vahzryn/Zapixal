@@ -12,13 +12,13 @@ export function getConvertAvifToJpgContent(): RouteEditorialContent {
   return {
     badge: 'dav1d WebAssembly Bitstream Decoder',
     section1Title: 'Decompressing AV1 Still Images (AVIF) for universal JPEG compatibility',
-    section1Body: 'AV1 Image File Format (AVIF) achieves incredible compression efficiency by leveraging AV1 intra-frame video coding primitives. However, legacy photo viewers, operating systems, desktop publishing tools, and print portals often lack built-in libavif decoders, resulting in broken file icons or import failures. Zapixal incorporates Google’s dav1d C-library compiled to WebAssembly, decompressing AVIF compressed frames directly inside browser Web Workers and re-encoding raw color arrays into standard baseline JPEG format instantly.',
-    section2Title: '10-bit HDR gamut mapping to 8-bit sRGB with zero network uploads',
-    section2Body: 'AVIF files frequently contain 10-bit or 12-bit color data in YUV420/YUV444 planes with High Dynamic Range (HDR) Rec.2020 or Display P3 color profiles. Converting AVIF directly using basic tools causes dull, washed-out colors due to improper color gamut truncation. Zapixal applies matrix color transformation passes to map 10-bit HDR planes accurately into standard 8-bit sRGB JPEG arrays, keeping colors vibrant. Because decoding and encoding run in browser RAM, multi-megabyte AVIF archives convert with zero server bandwidth usage or privacy leaks.',
+    section1Body: 'AV1 Image File Format (AVIF) achieves incredible compression efficiency by leveraging AV1 intra-frame video coding primitives. However, legacy photo viewers, operating systems, desktop publishing tools, and print portals often lack built-in libavif decoders, resulting in broken file icons or import failures. Zapixal incorporates Google’s dav1d C-library compiled to WebAssembly, decompressing AVIF compressed frames directly inside browser Web Workers and re-encoding raw color arrays into standard baseline JPEG format directly in your browser.',
+    section2Title: '10-bit HDR gamut mapping to 8-bit sRGB without uploading your files',
+    section2Body: 'AVIF files frequently contain 10-bit or 12-bit color data in YUV420/YUV444 planes with High Dynamic Range (HDR) Rec.2020 or Display P3 color profiles. Converting AVIF directly using basic tools causes dull, washed-out colors due to improper color gamut truncation. Zapixal applies matrix color transformation passes to map 10-bit HDR planes accurately into standard 8-bit sRGB JPEG arrays, keeping colors vibrant. Because decoding and encoding run in browser RAM, multi-megabyte AVIF archives convert without uploading files or server-side bandwidth usage.',
     steps: [
       'Drag your downloaded `.avif` images into the local WebAssembly converter.',
       'Select JPEG as your target format and adjust your preferred target quality.',
-      'Export universally compatible JPG files instantly without cloud latency or server tracking.'
+      'Export universally compatible JPG files directly, without sending your files to a remote server.'
     ],
     faqs: [
       makeFaq('Why do older image editors and smart TVs fail to open AVIF files?', 'AVIF relies on the modern AV1 video codec standard. Legacy hardware devices and older graphic software lack native AV1 bitstream decoders unless updated.'),
@@ -45,7 +45,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       guideContent,
       jsonLd: generateJsonLdSchemas(
         'Convert Modern AVIF Images to Universal JPEG Format',
-        'Convert AV1-based AVIF images to standard JPEG locally in browser memory with zero server uploads.',
+        'Convert AV1-based AVIF images to standard JPEG locally in browser memory without uploading your files.',
         fullUrl,
         guideContent.faqs,
         [{ name: 'Home', url: '/' }, { name: 'Convert AVIF to JPG', url: path }],

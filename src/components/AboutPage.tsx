@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Shield, Zap, Globe, Github } from 'lucide-react';
+import { Cpu, Shield, Zap, Globe } from 'lucide-react';
 
 export function AboutPage() {
   return (
@@ -41,13 +41,13 @@ export function AboutPage() {
           Developers, designers, and everyday users frequently need to resize, convert, or compress images for web optimization, social media, or strict file-size limits. Existing tools were either filled with ads, required paid subscriptions, or worse—forced you to upload your sensitive personal documents or client assets to unknown servers.
         </p>
         <p>
-          Zapixal was created to solve this. By leveraging modern HTML5 Canvas, Web Workers for concurrent processing, and WebAssembly, we deliver a lightning-fast, secure, and 100% free utility that respects your privacy and your time.
+          Zapixal was created to solve this. By leveraging modern HTML5 Canvas, Web Workers for concurrent processing, and WebAssembly, we deliver a lightning-fast, secure, and free utility that respects your privacy and your time.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 mt-12 pt-12 border-t border-neutral-200 dark:border-[#3c4043]">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-500" /> Free & Open
+              <Zap className="w-5 h-5 text-yellow-500" /> Free Web Tool
             </h3>
             <p className="text-sm">Zapixal is provided as a free utility. No paywalls, no watermarks, and no sign-ups required.</p>
           </div>
@@ -59,9 +59,9 @@ export function AboutPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
-              <Github className="w-5 h-5 text-neutral-800 dark:text-white" /> Open Source (GitHub)
+              <Shield className="w-5 h-5 text-emerald-500" /> All Rights Reserved
             </h3>
-            <p className="text-sm">Review our open-source codebase, contribute, or run it locally. We are proud to be transparent.</p>
+            <p className="text-sm">Zapixal is a proprietary application. All rights, including branding and design, are reserved.</p>
           </div>
         </div>
       </div>

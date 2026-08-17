@@ -117,7 +117,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
           Zapixal Tools Directory
         </h1>
         <p className="max-w-2xl mx-auto text-xs sm:text-base text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
-          100% private, browser-based utilities for image compression, format conversion, metadata editing, and workflow optimization. Zero cloud uploads.
+          Private, browser-based utilities for image compression, format conversion, metadata editing, and workflow optimization. Zero cloud uploads for image conversions.
         </p>
       </div>
 
@@ -274,7 +274,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
                   <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
                     <span className="text-[11px] font-medium text-neutral-400 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                      100% Client-Side
+                      Client-Side Local
                     </span>
                     <span className="inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                       <span>Launch Tool</span>
@@ -293,7 +293,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
         <div className="space-y-1 text-center sm:text-left">
           <h3 className="text-lg font-extrabold">Need to convert files right now?</h3>
           <p className="text-xs text-neutral-400">
-            Drag and drop files directly on the Zapixal home workspace to start processing instantly.
+            Drag and drop files directly on the Zapixal home workspace to start processing directly.
           </p>
         </div>
         <button

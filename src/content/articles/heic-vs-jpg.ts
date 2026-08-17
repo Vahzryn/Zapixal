@@ -101,16 +101,16 @@ export const articleHeicVsJpg: Article = {
     },
     {
       type: 'paragraph',
-      text: 'When you drop a HEIC file into Zapixal, a dedicated Web Worker decodes the HEVC bitstream in isolated browser RAM, extracts the raw uncompressed RGBA pixel data, and re-encodes it into high-quality JPG or WebP using WebAssembly codecs—all with zero server transmission.',
+      text: 'When you drop a HEIC file into Zapixal, a dedicated Web Worker decodes the HEVC bitstream in isolated browser RAM, extracts the raw uncompressed RGBA pixel data, and re-encodes it into high-quality JPG or WebP using WebAssembly codecs—all without uploading your raw files.',
     },
     {
       type: 'toolCallout',
       tool: {
         title: 'Convert HEIC Files Privately in Your Browser',
-        description: 'Convert iPhone HEIC photos to universal JPG format in browser memory with zero server uploads and complete privacy.',
+        description: 'Convert iPhone HEIC photos to universal JPG format in browser memory without uploading files and with local data privacy.',
         targetPath: '/convert-heic-to-jpg-locally',
         buttonText: 'Launch HEIC to JPG Converter',
-        badge: '100% Client-Side WASM',
+        badge: 'Client-Side WASM',
       },
     },
   ],

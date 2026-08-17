@@ -34,7 +34,7 @@ export default function WidgetDocumentationPage({ onNavigate }: { onNavigate: (p
           Zapixal Embeddable Image Widget
         </h1>
         <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-          Provide zero-dependency, 100% private client-side image processing on your blog, form, or web portal without running server encoders or incurring API bills.
+          Provide zero-dependency, private client-side image processing on your blog, form, or web portal without running server encoders or incurring API bills.
         </p>
       </div>
 
@@ -109,9 +109,9 @@ export default function WidgetDocumentationPage({ onNavigate }: { onNavigate: (p
             <div className="flex gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200/80 dark:border-neutral-800">
               <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-bold text-sm text-neutral-900 dark:text-white mb-1">Zero Third-Party Data Exposure</h3>
+                <h3 className="font-bold text-sm text-neutral-900 dark:text-white mb-1">Local Processing Privacy</h3>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                  User images are loaded into browser RAM memory via WebAssembly array buffers. Bytes are never transmitted over HTTP networks, guaranteeing complete privacy compliance (GDPR/HIPAA friendly).
+                  User image files are processed locally in browser RAM memory via WebAssembly array buffers. Image files are not uploaded to remote servers for standard conversion, supporting privacy compliance (GDPR/HIPAA friendly).
                 </p>
               </div>
             </div>

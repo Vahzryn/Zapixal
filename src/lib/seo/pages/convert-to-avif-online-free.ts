@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Convert Image to AVIF: Free Next-Gen Online Optimizer',
     metaTitle: 'Convert Image to Next-Gen AVIF — Free Browser Tool',
-    metaDescription: 'Convert your images to AVIF for the best possible web performance. High-fidelity AV1 encoding performed 100% locally in your browser. 50% smaller than JPEG.',
+    metaDescription: 'Convert your images to AVIF for high-performance web optimization. High-fidelity AV1 encoding is performed locally in your browser.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     toFormat: 'avif',
@@ -42,7 +42,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     guideContent,
     jsonLd: generateJsonLdSchemas(
       'Advanced AVIF Image Conversion & Optimization',
-      'Leverage next-gen AV1 compression to shrink your images without quality loss. 100% local browser-based AVIF encoding.',
+      'Leverage next-gen AV1 compression to shrink your images with local, browser-based AVIF encoding.',
       fullUrl,
       guideContent.faqs,
       [{ name: 'Home', url: '/' }, { name: 'Convert to AVIF', url: path }],

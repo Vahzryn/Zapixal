@@ -327,7 +327,7 @@ export function PdfToJpgConverter({ onNavigate }: PdfToJpgConverterProps) {
           </div>
           <div className="hidden md:flex items-center gap-2 text-xs text-emerald-700 dark:text-[#81c995] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3.5 py-2 rounded-2xl shrink-0 font-medium">
             <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span>100% Client-Side Memory</span>
+            <span>Secure Local Memory</span>
           </div>
         </div>
       </div>
@@ -387,7 +387,7 @@ export function PdfToJpgConverter({ onNavigate }: PdfToJpgConverterProps) {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 dark:bg-[#202124] text-xs font-semibold text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-[#3c4043] mt-2">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Zero server uploads • Private in-browser execution</span>
+              <span>No image files uploaded • Private in-browser execution</span>
             </div>
           </div>
         </div>

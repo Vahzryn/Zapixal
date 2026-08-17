@@ -65,7 +65,7 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
           </div>
           <h2 className="text-xl sm:text-3xl font-extrabold text-neutral-900 dark:text-[#e8eaed] mb-1.5 sm:mb-3 tracking-tight">Support Zapixal</h2>
           <p className="text-neutral-500 dark:text-[#9aa0a6] font-medium max-w-md text-xs sm:text-base leading-relaxed">
-            Zapixal is 100% free, private, and runs entirely in your browser. Donations are completely optional and help support ongoing development and updates!
+            Zapixal is free, private, and runs entirely in your browser. Donations are completely optional and help support ongoing development and updates!
           </p>
         </div>
         

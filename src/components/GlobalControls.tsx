@@ -488,6 +488,7 @@ function GlobalControlsComponent({
                   className="w-full appearance-none bg-blue-50 dark:bg-[#1e293b] border-2 border-blue-200 dark:border-[#384c6c] text-blue-700 dark:text-[#8ab4f8] text-xs sm:text-sm font-bold rounded-lg px-3 py-2 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-sm"
                   title="Select the target output format for all images"
                 >
+                  <option value="auto">Auto — Keep original format</option>
                   <option value="webp">WebP (Recommended)</option>
                   <option value="jpg">JPG (JPEG)</option>
                   <option value="png">PNG (Lossless)</option>

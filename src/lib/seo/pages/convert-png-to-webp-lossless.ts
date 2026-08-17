@@ -33,7 +33,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     path,
     h1Title: 'Convert PNG to Lossless WebP with Alpha Transparency',
     metaTitle: 'Convert PNG to WebP Lossless — Fast Browser Tool',
-    metaDescription: 'Convert PNG to WebP losslessly in browser memory. Preserves full alpha transparency with 25-40% smaller file size and zero network transfers.',
+    metaDescription: 'Convert PNG to WebP losslessly in browser memory. Preserves full alpha transparency with 25-40% smaller file size without uploading your files.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'converter',
@@ -43,7 +43,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     guideContent,
     jsonLd: generateJsonLdSchemas(
       'Convert PNG to Lossless WebP with Alpha Transparency',
-      'Convert PNG to VP8L WebP losslessly in browser RAM with full alpha transparency and zero server data transfers.',
+      'Convert PNG to VP8L WebP losslessly in browser RAM with full alpha transparency and without uploading files.',
       fullUrl,
       guideContent.faqs,
       [{ name: 'Home', url: '/' }, { name: 'Convert PNG to Lossless WebP', url: path }],

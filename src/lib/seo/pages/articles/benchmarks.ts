@@ -5,7 +5,7 @@ export function getPageSeo(fullUrl: string, path: string = '/articles/benchmarks
     path,
     h1Title: 'Browser Codec Performance Benchmarks',
     metaTitle: 'WebAssembly Codec Benchmarks: AVIF, WebP, MozJPEG | Zapixal',
-    metaDescription: 'Empirical benchmark analysis of in-browser WebAssembly image conversion speed, RAM footprint, and compression density across modern browser engines.',
+    metaDescription: 'A reproducible benchmark comparing JPEG, WebP, AVIF, and PNG compression size and encoding time across 20 real-world images.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'resource',
@@ -19,8 +19,8 @@ export function getPageSeo(fullUrl: string, path: string = '/articles/benchmarks
       article: {
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
-        'headline': 'Client-Side WebAssembly Image Codec Compression Benchmarks (2026)',
-        'description': 'Empirical benchmark analysis evaluating WebAssembly image codecs (MozJPEG, libwebp, libavif, UPNG) across photography and UI screenshots.',
+        'headline': 'Reproducible Image Codec Compression Benchmarks (2026)',
+        'description': 'A reproducible benchmark comparing JPEG, WebP, AVIF, and PNG compression size and encoding time across 20 real-world images.',
         'author': {
           '@type': 'Organization',
           'name': 'Zapixal Research Team',

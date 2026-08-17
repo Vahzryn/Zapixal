@@ -8,7 +8,7 @@ function makeFaq(question: string, answer: string) {
 
 export function getSecureDocumentCompressorPdfContent(): RouteEditorialContent {
   return {
-    badge: '100% Client-Side Zero-Knowledge Document Engine',
+    badge: 'Client-Side Zero-Knowledge Document Engine',
     section1Title: 'Compressing confidential legal, medical, and financial records safely',
     section1Body: 'Scanned document pages, passport copies, tax forms, and signed contracts contain high-stakes personal information. Uploading these sensitive files to online cloud PDF converters exposes them to remote storage, potential data breaches, and privacy compliance violations under GDPR and HIPAA. Zapixal processes document scans and PDF page images completely in local browser RAM using client-side WebAssembly binaries. Your files are converted and compressed without ever touching an external network.',
     section2Title: 'Maintaining crisp text legibility while reducing document file sizes',
@@ -31,7 +31,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   const guideContent = getSecureDocumentCompressorPdfContent();
   return {
     path,
-    h1Title: 'Secure Document & PDF Image Compressor (100% Client-Side)',
+    h1Title: 'Secure Document & PDF Image Compressor (Client-Side)',
     metaTitle: 'Secure Document Compressor — Private Client-Side Tool',
     metaDescription: 'Compress sensitive document images and PDF pages in browser RAM without server uploads. Keep financial, legal, and medical records private.',
     canonicalUrl: fullUrl,
@@ -44,8 +44,8 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Image Privacy Pixelator' }
     ],
     jsonLd: generateJsonLdSchemas(
-      'Secure Document & PDF Image Compressor (100% Client-Side)',
-      'Compress sensitive document images and PDF pages in browser memory with zero server uploads and complete privacy.',
+      'Secure Document & PDF Image Compressor (Client-Side)',
+      'Compress sensitive document images and PDF pages in browser memory without uploading files and with local privacy.',
       fullUrl,
       guideContent.faqs,
       [{ name: 'Home', url: '/' }, { name: 'Secure Document Compressor', url: path }],

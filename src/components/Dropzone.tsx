@@ -143,7 +143,7 @@ export function Dropzone({ onFilesAdded, fromFormat }: DropzoneProps) {
         "dropzone-cls-guard min-h-[180px] min-[360px]:min-h-[200px] md:min-h-[250px] lg:min-h-[280px] xl:min-h-[320px] relative flex flex-col items-center justify-center w-full py-4 md:py-6 lg:py-8 xl:py-10 px-3 sm:px-6 lg:px-8 transition-all duration-200 border-2 border-dashed rounded-3xl cursor-pointer group bg-white dark:bg-[#303134] active:bg-blue-50/30 dark:active:bg-[#1e293b]/30 [contain:layout]",
         isDragActive 
           ? "border-blue-500 bg-blue-50/20 dark:bg-[#8ab4f8]/10" 
-          : "border-blue-200 dark:border-[#3c4043] hover:border-blue-400 dark:hover:border-[#8ab4f8]"
+          : "border-slate-300 dark:border-[#3c4043] hover:border-blue-400 dark:hover:border-[#8ab4f8]"
       )}
     >
       <input
@@ -218,13 +218,13 @@ export function Dropzone({ onFilesAdded, fromFormat }: DropzoneProps) {
 
         {/* Features list */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4 md:gap-6 lg:gap-8 mt-1.5 sm:mt-4 md:mt-5 lg:mt-6 pt-1.5 sm:pt-4 md:pt-5 lg:pt-6 border-t border-neutral-100 dark:border-[#3c4043] w-full max-w-md">
-          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-emerald-600 dark:text-[#81c995]">
+          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-emerald-700 dark:text-[#81c995]">
             <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>100% Client-Side Local Privacy</span>
+            <span>Secure Local Privacy</span>
           </div>
-          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-blue-600 dark:text-[#8ab4f8]">
+          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-blue-700 dark:text-[#8ab4f8]">
             <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>Instant Speed (Zero Upload)</span>
+            <span>Local Processing (No Upload)</span>
           </div>
         </div>
       </div>

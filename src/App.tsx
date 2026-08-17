@@ -19,20 +19,21 @@ import { useDarkMode } from './hooks/useDarkMode';
 import { useBatchConversion } from './hooks/useBatchConversion';
 import { Loader2, AlertTriangle, X } from 'lucide-react';
 
-import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { TermsOfService } from './components/TermsOfService';
-import { AboutPage } from './components/AboutPage';
-import { ToolsDirectoryPage } from './components/ToolsDirectoryPage';
 import { FooterLinkHub } from './components/FooterLinkHub';
-import { ArticlesHubPage } from './components/Articles/ArticlesHubPage';
-import { ArticleCategoryPage } from './components/Articles/ArticleCategoryPage';
-import { ArticleViewPage } from './components/Articles/ArticleViewPage';
-import { PdfToJpgConverter } from './components/PdfToJpgConverter';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { getCategoryInfo, getArticleBySlug } from './content/articles';
-import EmbedWidget from './components/Widget/EmbedWidget';
-import WidgetDocumentationPage from './components/Widget/WidgetDocumentationPage';
-import BenchmarkPage from './components/Articles/BenchmarkPage';
+
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./components/TermsOfService').then(module => ({ default: module.TermsOfService })));
+const AboutPage = lazy(() => import('./components/AboutPage').then(module => ({ default: module.AboutPage })));
+const ToolsDirectoryPage = lazy(() => import('./components/ToolsDirectoryPage').then(module => ({ default: module.ToolsDirectoryPage })));
+const ArticlesHubPage = lazy(() => import('./components/Articles/ArticlesHubPage').then(module => ({ default: module.ArticlesHubPage })));
+const ArticleCategoryPage = lazy(() => import('./components/Articles/ArticleCategoryPage').then(module => ({ default: module.ArticleCategoryPage })));
+const ArticleViewPage = lazy(() => import('./components/Articles/ArticleViewPage').then(module => ({ default: module.ArticleViewPage })));
+const PdfToJpgConverter = lazy(() => import('./components/PdfToJpgConverter').then(module => ({ default: module.PdfToJpgConverter })));
+const EmbedWidget = lazy(() => import('./components/Widget/EmbedWidget'));
+const WidgetDocumentationPage = lazy(() => import('./components/Widget/WidgetDocumentationPage'));
+const BenchmarkPage = lazy(() => import('./components/Articles/BenchmarkPage'));
 
 const PageLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center py-20 min-h-[400px] gap-3 text-neutral-500 dark:text-[#9aa0a6] animate-in fade-in duration-300">
@@ -50,7 +51,7 @@ interface AppProps {
 
 export default function App({ initialPath, initialSeoData }: AppProps) {
   const [settings, setSettingsState] = useState<ConversionSettings>({
-    targetFormat: 'webp',
+    targetFormat: 'auto',
     targetFormatMode: 'per-original',
     quality: 0.8,
     resize: { enabled: false, keepAspectRatio: true },
@@ -197,7 +198,11 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
     seoData.isNotFound;
 
   if (currentPath === '/embed') {
-    return <EmbedWidget />;
+    return (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <EmbedWidget />
+      </Suspense>
+    );
   }
 
   return (
@@ -245,7 +250,8 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
         )}
 
         {/* Main Content Router */}
-        {seoData.path !== currentPath ? (
+        <Suspense fallback={<PageLoadingFallback />}>
+          {seoData.path !== currentPath ? (
           <PageLoadingFallback />
         ) : seoData.isNotFound ? (
           <div className="flex flex-col items-center justify-center gap-6 py-20 min-h-[400px]">
@@ -376,6 +382,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
             <ValuePropsSection />
           </React.Fragment>
         )}
+        </Suspense>
       </main>
 
       {/* Dynamic pSEO Interlinking Footer Link Hub */}

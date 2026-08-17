@@ -219,6 +219,21 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
     label: 'Convert PDF Pages to JPG Images',
     category: 'converter'
   },
+  {
+    path: '/compress-image-to-exact-size-kb',
+    label: 'Compress Image to Exact Size KB',
+    category: 'compression'
+  },
+  {
+    path: '/secure-document-compressor-pdf',
+    label: 'Secure PDF Document Compressor',
+    category: 'use-case'
+  },
+  {
+    path: '/compress-png-images-online',
+    label: 'Compress PNG Images Lossless Online',
+    category: 'compression'
+  },
 ];
 
 export const ARTICLE_CATEGORY_ROUTES = [

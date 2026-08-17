@@ -1,7 +1,7 @@
 # Zapixal Architecture Blueprint & Directory Submission
 
 ## Overview
-Zapixal is a 100% client-side, privacy-first web utility for image compression and conversion. It leverages modern web technologies (WebAssembly, Web Workers, Canvas APIs) to process files entirely in the user's browser memory, ensuring absolute data privacy, high performance, and zero server uploads. Zapixal is designed as a fast, client-side web application (it is not a PWA or service-worker app).
+Zapixal is a client-side, privacy-focused web utility for image compression and conversion. It leverages modern web technologies (WebAssembly, Web Workers, Canvas APIs) to process files entirely in the user's browser memory, ensuring local data privacy, high performance, and zero server uploads for normal conversions. Zapixal is designed as a fast, client-side web application (it is not a PWA or service-worker app).
 
 ## Primary System Architecture & Data Flow
 
@@ -31,7 +31,7 @@ Zapixal is a 100% client-side, privacy-first web utility for image compression a
 
 ## 3. Zero-Copy File I/O & Direct Download System
 (Implementation located in `src/lib/fileSystemAccess.ts`)
-- **Direct Download Strategy**: Default behavior relies on instant Blob URL creation and immediate hidden `<a>` clicks, followed instantly by memory revocation.
+- **Direct Download Strategy**: Default behavior relies on Blob URL creation and immediate hidden `<a>` clicks, followed immediately by memory revocation.
 - **Native File System API**: For massive batch exports, `window.showSaveFilePicker()` and `window.showDirectoryPicker()` stream encoded buffers directly to disk, bypassing browser RAM limits.
 - **Clipboard & DataTransfer**: Global paste listeners and recursive directory walking (`DataTransferItem.webkitGetAsEntry()`) allow seamless drag-and-drop of entire folders without freezing the UI.
 

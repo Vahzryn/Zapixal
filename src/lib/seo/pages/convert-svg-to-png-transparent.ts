@@ -18,7 +18,7 @@ export function getConvertSvgToPngContent(): RouteEditorialContent {
     steps: [
       'Export your SVG to a raster format (like PNG) using your vector design software.',
       'Load your rasterized PNG file into the Zapixal browser optimization tool.',
-      'Export a highly compressed 32-bit transparent WebP or optimized PNG instantly.'
+      'Export a highly compressed 32-bit transparent WebP or optimized PNG directly.'
     ],
     faqs: [
       makeFaq('Does Zapixal support converting SVG files directly?', 'No. Zapixal currently blocks SVG files. Our tool focuses on compressing, resizing, and converting raster image formats (PNG, JPG, WebP, AVIF, HEIC) natively in the browser.'),

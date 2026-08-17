@@ -17,10 +17,10 @@ export function getAddTextWatermarkContent(): RouteEditorialContent {
     steps: [
       'Upload your photos or artwork into the watermarking workspace.',
       'Type your copyright text to be placed in the corner of your image.',
-      'Export watermarked images ready for public web publication with zero server exposure.'
+      'Export watermarked images ready for public web publication without uploading files to any server.'
     ],
     faqs: [
-      makeFaq('Is my unwatermarked original image ever sent over the internet?', 'Never. All typography rendering and canvas compositing happen locally on your computer.'),
+      makeFaq('Is my unwatermarked original image ever sent over the internet?', 'No. All typography rendering and canvas compositing happen locally on your computer in browser RAM.'),
       makeFaq('Can I apply watermarks across multiple photos at once?', 'Yes. Our batch processor applies your configured watermark text across all queued images in parallel.')
     ]
   };
@@ -42,7 +42,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     guideContent,
     jsonLd: generateJsonLdSchemas(
       'Apply Custom Text Watermarks to Photos Privately Client-Side',
-      'Add copyright text watermarks to images locally in browser memory with zero server uploads.',
+      'Add copyright text watermarks to images locally in browser memory without uploading your files.',
       fullUrl,
       guideContent.faqs,
       [{ name: 'Home', url: '/' }, { name: 'Text Watermark', url: path }],

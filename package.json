@@ -1,7 +1,7 @@
 {
   "name": "zapixal",
   "version": "1.0.0",
-  "description": "Zapixal - Free Private Image Converter & Compressor. 100% Client-Side.",
+  "description": "Zapixal - Free Private Image Converter & Compressor. Client-Side local processing.",
   "type": "module",
   "main": "public/zapixal-web-component.js",
   "keywords": [
@@ -12,7 +12,7 @@
     "privacy-first"
   ],
   "author": "Zapixal",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "tsx scripts/generate-og-images.ts && tsx scripts/generate-sitemap.ts && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && tsx scripts/prerender.ts",

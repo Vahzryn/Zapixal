@@ -40,7 +40,7 @@ export function isKnownRoute(pathname: string): boolean {
 
 const INITIAL_FALLBACK_SEO: SeoRouteData = {
   path: '/',
-  h1Title: '100% Free Client-Side Batch Image Converter & Compressor',
+  h1Title: 'Free Client-Side Batch Image Converter & Compressor',
   metaTitle: 'Free Local Image Converter & Compressor | Secure Processing | Zapixal',
   metaDescription: 'Convert, compress, and optimize HEIC, PNG, JPG, WebP, AVIF, SVG, and PDF files locally in your browser.',
   canonicalUrl: 'https://zapixal.com',

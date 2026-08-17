@@ -35,7 +35,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       path,
       h1Title: 'Multithreaded Client-Side Batch Compression for High-Volume Workflows',
       metaTitle: 'Bulk Image Compressor — local Multithreaded Tool',
-      metaDescription: 'Batch compress hundreds of images simultaneously using Web Workers and WASM. local-ready, multithreaded, zero server limits.',
+      metaDescription: 'Batch compress hundreds of images simultaneously using Web Workers and WASM. local-ready, multithreaded, free of server-side ceilings.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'compression',

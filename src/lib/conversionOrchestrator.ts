@@ -359,7 +359,41 @@ export async function convertSingleImage(
   }
 
   let derivedFormat: TargetFormat = 'jpg';
-  if (settings.targetFormatMode === 'per-original') {
+  const originalExt = item.file.name.split('.').pop()?.toLowerCase() || '';
+  const originalMime = (item.file.type || '').toLowerCase();
+
+  if (item.customTargetFormat) {
+    derivedFormat = item.customTargetFormat;
+  } else if (settings.targetFormat === 'auto') {
+    let detected: string | null = null;
+    try {
+      const headerBuffer = await item.file.slice(0, 16).arrayBuffer();
+      const validation = validateMagicBytes(headerBuffer);
+      if (validation.valid && validation.format) {
+        detected = validation.format;
+      }
+    } catch (e) {}
+
+    if (!detected) {
+      if (originalExt === 'jpg' || originalExt === 'jpeg' || originalMime === 'image/jpeg') detected = 'jpg';
+      else if (originalExt === 'png' || originalMime === 'image/png') detected = 'png';
+      else if (originalExt === 'webp' || originalMime === 'image/webp') detected = 'webp';
+      else if (originalExt === 'avif' || originalMime === 'image/avif') detected = 'avif';
+      else if (originalExt === 'bmp' || originalMime === 'image/bmp') detected = 'bmp';
+      else if (originalExt === 'ico' || originalMime === 'image/x-icon' || originalMime === 'image/vnd.microsoft.icon') detected = 'ico';
+    }
+
+    if (detected) {
+      if (detected === 'jpg' || detected === 'png' || detected === 'webp' || detected === 'avif' || detected === 'bmp' || detected === 'ico') {
+        derivedFormat = detected as TargetFormat;
+      } else {
+        throw new Error(`Format preservation is not supported for ${detected.toUpperCase()}. Please select an explicit output format to convert this file.`);
+      }
+    } else {
+      const formatLabel = originalExt ? originalExt.toUpperCase() : 'unsupported';
+      throw new Error(`Format preservation is not supported for ${formatLabel}. Please select an explicit output format to convert this file.`);
+    }
+  } else if (settings.targetFormatMode === 'per-original') {
     try {
       const headerBuffer = await item.file.slice(0, 16).arrayBuffer();
       const validation = validateMagicBytes(headerBuffer);
@@ -370,29 +404,23 @@ export async function convertSingleImage(
           derivedFormat = 'jpg';
         }
       } else {
-        const ext = item.file.name.split('.').pop()?.toLowerCase();
-        if (ext === 'jpg' || ext === 'jpeg') derivedFormat = 'jpg';
-        else if (ext === 'png') derivedFormat = 'png';
-        else if (ext === 'webp') derivedFormat = 'webp';
-        else if (ext === 'bmp') derivedFormat = 'bmp';
-        else if (ext === 'ico') derivedFormat = 'ico';
+        if (originalExt === 'jpg' || originalExt === 'jpeg') derivedFormat = 'jpg';
+        else if (originalExt === 'png') derivedFormat = 'png';
+        else if (originalExt === 'webp') derivedFormat = 'webp';
+        else if (originalExt === 'bmp') derivedFormat = 'bmp';
+        else if (originalExt === 'ico') derivedFormat = 'ico';
         else derivedFormat = 'jpg';
       }
     } catch (e) {
-      const ext = item.file.name.split('.').pop()?.toLowerCase();
-      if (ext === 'jpg' || ext === 'jpeg') derivedFormat = 'jpg';
-      else if (ext === 'png') derivedFormat = 'png';
-      else if (ext === 'webp') derivedFormat = 'webp';
-      else if (ext === 'bmp') derivedFormat = 'bmp';
-      else if (ext === 'ico') derivedFormat = 'ico';
+      if (originalExt === 'jpg' || originalExt === 'jpeg') derivedFormat = 'jpg';
+      else if (originalExt === 'png') derivedFormat = 'png';
+      else if (originalExt === 'webp') derivedFormat = 'webp';
+      else if (originalExt === 'bmp') derivedFormat = 'bmp';
+      else if (originalExt === 'ico') derivedFormat = 'ico';
       else derivedFormat = 'jpg';
     }
   } else {
     derivedFormat = settings.targetFormat;
-  }
-
-  if (item.customTargetFormat) {
-    derivedFormat = item.customTargetFormat;
   }
 
   const effectiveSettings: ConversionSettings = {

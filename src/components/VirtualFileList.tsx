@@ -75,9 +75,7 @@ const VirtualFileListImpl: React.FC<VirtualFileListProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [columnCount, setColumnCount] = useState(1);
-  const [containerHeight, setContainerHeight] = useState(() => 
-    typeof window !== 'undefined' ? Math.max(400, Math.min(800, window.innerHeight - 280)) : 600
-  );
+  const [containerHeight, setContainerHeight] = useState(600);
 
   useEffect(() => {
     const updateSize = () => {

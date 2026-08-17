@@ -177,7 +177,7 @@ export const ArticlesHubPage: React.FC<ArticlesHubPageProps> = ({ onNavigate }) 
       <div className="p-6 rounded-2xl bg-neutral-900 dark:bg-[#18191c] text-white flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-center sm:text-left">
           <h3 className="text-lg font-extrabold">Ready to process image files locally?</h3>
-          <p className="text-xs text-neutral-400">Zapixal runs 100% in browser memory via Web Workers and WebAssembly. Zero cloud uploads.</p>
+          <p className="text-xs text-neutral-400">Zapixal runs locally in browser memory via Web Workers and WebAssembly. Zero cloud uploads for image conversions.</p>
         </div>
         <button
           onClick={() => onNavigate('/')}

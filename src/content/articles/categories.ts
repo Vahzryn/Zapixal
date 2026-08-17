@@ -23,14 +23,14 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     title: 'Privacy & EXIF Metadata Security',
     shortTitle: 'Privacy',
     badge: 'Privacy & Security',
-    description: 'Understanding metadata leaks, EXIF headers, GPS location security, and how local WebAssembly canvas processing guarantees data protection.',
+    description: 'Understanding metadata leaks, EXIF headers, GPS location security, and how local WebAssembly canvas processing supports data protection.',
     metaTitle: 'Image Metadata & In-Browser Privacy Guides — Zapixal',
     metaDescription: 'Learn how EXIF metadata leaks personal location data and how client-side WebAssembly processing strips sensitive tags without cloud servers.',
     iconName: 'ShieldCheck',
     relatedTools: [
       { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata Privately', description: 'Scrub GPS, camera serials, and timestamps locally.' },
       { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur & Pixelate Sensitive Info', description: 'Redact sensitive details on canvas before sharing.' },
-      { path: '/client-side-private-image-compressor', label: 'Private Image Compressor', description: 'Compress files in browser RAM with zero server contact.' },
+      { path: '/client-side-private-image-compressor', label: 'Private Image Compressor', description: 'Compress files in browser RAM with local in-browser processing.' },
     ],
   },
   workflows: {

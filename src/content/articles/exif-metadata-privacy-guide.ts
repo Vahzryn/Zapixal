@@ -76,7 +76,7 @@ export const articleExifMetadataPrivacyGuide: Article = {
     },
     {
       type: 'paragraph',
-      text: 'To guarantee that metadata is scrubbed without handing your photos over to third-party cloud conversion servers, Zapixal performs EXIF stripping 100% locally inside your browser.',
+      text: 'To ensure that metadata is scrubbed without handing your photos over to third-party cloud conversion servers, Zapixal performs EXIF stripping locally inside your browser.',
     },
     {
       type: 'paragraph',
@@ -86,7 +86,7 @@ export const articleExifMetadataPrivacyGuide: Article = {
       type: 'toolCallout',
       tool: {
         title: 'Strip EXIF Metadata Privately',
-        description: 'Remove GPS coordinates, camera serial numbers, and capture timestamps from your photos instantly in browser RAM.',
+        description: 'Remove GPS coordinates, camera serial numbers, and capture timestamps from your photos directly in browser RAM.',
         targetPath: '/strip-exif-metadata-online-private',
         buttonText: 'Launch EXIF Metadata Stripper',
         badge: 'Zero Cloud Uploads',

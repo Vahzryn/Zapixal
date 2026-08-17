@@ -1,6 +1,7 @@
 import { SeoRouteData, getNotFoundSeo } from '../seoEngine';
 import { applySeoToHead } from './head';
 import { getArticleBySlug, getCategoryInfo } from '../../content/articles';
+import { generateArticleJsonLdSchema } from './schema';
 
 export { applySeoToHead };
 
@@ -91,7 +92,8 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
 
   try {
     let key = normalizedPath === '/' ? 'home' : normalizedPath.replace(/^\//, '');
-    if (ROUTE_ALIASES[key]) {
+    const isAlias = !!ROUTE_ALIASES[key];
+    if (isAlias) {
       key = ROUTE_ALIASES[key];
     }
 
@@ -114,6 +116,22 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
       // Individual Articles
       const article = getArticleBySlug(subPath);
       if (article) {
+         const articleBreadcrumbs = [
+           { name: 'Home', url: '/' },
+           { name: 'Articles', url: '/articles' },
+           { name: article.category, url: `/articles/${article.category}` },
+           { name: article.title, url: normalizedPath }
+         ];
+         const jsonLd = generateArticleJsonLdSchema(
+           article.title,
+           article.metaDescription,
+           fullUrl,
+           article.author,
+           article.datePublished,
+           article.dateModified,
+           article.category,
+           articleBreadcrumbs
+         );
          return {
            path: normalizedPath,
            h1Title: article.title,
@@ -122,22 +140,23 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
            canonicalUrl: fullUrl,
            isIndexable: true,
            pageCategory: 'resource',
-           breadcrumbs: [
-             { name: 'Home', url: '/' },
-             { name: 'Articles', url: '/articles' },
-             { name: article.category, url: `/articles/${article.category}` },
-             { name: article.title, url: normalizedPath }
-           ],
+           breadcrumbs: articleBreadcrumbs,
            guideContent: null,
-           jsonLd: null // Article schema should ideally be added here
+           jsonLd
          };
       }
     }
 
     if (PAGE_IMPORTS[key]) {
       const module = await PAGE_IMPORTS[key]();
-      const seoRes = module.getPageSeo(fullUrl, normalizedPath);
-      return { ...seoRes, path: normalizedPath };
+      const targetUrl = `https://zapixal.com${key === 'home' ? '' : `/${key}`}`;
+      const seoRes = module.getPageSeo(targetUrl, normalizedPath);
+      return { 
+        ...seoRes, 
+        path: normalizedPath,
+        canonicalUrl: targetUrl,
+        isIndexable: !isAlias
+      };
     }
     
     return getNotFoundSeo(fullUrl, normalizedPath);

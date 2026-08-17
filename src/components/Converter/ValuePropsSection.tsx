@@ -15,7 +15,7 @@ export const ValuePropsSection = React.memo(function ValuePropsSection() {
         </div>
         <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-[#2d523c] dark:bg-[#1e3427] dark:text-[#81c995]">
           <ShieldCheck className="h-4 w-4" />
-          Zero uploads · 100% local
+          No image upload · Local processing
         </div>
       </div>
 

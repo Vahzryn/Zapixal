@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { ConversionSettings, ImageFileItem } from "../types"
+import { ConversionSettings, ImageFileItem, TargetFormat } from "../types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -38,6 +38,26 @@ export function getExtensionFromMime(mimeType: string): string {
   }
 }
 
+export function getEffectiveTargetFormat(item: ImageFileItem, settings: ConversionSettings): TargetFormat {
+  if (item.customTargetFormat) {
+    return item.customTargetFormat;
+  }
+  if (settings.targetFormat === 'auto') {
+    const ext = item.file.name.split('.').pop()?.toLowerCase() || '';
+    const mime = (item.file.type || '').toLowerCase();
+    
+    if (ext === 'jpg' || ext === 'jpeg' || mime === 'image/jpeg') return 'jpg';
+    if (ext === 'png' || mime === 'image/png') return 'png';
+    if (ext === 'webp' || mime === 'image/webp') return 'webp';
+    if (ext === 'avif' || mime === 'image/avif') return 'avif';
+    if (ext === 'bmp' || mime === 'image/bmp') return 'bmp';
+    if (ext === 'ico' || mime === 'image/x-icon' || mime === 'image/vnd.microsoft.icon') return 'ico';
+    
+    return 'jpg'; // Fallback
+  }
+  return settings.targetFormat;
+}
+
 export function formatOutputFilename(
   item: ImageFileItem,
   index: number,
@@ -51,8 +71,8 @@ export function formatOutputFilename(
     ext = getExtensionFromMime(item.blob.type) as any;
   } else if (item.originalFallback && originalExt) {
     ext = originalExt as any;
-  } else if (item.customTargetFormat) {
-    ext = item.customTargetFormat;
+  } else {
+    ext = getEffectiveTargetFormat(item, settings);
   }
   
   if (ext === 'jpeg') ext = 'jpg';

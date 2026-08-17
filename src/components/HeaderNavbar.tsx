@@ -144,11 +144,11 @@ export function HeaderNavbar({
             target="_blank"
             rel="noopener noreferrer"
             className="p-1.5 sm:p-2 text-neutral-600 hover:text-neutral-900 dark:text-[#9aa0a6] dark:hover:text-[#e8eaed] hover:bg-neutral-100 dark:hover:bg-[#303134] rounded-full transition-colors cursor-pointer max-[360px]:hidden"
-            aria-label="Zapixal Open Source Project on GitHub"
-            title="Zapixal Open Source Project"
+            aria-label="Zapixal Repository on GitHub"
+            title="Zapixal Repository"
           >
             <Github className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="sr-only">Zapixal Open Source Project on GitHub</span>
+            <span className="sr-only">Zapixal Repository on GitHub</span>
           </a>
 
           {/* Dark Mode Toggle */}

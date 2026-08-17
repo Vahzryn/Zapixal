@@ -85,7 +85,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
             <li className="flex items-start gap-3">
               <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <span>
-                <strong>100% In-Browser Privacy Guarantee:</strong> All encodings were computed locally in client RAM using C/C++ WebAssembly modules compiled via Emscripten. Zero image bytes were transmitted to external servers.
+                <strong>Controlled Test Environment:</strong> These benchmark measurements were compiled under a controlled environment (Node.js v22). When you use Zapixal normally, all image conversion and compression occur locally on your individual device in browser memory.
               </span>
             </li>
           </ul>
@@ -149,7 +149,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
         {/* Technical Timing & Scope Callout */}
         <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 p-5 rounded-2xl text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
           <strong className="block font-bold mb-1 text-amber-950 dark:text-amber-100">Measurement Scope & Timing Parameters:</strong>
-          Encoding latency measures the exact wall-clock execution time of the WebAssembly encoder calls (<code>encodeJpeg</code>, <code>encodeWebp</code>, <code>encodeAvif</code>, <code>UPNG.encode</code>) in milliseconds using <code>performance.now()</code>. It includes WebAssembly module memory allocation, pixel matrix processing, and output buffer generation. It excludes disk I/O, canvas RGBA decoding, and network transfers.
+          Encoding latency measures the execution time of the WebAssembly encoder calls (<code>encodeJpeg</code>, <code>encodeWebp</code>, <code>encodeAvif</code>, <code>UPNG.encode</code>) in milliseconds. It includes WebAssembly module initialization, image compression processing, and output buffer generation. It excludes disk I/O, canvas rendering, and network transfers.
         </div>
       </section>
 
@@ -173,28 +173,28 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
               {(benchmarkData.formatSummaries || []).map((summary: any, idx: number) => {
-                const isWinner = summary.format === 'AVIF';
-                const isFastest = summary.format === 'WebP';
+                const isAvif = summary.format === 'AVIF';
+                const isWebp = summary.format === 'WebP';
                 return (
-                  <tr key={idx} className={isWinner ? 'bg-green-50/60 dark:bg-green-900/10' : 'bg-white dark:bg-neutral-900'}>
+                  <tr key={idx} className={isAvif ? 'bg-green-50/60 dark:bg-green-900/10' : 'bg-white dark:bg-neutral-900'}>
                     <td className="p-4 font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                       {summary.format}
-                      {isWinner && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-300 rounded-full">
-                          Smallest Size
+                      {isAvif && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 rounded-full">
+                          Highest Mean Reduction (78.48%)
                         </span>
                       )}
-                      {isFastest && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-full">
-                          Fastest
+                      {isWebp && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-300 rounded-full">
+                          Smallest Aggregate Volume (1.07 MB)
                         </span>
                       )}
                     </td>
                     <td className="p-4 font-medium text-neutral-700 dark:text-neutral-300">{summary.codec}</td>
                     <td className="p-4 text-neutral-500">{summary.settings}</td>
                     <td className="p-4 font-mono font-bold text-neutral-900 dark:text-white">{formatBytes(summary.totalOutputSizeBytes)}</td>
-                    <td className="p-4 font-bold text-green-600 dark:text-green-400">-{summary.avgReductionPct}%</td>
-                    <td className="p-4 font-mono text-neutral-700 dark:text-neutral-300">-{summary.medianReductionPct}%</td>
+                    <td className="p-4 font-bold text-green-600 dark:text-green-400">{summary.avgReductionPct}% reduction</td>
+                    <td className="p-4 font-mono text-neutral-700 dark:text-neutral-300">{summary.medianReductionPct}% reduction</td>
                     <td className="p-4 font-mono text-neutral-900 dark:text-white">{summary.avgTimeMs} ms</td>
                   </tr>
                 );
@@ -217,19 +217,19 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">WebP (libwebp)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.WebP}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.WebP}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">AVIF (libavif)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.AVIF}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.AVIF}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">JPEG (MozJPEG)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.JPEG}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.JPEG}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">PNG (UPNG 256c)</span>
-                  <span className="font-mono font-bold text-neutral-500">-{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.PNG}%</span>
+                  <span className="font-mono font-bold text-neutral-500">{benchmarkData.categoryBreakdown.photos.avgReductionPctByFormat.PNG}% reduction</span>
                 </div>
               </div>
             </div>
@@ -240,19 +240,19 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
               <div className="space-y-3 text-xs">
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">AVIF (libavif)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.AVIF}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.AVIF}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">WebP (libwebp)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.WebP}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.WebP}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">PNG (UPNG 256c)</span>
-                  <span className="font-mono font-bold text-green-600 dark:text-green-400">-{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.PNG}%</span>
+                  <span className="font-mono font-bold text-green-600 dark:text-green-400">{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.PNG}% reduction</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-neutral-700 dark:text-neutral-300">JPEG (MozJPEG)</span>
-                  <span className="font-mono font-bold text-neutral-500">-{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.JPEG}%</span>
+                  <span className="font-mono font-bold text-neutral-500">{benchmarkData.categoryBreakdown.graphics.avgReductionPctByFormat.JPEG}% reduction</span>
                 </div>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
                         <div>
                           <div className="font-bold text-neutral-900 dark:text-white">{formatBytes(jpgRes.outputSizeBytes)}</div>
                           <div className={`text-[10px] ${jpgRes.reductionPct >= 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                            {jpgRes.reductionPct >= 0 ? `-${jpgRes.reductionPct}%` : `+${Math.abs(jpgRes.reductionPct)}%`} ({jpgRes.timeMs}ms)
+                            {jpgRes.reductionPct >= 0 ? `${jpgRes.reductionPct}% reduction` : `+${Math.abs(jpgRes.reductionPct)}% increase`} ({jpgRes.timeMs}ms)
                           </div>
                         </div>
                       ) : '—'}
@@ -333,7 +333,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
                         <div>
                           <div className="font-bold text-neutral-900 dark:text-white">{formatBytes(webpRes.outputSizeBytes)}</div>
                           <div className={`text-[10px] ${webpRes.reductionPct >= 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                            {webpRes.reductionPct >= 0 ? `-${webpRes.reductionPct}%` : `+${Math.abs(webpRes.reductionPct)}%`} ({webpRes.timeMs}ms)
+                            {webpRes.reductionPct >= 0 ? `${webpRes.reductionPct}% reduction` : `+${Math.abs(webpRes.reductionPct)}% increase`} ({webpRes.timeMs}ms)
                           </div>
                         </div>
                       ) : '—'}
@@ -345,7 +345,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
                         <div>
                           <div className="font-bold text-neutral-900 dark:text-white">{formatBytes(avifRes.outputSizeBytes)}</div>
                           <div className={`text-[10px] ${avifRes.reductionPct >= 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                            {avifRes.reductionPct >= 0 ? `-${avifRes.reductionPct}%` : `+${Math.abs(avifRes.reductionPct)}%`} ({avifRes.timeMs}ms)
+                            {avifRes.reductionPct >= 0 ? `${avifRes.reductionPct}% reduction` : `+${Math.abs(avifRes.reductionPct)}% increase`} ({avifRes.timeMs}ms)
                           </div>
                         </div>
                       ) : '—'}
@@ -409,7 +409,7 @@ export default function BenchmarkPage({ onNavigate }: { onNavigate: (path: strin
               Convert PNG to WebP Lossless
               <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1" />
             </div>
-            <p className="text-xs text-neutral-500 mt-1">Shrink PNG file size while preserving 100% transparent pixel details.</p>
+            <p className="text-xs text-neutral-500 mt-1">Shrink PNG file size while preserving transparent pixel details.</p>
           </button>
 
           <button

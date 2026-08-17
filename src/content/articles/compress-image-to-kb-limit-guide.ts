@@ -77,13 +77,13 @@ export const articleCompressImageToKbLimitGuide: Article = {
         'Select your source image file (JPG, PNG, WebP, HEIC) or drag it into the browser dropzone.',
         'Choose your desired Target KB limit (e.g. 50KB for government forms, 100KB for application portals, or 200KB for passport uploads).',
         'Optional: Enable dimensional caps (e.g. maximum 600x600 pixels for passport photos) to assist the compression loop.',
-        'Export your optimized file directly from browser RAM with zero server upload.',
+        'Export your optimized file directly from browser RAM without server upload.',
       ],
     },
     {
       type: 'toolCallout',
       tool: {
-        title: 'Compress Image to 100KB Instantly',
+        title: 'Compress Image to 100KB in Your Browser',
         description: 'Automatically adjust compression parameters in browser memory to hit your exact kilobyte target without cloud server uploads.',
         targetPath: '/compress-image-to-100kb-online',
         buttonText: 'Launch 100KB Image Compressor',

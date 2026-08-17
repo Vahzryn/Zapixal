@@ -181,7 +181,7 @@ export class ContentValidator {
         pageSlug: slug,
         ruleId: 'hallucinated_server_uploads',
         severity: 'error',
-        message: 'Claimed server uploads or cloud security features. Zapixal is 100% local, client-side browser only.'
+        message: 'Claimed server uploads or cloud security features. Zapixal is local, client-side browser only.'
       });
     }
 

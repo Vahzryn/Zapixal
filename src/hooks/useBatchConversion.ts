@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ImageFileItem, ConversionSettings, TargetFormat } from '../types';
 import { detectHardwareCapabilities, checkBatteryThrottling, getBatchThresholds, estimateDeviceMemoryBudget, estimateConversionMemoryCost, estimateProcessingWorkload } from '../lib/hardwareCapabilities';
-import { formatBytes, formatOutputFilename, getExtensionFromMime } from '../lib/utils';
+import { formatBytes, formatOutputFilename, getExtensionFromMime, getEffectiveTargetFormat } from '../lib/utils';
 import { safeRandomUUID } from '../lib/capabilities';
 import { saveFilesToDirectory, downloadBlob } from '../lib/fileSystemAccess';
 
@@ -27,6 +27,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const [isAutoChunkedBannerDismissed, setIsAutoChunkedBannerDismissed] = useState(false);
 
   const [directoryHandle, setDirectoryHandle] = useState<any | null>(null);
+  const [hasDirectoryPicker, setHasDirectoryPicker] = useState(false);
 
   const handleSelectDirectory = useCallback(async () => {
     if (typeof window === 'undefined' || !('showDirectoryPicker' in window)) {
@@ -87,6 +88,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
       });
     };
 
+    setHasDirectoryPicker(typeof window !== 'undefined' && 'showDirectoryPicker' in window);
     window.addEventListener('zapixal-unhandled-rejection' as any, handleGlobalRejection);
     return () => {
       window.removeEventListener('zapixal-unhandled-rejection' as any, handleGlobalRejection);
@@ -724,12 +726,12 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     };
 
     const pdfFiles = successfulFiles.filter(f => {
-      const tf = f.customTargetFormat || settings.targetFormat;
+      const tf = getEffectiveTargetFormat(f, settings);
       return tf === 'pdf' && f.pdfImageData && f.pdfImageWidth && f.pdfImageHeight;
     });
     
     const nonPdfFiles = successfulFiles.filter(f => {
-      const tf = f.customTargetFormat || settings.targetFormat;
+      const tf = getEffectiveTargetFormat(f, settings);
       return tf !== 'pdf' || !f.pdfImageData;
     });
 
@@ -878,7 +880,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     const thresholds = getBatchThresholds(hw.tier);
     const totalSize = pendingFiles.reduce((sum, f) => sum + f.originalSize, 0);
 
-    const hasAvif = settings.targetFormat === 'avif' || pendingFiles.some(f => f.customTargetFormat === 'avif');
+    const hasAvif = settings.targetFormat === 'avif' || pendingFiles.some(f => {
+      const tf = getEffectiveTargetFormat(f, settings);
+      return tf === 'avif';
+    });
     let dynamicChunkLimit = 15;
     if (hw.tier === 'LOW') {
       dynamicChunkLimit = hasAvif ? 3 : 5;
@@ -930,7 +935,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
     let totalBatchWorkload = 0;
     for (const item of pendingFiles) {
-       const tf = item.customTargetFormat || settings.targetFormat;
+       const tf = getEffectiveTargetFormat(item, settings);
        const w = item.dimensions?.width || 2048;
        const h = item.dimensions?.height || 2048;
        totalBatchWorkload += estimateProcessingWorkload(w, h, item.file.type, tf);
@@ -972,7 +977,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
 
             while (currentIndex < currentChunk.length && activeWorkers < maxConcurrent) {
               const peekItem = currentChunk[currentIndex];
-              const tf = peekItem.customTargetFormat || settings.targetFormat;
+              const tf = getEffectiveTargetFormat(peekItem, settings);
               const w = peekItem.dimensions?.width || 2048;
               const h = peekItem.dimensions?.height || 2048;
               const cost = estimateConversionMemoryCost(w, h, tf);
@@ -1303,7 +1308,10 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
   const hwConfig = detectHardwareCapabilities();
   const currentThresholds = getBatchThresholds(hwConfig.tier);
 
-  const hasAvifBanner = settings.targetFormat === 'avif' || files.some(f => f.customTargetFormat === 'avif');
+  const hasAvifBanner = settings.targetFormat === 'avif' || files.some(f => {
+    const tf = getEffectiveTargetFormat(f, settings);
+    return tf === 'avif';
+  });
   let dynamicChunkLimitBanner = 15;
   if (hwConfig.tier === 'LOW') {
     dynamicChunkLimitBanner = hasAvifBanner ? 3 : 5;
@@ -1359,7 +1367,7 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
     directoryHandle,
     onSelectDirectory: handleSelectDirectory,
     onDisconnectDirectory: handleDisconnectDirectory,
-    hasDirectoryPicker: typeof window !== 'undefined' && 'showDirectoryPicker' in window,
+    hasDirectoryPicker,
     stopProcessing,
     processFiles,
     showLowTierWarning,

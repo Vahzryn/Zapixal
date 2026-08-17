@@ -18,7 +18,7 @@ export function generateJsonLdSchemas(
     'softwareVersion': '1.0.0',
     'operatingSystem': 'All (Windows, macOS, Linux, iOS, Android)',
     'browserRequirements': 'Requires Modern Web Browser with WebAssembly (WASM) support',
-    'license': 'https://opensource.org/licenses/MIT',
+    'license': 'Proprietary',
     'isAccessibleForFree': true,
     'keywords': ['image converter', 'image compressor', 'client-side image tool', 'private image converter', 'HEIC to JPG', 'PNG to WebP'],
     'offers': {
@@ -28,9 +28,9 @@ export function generateJsonLdSchemas(
       'availability': 'https://schema.org/InStock',
     },
     'featureList': [
-      '100% Client-Side In-Browser Image Processing',
-      'Zero Cloud Server Uploads & Total Privacy',
-      'WebAssembly (WASM) & Web Worker Multithreading Speed',
+      'Client-Side In-Browser Image Processing',
+      'Zero Cloud Server Uploads for conversion privacy',
+      'WebAssembly (WASM) and Web Worker processing',
       'Adaptive Batch Image Processing',
       'Practical guidance for compatibility, accessibility, and file-size targets',
     ],

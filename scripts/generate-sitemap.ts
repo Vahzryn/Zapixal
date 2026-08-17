@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
 import { ALL_ARTICLES, getArticleBySlug, getArticlesByCategory, getCategoryInfo } from '../src/content/articles';
+import { ROUTE_ALIASES } from '../src/lib/seo/meta';
 
 const STATIC_ROUTES = ['/', '/tools', '/about', '/privacy', '/terms', '/widget'];
 
@@ -49,8 +50,9 @@ function generateSitemap() {
   ALL_ARTICLE_SYSTEM_ROUTES.forEach((r) => routesSet.add(r));
 
   // Add pSEO routes
+  const aliasKeys = new Set(Object.keys(ROUTE_ALIASES).map((k) => `/${k}`));
   PSEO_ROUTES_LIST.forEach((item) => {
-    if (item.path) {
+    if (item.path && !aliasKeys.has(item.path)) {
       routesSet.add(item.path);
     }
   });

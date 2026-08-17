@@ -13,7 +13,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       path,
       h1Title: 'Privacy Policy',
       metaTitle: 'Privacy Policy — Local Client-Side Processing | Zapixal',
-      metaDescription: 'Zapixal Privacy Policy. All image processing occurs locally in your browser memory using WebAssembly. Zero data collection.',
+      metaDescription: 'Zapixal Privacy Policy. All image processing occurs locally in your browser memory using WebAssembly. Image files are not uploaded to our servers for conversion or compression.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'use-case',

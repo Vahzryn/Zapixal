@@ -38,7 +38,7 @@ export const VERIFIED_FACTS: Record<string, FactCategory> = {
     assertions: [
       'Rasterization onto an HTML5 Canvas or OffscreenCanvas automatically strips all metadata (EXIF, GPS coordinates, IPTC fields, XMP sidecars, camera model details, and timestamps) because the browser Canvas API operates exclusively on raw RGBA pixel grids.',
       'Standard Canvas export (e.g. canvas.toBlob) does not preserve input image headers. All output formats are natively stripped of original metadata.',
-      'DPI resolution metadata (JFIF APP0 headers for JPEGs, and pHYs chunks for PNGs) is explicitly injected post-rasterization when a custom target DPI is set (e.g. 300 or 600 DPI for print preflight).',
+      'DPI resolution metadata (JFIF APP0 headers for JPEGs, and pHYs chunks for PNGs) is explicitly injected post-rasterization when a custom target DPI is set (e.g. 300 or 600 DPI for print preparation).',
       'The "lossless metadata optimizer" page refers to stripping EXIF chunks by custom binary slicing or re-writing progressive scan tables, which retains high visual quality while reducing binary footprint.'
     ]
   },

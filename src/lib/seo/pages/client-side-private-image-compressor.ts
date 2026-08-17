@@ -10,15 +10,15 @@ function makeFaq(question: string, answer: string) {
 
 export function getClientSidePrivateCompressorContent(): RouteEditorialContent {
   return {
-    badge: 'local & Sandbox Secured',
-    section1Title: 'The shift from cloud-dependent processing to browser-native sandboxing',
-    section1Body: 'Zapixal processes all images within the local browser memory. Processing files locally removes the need to pipe your raw image data across the public internet to a remote server. Zapixal utilizes WebAssembly (WASM) to execute high-performance compression codecs directly within your browser’s RAM. By keeping the entire compute cycle local, your files are processed in a secure sandbox, ensuring that not a single byte of your original image ever reaches a third-party server.',
+    badge: 'Fully Local Processing',
+    section1Title: 'The shift from cloud-dependent processing to browser-native privacy',
+    section1Body: 'Zapixal processes all images within the local browser memory. Processing files locally removes the need to pipe your raw image data across the public internet to a remote server. Zapixal utilizes WebAssembly (WASM) to execute high-performance compression codecs directly within your browser’s memory. By keeping the entire compute cycle local, your files are processed entirely on your device, ensuring that not a single byte of your original image ever reaches a third-party server.',
     section2Title: 'Eliminating the "Server Round-Trip" for faster, more secure iterations',
     section2Body: 'Speed in a professional workflow isn’t just about raw throughput; it’s about the time wasted waiting for uploads to finish. When processing high-resolution assets or massive batches, the network bottleneck is often the slowest link. Our client-side approach eliminates this overhead entirely. Because the browser’s Canvas API and multithreaded Web Workers handle the heavy lifting locally, the results appear directly in your browser. Additionally, this method provides absolute metadata security—you can strip EXIF tags and geotags locally, preventing sensitive location data from being leaked before you share the optimized file.',
     steps: [
-      'Drag your high-resolution images into the browser sandbox.',
+      'Drag your high-resolution images into the browser window.',
       'Adjust the compression parameters locally while monitoring real-time quality.',
-      'Save the optimized assets directly to your local storage without any data exfiltration.'
+      'Save the optimized assets directly to your local storage without any data transfer.'
     ],
     faqs: [
       makeFaq('How can a browser compress images without a backend server?', 'Zapixal uses WebAssembly to run high-performance codecs like MozJPEG, WebP, and Imagequant directly on your machine’s CPU. This allows the browser to perform desktop-class image processing entirely within its own memory space.'),
@@ -33,9 +33,9 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
   const guideContent = getClientSidePrivateCompressorContent();
     return {
       path,
-      h1Title: 'Private Image Compressor: local & Sandbox Secured',
+      h1Title: 'Private Image Compressor: Fully Local Processing',
       metaTitle: 'Private Image Compressor — Client-Side Browser Tool',
-      metaDescription: 'Compress images privately in your browser memory without server uploads. local and sandbox secured for complete local data privacy.',
+      metaDescription: 'Compress images privately in your browser memory without server uploads. Fully local processing for complete data privacy.',
       canonicalUrl: fullUrl,
       isIndexable: true,
       pageCategory: 'compression',

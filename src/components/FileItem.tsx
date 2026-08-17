@@ -192,6 +192,11 @@ function FileItemComponent({
                   <span className={cn("shrink-0 font-bold", compressionRatio > 0 ? "text-emerald-600 dark:text-[#81c995]" : "text-neutral-500 dark:text-[#9aa0a6]")}>
                     {formatBytes(item.convertedSize)}
                   </span>
+                  {item.blob && (
+                    <span className="px-1 py-0.5 text-[9px] sm:text-[10px] rounded bg-blue-100 dark:bg-[#1a365d] text-blue-800 dark:text-[#93c5fd] font-bold shrink-0 uppercase border border-blue-200 dark:border-[#2b4c7e]">
+                      {item.blob.type === 'image/jpeg' ? 'JPEG' : item.blob.type.split('/').pop()?.toUpperCase() || 'OUT'}
+                    </span>
+                  )}
                   {compressionRatio > 0 && (
                     <span className="px-1 py-0.5 text-[9px] sm:text-[10px] rounded bg-emerald-100 dark:bg-[#1e3427] text-emerald-700 dark:text-[#81c995] font-bold shrink-0 border border-emerald-200 dark:border-[#2d523c]">
                       -{compressionRatio}%

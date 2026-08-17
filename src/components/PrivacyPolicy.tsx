@@ -7,40 +7,66 @@ export function PrivacyPolicy() {
       
       <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6 text-neutral-600 dark:text-[#bdc1c6] leading-relaxed">
         <p className="text-lg font-medium text-neutral-800 dark:text-[#e8eaed]">
-          Last Updated: August 6, 2026
+          Last Updated: August 14, 2026
         </p>
 
-        <section className="bg-emerald-50 dark:bg-[#1e3427] p-6 rounded-2xl border border-emerald-100 dark:border-[#2d523c] mb-8">
-          <h2 className="text-2xl font-bold text-emerald-800 dark:text-[#81c995] mb-4 mt-0">100% Local Processing Guarantee</h2>
-          <p className="mb-0 text-emerald-700 dark:text-[#a8dabb]">
-            Zapixal is built on a strict zero-upload architecture. <strong>100% of image processing occurs locally in your browser memory</strong> using WebAssembly and HTML5 Canvas. We expressly declare that no images, personal data, or camera metadata are ever transmitted to, logged by, or stored on external servers.
+        <section className="bg-neutral-50 dark:bg-neutral-900 p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 mb-8">
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4 mt-0">How We Handle Your Data</h2>
+          <p className="mb-2">
+            Zapixal divides data handling into two separate categories: normal image processing, and optional feedback submissions.
+          </p>
+          <p className="mb-0">
+            For normal image processing, all operations are kept locally on your device. For optional feedback, specific information you provide is transmitted to our servers.
           </p>
         </section>
 
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">1. Data We Do Not Collect</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">1. Normal Image Processing (Local)</h2>
+        <p>
+          When you use Zapixal to convert, compress, or edit images under standard operations:
+        </p>
         <ul className="list-disc pl-6 space-y-2">
-          <li><strong>Images & Files:</strong> Your files never leave your device. There is no cloud storage or server upload step.</li>
-          <li><strong>Metadata (EXIF):</strong> When you choose to strip metadata, it is removed entirely within your browser environment.</li>
-          <li><strong>Personal Information:</strong> We do not require accounts, signups, or email addresses to use the service.</li>
+          <li><strong>Local Browser Processing:</strong> All image processing, conversion, resizing, and metadata stripping occur locally inside your browser memory. We use WebAssembly and the HTML5 Canvas API to perform these conversions on your device.</li>
+          <li><strong>No Image Uploads:</strong> Your raw image files are not uploaded, transmitted, logged, or stored on external servers for conversions.</li>
+          <li><strong>No Account Requirements:</strong> You do not need to create an account, register, or provide an email address to use our image processing features.</li>
         </ul>
 
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">2. Analytics and Telemetry</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">2. Optional Feedback Submissions (Transmitted)</h2>
         <p>
-          We do not use any analytics, cookies, telemetry, or third-party tracking beacons of any kind. 100% of processing and preference storage stays on-device, meaning we do not collect, send, or monitor usage data.
+          Zapixal includes an optional feedback tool. If you choose to submit feedback or report an issue, specific information is transmitted over the network to our feedback service:
         </p>
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">3. Local Storage</h2>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Feedback Message:</strong> The written text you enter in the form to describe your request or issue.</li>
+          <li><strong>Optional Screenshot:</strong> An optional screenshot of the application view (rendered locally first) that you can choose to include with your submission.</li>
+          <li><strong>Diagnostic & Browser Information:</strong> Basic browser metadata, including user-agent, operating system, screen size, active tool route, and preferred language.</li>
+          <li><strong>Error Information:</strong> Diagnostic console logs or processing error details to help us troubleshoot issues.</li>
+        </ul>
         <p>
-          Zapixal may use your browser's local storage (localStorage) exclusively to remember your UI preferences (such as Light/Dark mode and preferred conversion settings). This data remains entirely on your device.
+          This data transmission is entirely voluntary and only occurs when you explicitly click the "Submit" or "Send Feedback" button.
         </p>
 
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">4. Changes to This Policy</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">3. Cloudflare Web Analytics and Performance Monitoring (RUM)</h2>
         <p>
-          We may update this Privacy Policy from time to time. Since our architecture relies fundamentally on zero-upload local processing, any changes will only reflect updates to UI preferences or core features, never a compromise to your image privacy.
+          Zapixal leverages Cloudflare Web Analytics / Real User Monitoring (RUM) to monitor site availability, performance, and general platform health.
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Performance Telemetry:</strong> Cloudflare Web Analytics may collect technical metrics such as page load times, browser versions, operating systems, and connection-level latency measurements.</li>
+          <li><strong>Pipeline Isolation:</strong> This telemetry collection is completely separate from the image-processing pipeline. It does not access, scan, or transmit your raw image files or processed results.</li>
+          <li><strong>Data Scope:</strong> Cloudflare collects basic connection-level telemetry and usage patterns. No image files or user-authored contents are sent over the network merely because analytics are enabled.</li>
+        </ul>
+
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">4. Preferences and Local Storage</h2>
+        <p>
+          We use your browser's local storage (localStorage) on your own device to save your configuration preferences, such as your theme choice (Light or Dark mode) and your default target format selections. This information is stored locally and is not shared with our servers.
+        </p>
+
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">5. Changes to This Policy</h2>
+        <p>
+          We may update this Privacy Policy occasionally. Any updates will maintain the core principle that normal image files are processed locally on your device and are not uploaded to our servers for conversion.
         </p>
         
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">5. Contact Us</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">6. Contact Us</h2>
         <p>
-          If you have any questions about our privacy practices, please contact us at <strong>vahzryn@zapixal.com</strong>.
+          If you have questions about our privacy policy or how we handle your information, please contact us at <strong>vahzryn@zapixal.com</strong>.
         </p>
       </div>
     </div>

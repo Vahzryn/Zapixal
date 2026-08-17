@@ -43,7 +43,7 @@ function getCategoryBadge(pathStr: string, pageCategory?: string): string {
   if (pageCategory === 'converter') return 'In-Browser Converter';
   if (pageCategory === 'compression') return 'Client-Side Compressor';
   if (pageCategory === 'use-case') return 'Local Image Utility';
-  return '100% Client-Side WASM';
+  return 'Client-Side WASM';
 }
 
 function getMicroLabel(pathStr: string, pageCategory?: string): string {
@@ -137,7 +137,7 @@ function generateRightVisualSvg(routePath: string, seoData: SeoRouteData): strin
 
         <!-- Badge -->
         <rect x="120" y="210" width="180" height="28" rx="14" fill="#064E3B" stroke="#10B981" stroke-width="1"/>
-        <text x="210" y="229" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="700" text-anchor="middle">100% In-Browser Overlay</text>
+        <text x="210" y="229" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="700" text-anchor="middle">Local In-Browser Overlay</text>
       </g>`;
   }
 
@@ -223,7 +223,7 @@ function generateRightVisualSvg(routePath: string, seoData: SeoRouteData): strin
 
         <!-- Bottom Security Pill -->
         <rect x="100" y="200" width="220" height="34" rx="17" fill="#064E3B" stroke="#10B981" stroke-width="1.5"/>
-        <text x="210" y="222" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">100% PRIVATE IN-RAM</text>
+        <text x="210" y="222" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">PRIVATE LOCAL PROCESSING</text>
       </g>`;
   }
 
@@ -299,7 +299,7 @@ function generateRightVisualSvg(routePath: string, seoData: SeoRouteData): strin
           <path d="M 113 22 L 117 25 L 123 18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none"/>
 
           <text x="70" y="110" fill="#38BDF8" font-size="26" font-family="sans-serif" font-weight="800" text-anchor="middle">${escapeXml(to)}</text>
-          <text x="70" y="145" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="600" text-anchor="middle">Instant Output</text>
+          <text x="70" y="145" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="600" text-anchor="middle">Optimized Output</text>
         </g>
       </g>`;
   }

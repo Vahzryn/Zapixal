@@ -52,7 +52,7 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       ],
       jsonLd: generateJsonLdSchemas(
         'Native iPhone HEIC to JPEG Decoding in Browser Memory',
-        'Convert Apple HEIC photos to standard JPEG locally with WASM-powered decoding and zero server uploads.',
+        'Convert Apple HEIC photos to standard JPEG locally with WASM-powered decoding and without uploading your files.',
         fullUrl,
         guideContent.faqs,
         [{ name: 'Home', url: '/' }, { name: 'Convert HEIC to JPG', url: path }],

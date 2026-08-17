@@ -21,7 +21,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     relatedTools: ['bulk-image-compressor-offline', 'compress-png-images-online', 'strip-exif-metadata-online-private'],
     internalLinkOpportunities: ['/strip-exif-metadata-online-private'],
     contentGaps: ['Many web pages process files on remote servers; Zapixal processes all images within the local browser memory.'],
-    ctrDifferentiator: 'Local & Sandbox Secured'
+    ctrDifferentiator: 'Fully Local Processing'
   },
   'compress-image-under-50kb-government-portal': {
     slug: 'compress-image-under-50kb-government-portal',
@@ -123,7 +123,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     uniqueAngle: 'Explain how local rendering keeps translucent layers intact without background blackouts.',
     verifiedCapabilities: ['format_capabilities', 'privacy_network'],
     verifiedLimitations: ['performance_limits'],
-    relevantTechnicalFacts: ['Composites alpha channels accurately in local memory with zero server round-trips'],
+    relevantTechnicalFacts: ['Composites alpha channels accurately in local memory without uploading files'],
     relevantExternalFacts: ['Older editing suites like legacy Photoshop require plugins to read WebP'],
     importantQuestions: ['Will the transparent background turn black?', 'Is transparency preserved?'],
     relatedTools: ['convert-svg-to-png-transparent', 'convert-png-to-webp-lossless'],
@@ -362,8 +362,8 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     importantQuestions: ['Does changing DPI change my pixel resolution?', 'What is the standard print DPI?'],
     relatedTools: ['high-res-image-resizer-client-side', 'passport-photo-size-reducer-kb'],
     internalLinkOpportunities: ['/passport-photo-size-reducer-kb'],
-    contentGaps: ['Zapixal enables you to modify DPI metadata fields instantly in local browser RAM.'],
-    ctrDifferentiator: 'Instant EXIF Injector'
+    contentGaps: ['Zapixal enables you to modify DPI metadata fields directly in local browser RAM.'],
+    ctrDifferentiator: 'Direct EXIF Injector'
   },
   'compress-image-for-email-attachment-limit': {
     slug: 'compress-image-for-email-attachment-limit',
@@ -407,7 +407,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     primaryTopic: 'compress screenshot png',
     secondaryTopics: ['shrink screenshot online', 'fast screenshot size reduction browser'],
     userProblem: 'High-DPI Retina/macOS screenshot files occupying up to 8MB each, making sharing slow.',
-    desiredOutcome: 'Lightweight screenshots that load instantly while keeping small UI text elements perfectly readable.',
+    desiredOutcome: 'Lightweight screenshots that load rapidly while keeping small UI text elements perfectly readable.',
     uniqueAngle: 'Emphasize high-contrast text edge preservation under lossy quantization filters.',
     verifiedCapabilities: ['lossless_optimization', 'format_capabilities'],
     verifiedLimitations: ['performance_limits'],
@@ -542,7 +542,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     importantQuestions: ['How does the color picker detect hex codes?', 'Are images uploaded to extract colors?'],
     relatedTools: ['client-side-image-to-base64', 'convert-svg-to-png-transparent'],
     internalLinkOpportunities: ['/client-side-image-to-base64'],
-    contentGaps: ['Most pickers run slow server passes; Zapixal calculates clusters instantly in-browser.'],
+    contentGaps: ['Most pickers run slow server passes; Zapixal calculates clusters directly in-browser.'],
     ctrDifferentiator: 'Local Color Quantizer'
   },
   'lossless-jpeg-optimizer-exif-preserve': {
@@ -587,7 +587,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     primaryTopic: 'shopify image optimizer',
     secondaryTopics: ['bulk shopify photo shrink', 'shopify product image dimensions optimizer'],
     userProblem: 'Slow Shopify stores leading to high bounce rates and lost sales due to unoptimized product photos.',
-    desiredOutcome: 'Perfectly optimized Shopify product catalogs that load instantly on mobile devices.',
+    desiredOutcome: 'Perfectly optimized Shopify product catalogs that load rapidly on mobile devices.',
     uniqueAngle: 'Targeting Shopify-specific dimension standards (2048x2048) and automatic white-background fill.',
     verifiedCapabilities: ['variable_requirements', 'performance_limits'],
     verifiedLimitations: ['lossless_optimization'],
@@ -597,7 +597,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     relatedTools: ['bulk-image-resizer-ecommerce-catalog', 'etsy-image-resizer-batch-optimize'],
     internalLinkOpportunities: ['/bulk-image-resizer-ecommerce-catalog'],
     contentGaps: ['Many Shopify apps charge monthly fees; Zapixal offers high-performance bulk optimization for free.'],
-    ctrDifferentiator: '100% Free Shopify Bulk Optimizer'
+    ctrDifferentiator: 'Free Shopify Bulk Optimizer'
   },
   'convert-to-avif-online-free': {
     slug: 'convert-to-avif-online-free',
@@ -623,7 +623,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     primaryTopic: 'ai image compressor',
     secondaryTopics: ['intelligent photo shrinker', 'smart image optimizer online', 'privacy-first ai compression alternative'],
     userProblem: '"AI" compression tools often upload personal photos to unmonitored cloud servers.',
-    desiredOutcome: 'Intelligent, high-quality image optimization with 100% local data privacy.',
+    desiredOutcome: 'Intelligent, high-quality image optimization with local data privacy.',
     uniqueAngle: 'Positioning high-fidelity WASM encoders as the superior "Smart" alternative to invasive AI cloud tools.',
     verifiedCapabilities: ['privacy_network', 'performance_limits'],
     verifiedLimitations: ['lossless_optimization'],
@@ -645,13 +645,13 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     uniqueAngle: 'Detail the iterative "bisection" search algorithm used to find the perfect quality dial for a 100KB target.',
     verifiedCapabilities: ['variable_requirements', 'performance_limits'],
     verifiedLimitations: ['lossless_optimization'],
-    relevantTechnicalFacts: ['Iterates quality levels locally to guarantee output remains below 100KB without blurring text.'],
+    relevantTechnicalFacts: ['Iterates quality levels locally to help output remain below 100KB without blurring text.'],
     relevantExternalFacts: ['100KB is a common limit for government, job, and educational portals worldwide.'],
     importantQuestions: ['How can I compress an image to exactly 100KB?', 'Will the image quality be bad?'],
     relatedTools: ['compress-image-under-50kb-government-portal', 'compress-image-to-200kb-online'],
     internalLinkOpportunities: ['/compress-image-under-50kb-government-portal'],
     contentGaps: ['Many tools guess the size; Zapixal calculates it precisely via local re-encoding passes.'],
-    ctrDifferentiator: 'Guaranteed 100KB Target Hit'
+    ctrDifferentiator: 'Precise 100KB Target Hit'
   },
   'compress-image-to-200kb-online': {
     slug: 'compress-image-to-200kb-online',
@@ -695,7 +695,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     primaryTopic: 'discord avatar compressor',
     secondaryTopics: ['discord pfp size reducer', 'shrink gif for discord profile', 'discord banner optimizer'],
     userProblem: 'Discord rejecting avatars or banners because they exceed the 8MB or 10MB Nitro/non-Nitro limits.',
-    desiredOutcome: 'Perfectly sized Discord profile pictures and banners that load instantly.',
+    desiredOutcome: 'Perfectly sized Discord profile pictures and banners that load rapidly.',
     uniqueAngle: 'Tailored for Discord-specific limits (8MB, 128x128 icons, 600x240 banners).',
     verifiedCapabilities: ['variable_requirements', 'performance_limits'],
     verifiedLimitations: ['format_capabilities'],
@@ -750,7 +750,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     secondaryTopics: ['pdf to jpg image extract', 'convert pdf page to jpeg browser'],
     userProblem: 'Need individual PDF pages converted into JPG images for web uploading or embedding without uploading private documents to cloud servers.',
     desiredOutcome: 'High-quality JPG images rendered from selected PDF pages directly in browser memory.',
-    uniqueAngle: 'Client-side PDF page rasterization with page selection, DPI scale controls, zero server uploads, and ZIP bundling.',
+    uniqueAngle: 'Client-side PDF page rasterization with page selection, DPI scale controls, local browser processing, and ZIP bundling.',
     verifiedCapabilities: ['privacy_network', 'performance_limits'],
     verifiedLimitations: ['vector_rasterization'],
     relevantTechnicalFacts: ['Uses PDF.js canvas rendering to convert vector page layouts into JPEG pixel grids entirely in browser RAM.'],
@@ -794,7 +794,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     importantQuestions: ['Is my confidential document stored anywhere?', 'Will fine print text remain legible?'],
     relatedTools: ['convert-pdf-pages-to-jpg-images', 'blur-sensitive-image-privacy-pixelator'],
     internalLinkOpportunities: ['/convert-pdf-pages-to-jpg-images'],
-    contentGaps: ['Cloud document compressors store uploaded PDFs on external servers; Zapixal processes document images 100% locally.'],
-    ctrDifferentiator: '100% In-Browser Zero-Knowledge Document Compressor'
+    contentGaps: ['Cloud document compressors store uploaded PDFs on external servers; Zapixal processes document images locally in browser memory.'],
+    ctrDifferentiator: 'In-Browser Zero-Knowledge Document Compressor'
   },
 };

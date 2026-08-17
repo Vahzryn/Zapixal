@@ -12,11 +12,11 @@ export function getCompressExactKbContent(): RouteEditorialContent {
     section1Title: 'Meet strict KB limits for portals and email attachments',
     section1Body: 'Whether you need an image under 50KB for a government portal, 100KB for an exam application, or 1MB for a job application form, Zapixal’s exact-size targeting handles it automatically. Instead of manually guessing quality sliders, our WebAssembly engine uses an iterative bisection algorithm to calculate the exact compression parameters needed to fit your file under your strict byte limit while preserving maximum readability.',
     section2Title: 'Private, local browser processing for sensitive documents',
-    section2Body: 'When compressing passports, IDs, or official documents, privacy is critical. Unlike cloud compressors that upload your files to remote servers, Zapixal processes everything instantly inside your browser RAM. Your data never touches a network. We ensure that text and facial features remain sharp enough for official review by balancing resolution and quantization locally.',
+    section2Body: 'When compressing passports, IDs, or official documents, privacy is critical. Unlike cloud compressors that upload your files to remote servers, Zapixal processes everything directly inside your browser RAM. The image conversion itself does not require uploading your image file to a remote server. We ensure that text and facial features remain sharp enough for official review by balancing resolution and quantization locally.',
     steps: [
       'Select the "Target Size" setting and enter your specific KB limit (e.g., 50, 100, 200).',
       'Upload your JPEG, PNG, or WebP photo into the local converter workspace.',
-      'Export the compressed image directly to your device with guaranteed file size compliance.'
+      'Export the compressed image directly to your device with precise file size target compliance.'
     ],
     faqs: [
       makeFaq('How does Zapixal compress images to an exact KB target?', 'Zapixal utilizes an automated bisection search algorithm on WebAssembly encoder quality factors, iteratively converging on the exact byte threshold in browser memory.'),

@@ -145,7 +145,7 @@ export default function EmbedWidget() {
             <h3 className="font-bold text-xs uppercase tracking-wider text-neutral-800 dark:text-neutral-200">
               Zapixal Image Tool
             </h3>
-            <p className="text-[10px] text-neutral-500">100% Client-Side WASM</p>
+            <p className="text-[10px] text-neutral-500">Client-Side WASM</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -232,7 +232,7 @@ export default function EmbedWidget() {
             <div className="flex flex-col items-center justify-center py-6 text-center" role="status" aria-live="polite">
               <Loader2 className="w-7 h-7 text-blue-500 animate-spin mb-2" />
               <div className="text-xs font-bold">Compressing in Browser...</div>
-              <div className="text-[10px] text-neutral-500 mt-1">Zero server uploads</div>
+              <div className="text-[10px] text-neutral-500 mt-1">No image files uploaded</div>
               <div className="w-full bg-neutral-100 dark:bg-neutral-800 h-1.5 rounded-full mt-3 overflow-hidden">
                 <div 
                   className="bg-blue-500 h-full transition-all duration-300 ease-out"
@@ -304,7 +304,7 @@ export default function EmbedWidget() {
         
         {/* Legitimate, Non-Spam Attribution */}
         <div className="p-2 bg-neutral-50 dark:bg-neutral-800/80 border-t border-neutral-100 dark:border-neutral-800 text-[10px] text-center text-neutral-500">
-          Powered by <a href="https://zapixal.com" target="_blank" rel="noopener noreferrer" className="font-bold underline text-neutral-700 dark:text-neutral-300">Zapixal</a>. 100% private in-browser processing.
+          Powered by <a href="https://zapixal.com" target="_blank" rel="noopener noreferrer" className="font-bold underline text-neutral-700 dark:text-neutral-300">Zapixal</a>. Private local processing.
         </div>
       </div>
     </div>

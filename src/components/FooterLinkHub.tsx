@@ -49,7 +49,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100/80 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-sans">
                 <Lock className="w-2.5 h-2.5" />
-                100% In-Browser
+                In-Browser
               </span>
             </div>
 
@@ -60,7 +60,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
 
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-[#18191c] px-3.5 py-2 rounded-xl border border-slate-200/60 dark:border-[#282a2e] shrink-0 font-sans">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>Zero server uploads — Secure local processing</span>
+            <span>No image files uploaded — Secure local processing</span>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
               </li>
               <li>
                 <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  Open Source Code (GitHub)
+                  GitHub Repository
                 </a>
               </li>
               <li>
@@ -222,7 +222,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
         {/* Bottom Bar: Copyright */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400 font-sans">
           <div className="flex items-center gap-3 text-center sm:text-left">
-            <span>© 2026 Zapixal. 100% Client-Side, WebAssembly & Privacy-First.</span>
+            <span>© 2026 Zapixal. Client-Side WebAssembly & Privacy-First.</span>
           </div>
 
         </div>
