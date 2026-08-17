@@ -113,6 +113,11 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
             </div>
             <ul className="space-y-2 text-xs font-medium">
               <li>
+                <a href="/articles/benchmarks" onClick={(e) => handleClick(e, '/articles/benchmarks')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-bold text-slate-900 dark:text-white">
+                  Image Format Compression Benchmark 2026
+                </a>
+              </li>
+              <li>
                 <a href="/articles/heic-vs-jpg" onClick={(e) => handleClick(e, '/articles/heic-vs-jpg')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   HEIC vs JPG Compression & Quality
                 </a>
@@ -178,6 +183,11 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
             </div>
             <ul className="space-y-2 text-xs font-medium">
               <li>
+                <a href="/widget" onClick={(e) => handleClick(e, '/widget')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-bold text-slate-900 dark:text-white">
+                  Embed Widget API
+                </a>
+              </li>
+              <li>
                 <a href="/about" onClick={(e) => handleClick(e, '/about')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   About Zapixal
                 </a>
@@ -194,7 +204,7 @@ export function FooterLinkHub({ currentPath, onNavigate }: FooterLinkHubProps) {
               </li>
               <li>
                 <a href="https://github.com/Vahzryn/Zapixal" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  GitHub Repository
+                  Open Source Code (GitHub)
                 </a>
               </li>
               <li>

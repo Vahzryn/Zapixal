@@ -17,6 +17,9 @@
     <loc>https://zapixal.com/terms</loc>
   </url>
   <url>
+    <loc>https://zapixal.com/widget</loc>
+  </url>
+  <url>
     <loc>https://zapixal.com/articles</loc>
     <lastmod>2026-08-09</lastmod>
   </url>
@@ -47,6 +50,9 @@
   <url>
     <loc>https://zapixal.com/articles/compress-image-to-kb-limit-guide</loc>
     <lastmod>2026-08-09</lastmod>
+  </url>
+  <url>
+    <loc>https://zapixal.com/articles/benchmarks</loc>
   </url>
   <url>
     <loc>https://zapixal.com/client-side-private-image-compressor</loc>

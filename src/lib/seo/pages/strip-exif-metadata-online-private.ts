@@ -44,6 +44,14 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       stripExif: true,
       breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Strip EXIF Metadata', url: path }],
       guideContent,
+      relatedRoutes: [
+        { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Images' },
+        { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' }
+      ],
+      relatedArticles: [
+        { path: '/articles/exif-metadata-privacy-guide', label: 'EXIF Metadata & Privacy Risks' },
+        { path: '/articles/privacy', label: 'Our Privacy Philosophy' }
+      ],
       jsonLd: generateJsonLdSchemas(
         'Complete EXIF Metadata & Geotag Erasure in Browser Memory',
         'Remove GPS coordinates and camera details from photos locally in browser memory with zero server uploads.',

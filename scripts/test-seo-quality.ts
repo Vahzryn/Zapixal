@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { PSEO_ROUTES_LIST } from '../src/lib/seo/routes';
-import { parseSeoRoute } from '../src/lib/seo/meta';
+import { parseSeoRoute, ROUTE_ALIASES } from '../src/lib/seo/meta';
 import { PSEO_PAGE_BRIEFS } from '../src/lib/seo/briefs';
 import { VERIFIED_FACTS } from '../src/lib/seo/facts';
 
@@ -35,9 +35,10 @@ async function runSeoQualityTests() {
     const slug = path.startsWith('/') ? path.slice(1) : path;
 
     // 1. Brief coverage check
-    const brief = PSEO_PAGE_BRIEFS[slug];
-    assert.ok(brief, `Missing Page Brief for slug: "${slug}". Every active PSEO page must have a structured brief.`);
-    assert.strictEqual(brief.slug, slug, `Page brief slug "${brief.slug}" must match routing path "${slug}"`);
+    const targetSlug = ROUTE_ALIASES[slug] || slug;
+    const brief = PSEO_PAGE_BRIEFS[targetSlug];
+    assert.ok(brief, `Missing Page Brief for slug: "${slug}" (target: "${targetSlug}"). Every active PSEO page must have a structured brief.`);
+    assert.strictEqual(brief.slug, targetSlug, `Page brief slug "${brief.slug}" must match target slug "${targetSlug}"`);
 
     // 2. Load actual rendered page data
     const url = `https://zapixal.com${path}`;
@@ -59,16 +60,18 @@ async function runSeoQualityTests() {
     assert.ok(guide.steps && guide.steps.length > 0, `Steps array must have at least one step on "${path}"`);
     assert.ok(guide.faqs && guide.faqs.length > 0, `FAQs array must have at least one faq on "${path}"`);
 
-    // 3. Uniqueness Check (No duplications of Titles, H1s, or Intros across files)
-    const introTrimmed = guide.section1Body.slice(0, 100).toLowerCase().trim();
-    assert.ok(!intros.has(introTrimmed), `DUPLICATE CONTENT DETECTED: First paragraph on "${path}" is identical to another page!`);
-    intros.add(introTrimmed);
+    // 3. Uniqueness Check (No duplications of Titles, H1s, or Intros across canonical pages)
+    if (!ROUTE_ALIASES[slug]) {
+      const introTrimmed = guide.section1Body.slice(0, 100).toLowerCase().trim();
+      assert.ok(!intros.has(introTrimmed), `DUPLICATE CONTENT DETECTED: First paragraph on "${path}" is identical to another page!`);
+      intros.add(introTrimmed);
 
-    assert.ok(!titles.has(pageData.metaTitle), `DUPLICATE TITLE DETECTED: "${pageData.metaTitle}" is duplicated elsewhere!`);
-    titles.add(pageData.metaTitle);
+      assert.ok(!titles.has(pageData.metaTitle), `DUPLICATE TITLE DETECTED: "${pageData.metaTitle}" is duplicated elsewhere!`);
+      titles.add(pageData.metaTitle);
 
-    assert.ok(!h1s.has(pageData.h1Title), `DUPLICATE H1 DETECTED: "${pageData.h1Title}" is duplicated elsewhere!`);
-    h1s.add(pageData.h1Title);
+      assert.ok(!h1s.has(pageData.h1Title), `DUPLICATE H1 DETECTED: "${pageData.h1Title}" is duplicated elsewhere!`);
+      h1s.add(pageData.h1Title);
+    }
 
     // 4. Banned AI Slop Filter Check
     const fullText = JSON.stringify(pageData).toLowerCase();

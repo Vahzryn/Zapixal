@@ -41,6 +41,14 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       pageCategory: 'compression',
       breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Private Compressor', url: path }],
       guideContent,
+      relatedRoutes: [
+        { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+        { path: '/blur-sensitive-image-privacy-pixelator', label: 'Blur Sensitive Images' }
+      ],
+      relatedArticles: [
+        { path: '/articles/privacy', label: 'Our Privacy Philosophy' },
+        { path: '/articles/exif-metadata-privacy-guide', label: 'EXIF Metadata & Privacy Risks' }
+      ],
       jsonLd: generateJsonLdSchemas(
         'The Architecture of Trust: Local Client-Side Image Compression',
         'Compress images privately in your browser without server uploads using WASM-powered local processing.',

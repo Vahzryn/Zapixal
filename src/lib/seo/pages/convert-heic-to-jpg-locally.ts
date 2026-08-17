@@ -43,6 +43,13 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
       toFormat: 'jpg',
       breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Convert HEIC to JPG', url: path }],
       guideContent,
+      relatedRoutes: [
+        { path: '/bulk-image-compressor-offline', label: 'Bulk Local Image Compressor' },
+        { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' }
+      ],
+      relatedArticles: [
+        { path: '/articles/heic-vs-jpg', label: 'HEIC vs JPG: Size, Quality & Compatibility Guide' }
+      ],
       jsonLd: generateJsonLdSchemas(
         'Native iPhone HEIC to JPEG Decoding in Browser Memory',
         'Convert Apple HEIC photos to standard JPEG locally with WASM-powered decoding and zero server uploads.',

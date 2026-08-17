@@ -76,8 +76,42 @@ export const SeoGuideContent: React.FC<SeoGuideContentProps> = ({ seoData, onNav
         </>
       )}
 
-      {/* Always-visible Related Tools links near the bottom of landing page content */}
+      {/* Always-visible Related Tools and Articles links near the bottom of landing page content */}
       <RelatedToolsSection relatedRoutes={seoData.relatedRoutes} onNavigate={onNavigate} />
+      
+      {seoData.relatedArticles && seoData.relatedArticles.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-neutral-200/80 dark:border-[#3c4043]">
+          <div className="flex items-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 dark:text-emerald-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <h3 className="text-base font-black text-neutral-900 dark:text-white">
+              Related Guides & Articles
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {seoData.relatedArticles.map((article) => (
+              <a
+                key={article.path}
+                href={article.path}
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate(article.path);
+                  }
+                }}
+                className="group flex flex-col justify-center p-3 rounded-2xl border border-neutral-200 bg-neutral-50/80 hover:bg-emerald-50/60 hover:border-emerald-200 dark:border-[#3c4043] dark:bg-[#202124]/80 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-800 transition-all"
+              >
+                <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 line-clamp-2">
+                  {article.label}
+                </span>
+                <span className="mt-1 flex items-center text-[10px] font-medium text-neutral-500 dark:text-neutral-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                  Read article 
+                  <svg className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-0.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };

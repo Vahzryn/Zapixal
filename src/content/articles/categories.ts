@@ -60,9 +60,9 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     metaDescription: 'Discover how WebAssembly (WASM), Web Workers, and HTML5 Canvas enable multi-threaded image compression entirely in browser RAM.',
     iconName: 'Cpu',
     relatedTools: [
-      { path: '/compress-png-lossless-webassembly', label: 'Lossless WASM PNG Compressor', description: 'Quantize PNG palettes using WebAssembly imagequant.' },
+      { path: '/compress-png-images-online', label: 'Lossless WASM PNG Compressor', description: 'Quantize PNG palettes using WebAssembly imagequant.' },
       { path: '/bulk-image-compressor-offline', label: 'Bulk Local Compressor', description: 'Multi-threaded worker pool processing hundreds of files.' },
-      { path: '/client-side-image-to-base64', label: 'In-Browser Base64 Encoder', description: 'Encode images directly to data URIs without network calls.' },
+      { path: '/convert-png-to-webp-lossless', label: 'Convert PNG to WebP Lossless', description: 'Shrink PNG file size while preserving alpha transparency.' },
     ],
   },
 };

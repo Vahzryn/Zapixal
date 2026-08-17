@@ -30,7 +30,9 @@ async function prerender() {
     '/about',
     '/privacy',
     '/terms',
-    '/404'
+    '/404',
+    '/widget',
+    '/embed'
   ];
 
 
@@ -43,7 +45,7 @@ async function prerender() {
     let html = templateHtml;
 
     // Inject SSR content into #root
-    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<script/m, `<div id="root">${appHtml}</div>\n    <script`);
+    html = html.replace(/<div id="root">[\s\S]*?<\/div>\s*<\/body>/m, `<div id="root">${appHtml}</div>\n  </body>`);
 
     // Replace <title>
     html = html.replace(/<title>[\s\S]*?<\/title>/g, `<title>${seoData.metaTitle}</title>`);

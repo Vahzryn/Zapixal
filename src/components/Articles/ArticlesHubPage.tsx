@@ -97,6 +97,29 @@ export const ArticlesHubPage: React.FC<ArticlesHubPageProps> = ({ onNavigate }) 
         </div>
       </div>
 
+      {/* Featured Research Benchmark Callout */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white border border-blue-800 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-blue-500/20 text-blue-200 border border-blue-400/30">
+            <Zap className="w-3.5 h-3.5 text-blue-300" />
+            <span>Featured Empirical Study (2026)</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-white leading-snug">
+            Client-Side WebAssembly Image Codec Compression Benchmarks
+          </h2>
+          <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
+            Empirical benchmark analysis evaluating WebAssembly image codecs (MozJPEG, libwebp, libavif, UPNG) across photography and UI screenshots. Real execution times, size reduction percentages, and category tradeoffs.
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate('/articles/benchmarks')}
+          className="shrink-0 px-5 py-3 rounded-xl bg-white hover:bg-blue-50 text-blue-950 font-bold text-xs sm:text-sm shadow-sm transition-all cursor-pointer flex items-center gap-2 group"
+        >
+          <span>View Benchmark Report</span>
+          <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      </div>
+
       {/* Articles Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredArticles.map((art) => {

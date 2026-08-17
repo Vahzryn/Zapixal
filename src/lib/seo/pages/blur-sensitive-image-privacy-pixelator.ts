@@ -39,6 +39,14 @@ export function getPageSeo(fullUrl: string): SeoRouteData {
     pageCategory: 'use-case',
     breadcrumbs: [{ name: 'Home', url: '/' }, { name: 'Blur Sensitive Info', url: path }],
     guideContent,
+    relatedRoutes: [
+      { path: '/strip-exif-metadata-online-private', label: 'Strip EXIF Metadata' },
+      { path: '/client-side-private-image-compressor', label: 'Private Image Compressor' }
+    ],
+    relatedArticles: [
+      { path: '/articles/exif-metadata-privacy-guide', label: 'EXIF Metadata & Privacy Risks' },
+      { path: '/articles/privacy', label: 'Our Privacy Philosophy' }
+    ],
     jsonLd: generateJsonLdSchemas(
       'Blur & Pixelate Sensitive Info Privately in Browser',
       'Irreversibly blur or pixelate confidential text, credentials, and faces directly in browser RAM with zero network transmission.',

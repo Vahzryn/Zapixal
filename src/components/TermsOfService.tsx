@@ -31,7 +31,7 @@ export function TermsOfService() {
 
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">4. Intellectual Property</h2>
         <p>
-          You retain all ownership rights to the images you process using Zapixal. We claim no intellectual property rights over the files you convert or compress. Zapixal’s branding, design, and source code are the intellectual property of Zapixal and its contributors.
+          You retain all ownership rights to the images you process using Zapixal. We claim no intellectual property rights over the files you convert or compress. The Zapixal source code is open-source and licensed under the MIT License, while the Zapixal branding, logo, and design identity remain the intellectual property of Zapixal.
         </p>
 
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mt-8">5. Limitation of Liability</h2>

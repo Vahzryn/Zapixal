@@ -18,7 +18,7 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     relevantTechnicalFacts: ['Runs completely in RAM', 'Strips headers by default during canvas rasterization'],
     relevantExternalFacts: ['Local processing runs on local system memory'],
     importantQuestions: ['Is my computer hardware responsible for processing speed?', 'How are files kept local?'],
-    relatedTools: ['bulk-image-compressor-offline', 'compress-png-lossless-webassembly', 'strip-exif-metadata-online-private'],
+    relatedTools: ['bulk-image-compressor-offline', 'compress-png-images-online', 'strip-exif-metadata-online-private'],
     internalLinkOpportunities: ['/strip-exif-metadata-online-private'],
     contentGaps: ['Many web pages process files on remote servers; Zapixal processes all images within the local browser memory.'],
     ctrDifferentiator: 'Local & Sandbox Secured'
@@ -95,8 +95,8 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     contentGaps: ['Cloud limits files per queue; Zapixal has no artificial count ceiling.'],
     ctrDifferentiator: 'Parallel Local Processing — No File Count Limit'
   },
-  'compress-png-lossless-webassembly': {
-    slug: 'compress-png-lossless-webassembly',
+  'compress-png-images-online': {
+    slug: 'compress-png-images-online',
     searchIntent: 'compression',
     primaryTopic: 'compress png lossless',
     secondaryTopics: ['lossless png compressor', 'wasm png compression', 'shrink transparent png'],
@@ -414,8 +414,8 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     relevantTechnicalFacts: ['Leverages Imagequant WASM color palettes to reduce depth while maintaining text contrast'],
     relevantExternalFacts: ['Modern Retina screens capture screen dumps at double-resolution density, ballooning size'],
     importantQuestions: ['Why are screenshots so large on modern monitors?', 'Will small text remain readable?'],
-    relatedTools: ['compress-png-lossless-webassembly', 'blur-sensitive-image-privacy-pixelator'],
-    internalLinkOpportunities: ['/compress-png-lossless-webassembly'],
+    relatedTools: ['compress-png-images-online', 'blur-sensitive-image-privacy-pixelator'],
+    internalLinkOpportunities: ['/compress-png-images-online'],
     contentGaps: ['Cloud sites blur text boundaries; Zapixal maintains sharp pixel edge alignment.'],
     ctrDifferentiator: 'Ultra-Sharp Small Text Integrity'
   },
@@ -760,5 +760,41 @@ export const PSEO_PAGE_BRIEFS: Record<string, PageBrief> = {
     internalLinkOpportunities: ['/compress-pdf-scanned-document-images'],
     contentGaps: ['Most tools require server uploads; Zapixal renders PDF pages locally in browser memory.'],
     ctrDifferentiator: 'In-Browser PDF Page Converter'
+  },
+  'compress-image-to-exact-size-kb': {
+    slug: 'compress-image-to-exact-size-kb',
+    searchIntent: 'compression',
+    primaryTopic: 'compress image to exact size kb',
+    secondaryTopics: ['reduce image size to target kb', 'exact kb image compressor', 'target file size image compressor'],
+    userProblem: 'Web portals and upload forms enforce strict maximum file size ceilings (e.g. 100KB, 200KB, 500KB) and reject larger images.',
+    desiredOutcome: 'Images compressed to precisely meet the maximum byte threshold without trial-and-error quality adjustments.',
+    uniqueAngle: 'Binary-search quality estimation running entirely in local browser RAM to guarantee exact byte target compliance.',
+    verifiedCapabilities: ['lossless_optimization', 'privacy_network'],
+    verifiedLimitations: ['performance_limits'],
+    relevantTechnicalFacts: ['Applies iterative bisection search on WebAssembly encoder quality factors to hit precise byte target ceilings.'],
+    relevantExternalFacts: ['Government portals and application forms auto-reject files exceeding specified KB limits.'],
+    importantQuestions: ['How does exact KB targeting work?', 'Will image quality be ruined?'],
+    relatedTools: ['bulk-image-compressor-offline', 'client-side-private-image-compressor'],
+    internalLinkOpportunities: ['/client-side-private-image-compressor'],
+    contentGaps: ['Standard compressors require manual slider tweaking; Zapixal automatically converges on the exact target KB limit.'],
+    ctrDifferentiator: 'Automated Target KB Convergence'
+  },
+  'secure-document-compressor-pdf': {
+    slug: 'secure-document-compressor-pdf',
+    searchIntent: 'privacy',
+    primaryTopic: 'secure document compressor pdf',
+    secondaryTopics: ['compress pdf document locally', 'private document compressor', 'offline document image compressor'],
+    userProblem: 'Sensitive legal, medical, or financial document scans require file size reduction for email attachment or portal submission without exposing confidential data to cloud servers.',
+    desiredOutcome: 'Compressed document images and PDFs produced securely in browser memory without external network transmission.',
+    uniqueAngle: 'Zero-knowledge client-side document image re-quantization with local memory release upon completion.',
+    verifiedCapabilities: ['privacy_network', 'lossless_optimization'],
+    verifiedLimitations: ['vector_rasterization'],
+    relevantTechnicalFacts: ['Re-encodes scanned document page images using WebAssembly imagequant to preserve text legibility at reduced file sizes.'],
+    relevantExternalFacts: ['Data protection regulations like GDPR/HIPAA strictly penalize unauthorized cloud uploads of sensitive personal documents.'],
+    importantQuestions: ['Is my confidential document stored anywhere?', 'Will fine print text remain legible?'],
+    relatedTools: ['convert-pdf-pages-to-jpg-images', 'blur-sensitive-image-privacy-pixelator'],
+    internalLinkOpportunities: ['/convert-pdf-pages-to-jpg-images'],
+    contentGaps: ['Cloud document compressors store uploaded PDFs on external servers; Zapixal processes document images 100% locally.'],
+    ctrDifferentiator: '100% In-Browser Zero-Knowledge Document Compressor'
   },
 };

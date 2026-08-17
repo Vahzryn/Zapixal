@@ -12,7 +12,7 @@
     "privacy-first"
   ],
   "author": "Zapixal",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "tsx scripts/generate-og-images.ts && tsx scripts/generate-sitemap.ts && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && tsx scripts/prerender.ts",

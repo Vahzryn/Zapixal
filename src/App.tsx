@@ -30,6 +30,9 @@ import { ArticleViewPage } from './components/Articles/ArticleViewPage';
 import { PdfToJpgConverter } from './components/PdfToJpgConverter';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { getCategoryInfo, getArticleBySlug } from './content/articles';
+import EmbedWidget from './components/Widget/EmbedWidget';
+import WidgetDocumentationPage from './components/Widget/WidgetDocumentationPage';
+import BenchmarkPage from './components/Articles/BenchmarkPage';
 
 const PageLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center py-20 min-h-[400px] gap-3 text-neutral-500 dark:text-[#9aa0a6] animate-in fade-in duration-300">
@@ -187,9 +190,15 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
     currentPath === '/terms' ||
     currentPath === '/about' ||
     currentPath === '/tools' ||
+    currentPath === '/widget' ||
+    currentPath === '/articles/benchmarks' ||
     currentPath === '/articles' ||
     currentPath.startsWith('/articles/') ||
     seoData.isNotFound;
+
+  if (currentPath === '/embed') {
+    return <EmbedWidget />;
+  }
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-neutral-50/50 dark:bg-[#202124] text-neutral-900 dark:text-[#e8eaed] font-sans transition-colors duration-200">
@@ -258,6 +267,10 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
           <AboutPage />
         ) : currentPath === '/tools' ? (
           <ToolsDirectoryPage onNavigate={handleNavigate} />
+        ) : currentPath === '/widget' ? (
+          <WidgetDocumentationPage onNavigate={handleNavigate} />
+        ) : currentPath === '/articles/benchmarks' ? (
+          <BenchmarkPage onNavigate={handleNavigate} />
         ) : currentPath === '/articles' ? (
           <ArticlesHubPage onNavigate={handleNavigate} />
         ) : getCategoryInfo(currentPath.replace(/^\/articles\//, '')) ? (

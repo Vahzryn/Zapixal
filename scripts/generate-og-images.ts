@@ -18,7 +18,8 @@ function escapeXml(unsafe: string): string {
   });
 }
 
-function wrapText(text: string, maxCharsPerLine = 24, maxLines = 3): string[] {
+function wrapText(text: string | undefined, maxCharsPerLine = 24, maxLines = 3): string[] {
+  if (!text) return [];
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -496,8 +497,8 @@ async function generateAllOgImages() {
     const badgeText = getCategoryBadge(routePath, seoData.pageCategory);
     const microLabel = getMicroLabel(routePath, seoData.pageCategory);
 
-    const title = seoData.h1Title || seoData.metaTitle;
-    const description = seoData.metaDescription;
+    const title = seoData.h1Title || seoData.metaTitle || 'Zapixal';
+    const description = seoData.metaDescription || '';
 
     const rightVisualSvg = generateRightVisualSvg(routePath, seoData);
 

@@ -116,8 +116,8 @@ export const articleHeicVsJpg: Article = {
   ],
   relatedTools: [
     { path: '/convert-heic-to-jpg-locally', label: 'Convert HEIC to JPG Locally', description: 'Transform iOS HEIC photos to JPG in browser memory.' },
-    { path: '/bulk-heic-to-jpg-converter-offline', label: 'Bulk HEIC to JPG (Local)', description: 'Batch process multiple HEIC photos with Web Workers.' },
-    { path: '/convert-hdr-heic-to-png-transparency', label: 'Convert HEIC to PNG', description: 'Preserve alpha transparency layers when converting HEIC.' },
+    { path: '/bulk-image-compressor-offline', label: 'Bulk Local Image Compressor', description: 'Batch process multiple images offline with Web Workers.' },
+    { path: '/client-side-private-image-compressor', label: 'Client-Side Private Compressor', description: 'Compress images privately in browser RAM.' },
   ],
   relatedArticleSlugs: ['exif-metadata-privacy-guide', 'compress-image-to-kb-limit-guide'],
 };

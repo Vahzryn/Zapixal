@@ -232,6 +232,7 @@ export const ARTICLE_ITEM_ROUTES = [
   '/articles/heic-vs-jpg',
   '/articles/exif-metadata-privacy-guide',
   '/articles/compress-image-to-kb-limit-guide',
+  '/articles/benchmarks',
 ];
 
 export const ALL_ARTICLE_SYSTEM_ROUTES = [

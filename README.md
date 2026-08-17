@@ -95,9 +95,7 @@ The production build generates the static application and required SEO assets.
 
 Copyright © 2026 Zapixal. All rights reserved.
 
-Zapixal is proprietary software. The source code is provided publicly for
-transparency and reference, but no permission is granted to copy, modify,
-redistribute, or commercially reuse the software without written permission.
+Zapixal is open-source software licensed under the MIT License.
 
 Third-party dependencies are distributed under their respective licenses.
 

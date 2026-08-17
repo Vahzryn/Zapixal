@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { SeoRouteData } from '../lib/seoEngine';
+import { applySeoToHead } from '../lib/seo/head';
+import { parseSeoRoute } from '../lib/seo/meta';
+import { PSEO_ROUTES_LIST } from '../lib/seo/routes';
+import { getNotFoundSeo } from '../lib/seoEngine';
+import { DOMAIN } from '../lib/seo/routes';
 import { ConversionSettings } from '../types';
-import { parseSeoRoute, applySeoToHead, SeoRouteData } from '../lib/seoEngine';
-import { PSEO_ROUTES_LIST, DOMAIN } from '../lib/seo/routes';
-import { getPageSeo as getNotFoundSeo } from '../lib/seo/pages/not-found';
 import { getArticleBySlug } from '../content/articles';
 
 interface UseAppRoutingOptions {
@@ -18,16 +21,20 @@ const STATIC_KNOWN_ROUTES = new Set([
   '/about',
   '/privacy',
   '/terms',
-  '/404'
+  '/404',
+  '/widget',
+  '/embed'
 ]);
 
 export function isKnownRoute(pathname: string): boolean {
   const rawPath = (pathname || '/').split('?')[0].split('#')[0].toLowerCase().trim();
   const path = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : (rawPath || '/');
+  
   if (STATIC_KNOWN_ROUTES.has(path)) return true;
   if (path === '/articles' || path.startsWith('/articles/')) return true;
   if (PSEO_ROUTES_LIST.some(r => r.path === path)) return true;
   if (path in REDIRECTS_MAP) return true;
+  
   return false;
 }
 
@@ -62,13 +69,46 @@ const REDIRECTS_MAP: Record<string, string> = {
   '/grayscale-black-and-white-photo-converter': '/client-side-private-image-compressor',
   '/adjust-image-brightness-contrast-gamma-canvas': '/client-side-private-image-compressor',
   '/add-rounded-corners-border-radius-image': '/client-side-private-image-compressor',
-  '/split-image-grid-instagram-banner': '/social-media-banner-resizer-linkedin-twitter',
+  '/split-image-grid-instagram-banner': '/crop-image-to-exact-aspect-ratio',
   '/convert-animated-webp-to-gif': '/convert-webp-to-png-transparent',
   '/convert-eps-psd-preview-to-png': '/convert-svg-to-png-transparent',
-  '/passport-visa-photo-resizer-background-white': '/passport-photo-size-reducer-kb',
+  '/passport-visa-photo-resizer-background-white': '/crop-image-to-exact-aspect-ratio',
   '/rotate-and-flip-image-local': '/crop-image-to-exact-aspect-ratio',
   '/batch-rename-watermark-resize-pipeline': '/bulk-image-compressor-offline',
-  '/square-photo-maker-no-crop-blur-border': '/crop-image-to-exact-aspect-ratio'
+  '/square-photo-maker-no-crop-blur-border': '/crop-image-to-exact-aspect-ratio',
+  
+  // Cleaned up PSEO doorways -> Consolidated routes
+  '/compress-image-under-50kb-government-portal': '/compress-image-to-exact-size-kb',
+  '/compress-image-to-100kb-online': '/compress-image-to-exact-size-kb',
+  '/compress-image-to-200kb-online': '/compress-image-to-exact-size-kb',
+  '/reduce-image-size-to-1mb-online': '/compress-image-to-exact-size-kb',
+  '/compress-image-for-email-attachment-limit': '/compress-image-to-exact-size-kb',
+  
+  '/secure-signature-compressor-pdf': '/secure-document-compressor-pdf',
+  '/compress-pdf-scanned-document-images': '/secure-document-compressor-pdf',
+  
+  '/compress-png-lossless-webassembly': '/compress-png-images-online',
+  '/compress-screenshot-png-size-fast': '/compress-png-images-online',
+  
+  '/bulk-image-resizer-ecommerce-catalog': '/bulk-image-compressor-offline',
+  '/shopify-image-optimizer-bulk-free': '/bulk-image-compressor-offline',
+  '/etsy-image-resizer-batch-optimize': '/bulk-image-compressor-offline',
+  '/bulk-heic-to-jpg-converter-offline': '/convert-heic-to-jpg-locally',
+  
+  '/discord-avatar-compressor-pfp-size': '/crop-image-to-exact-aspect-ratio',
+  '/social-media-banner-resizer-linkedin-twitter': '/crop-image-to-exact-aspect-ratio',
+  '/resize-image-for-job-application-form': '/crop-image-to-exact-aspect-ratio',
+  '/passport-photo-size-reducer-kb': '/crop-image-to-exact-aspect-ratio',
+  
+  '/convert-hdr-heic-to-png-transparency': '/convert-heic-to-jpg-locally',
+  '/lossless-jpeg-optimizer-exif-preserve': '/client-side-private-image-compressor',
+  '/high-res-image-resizer-client-side': '/client-side-private-image-compressor',
+  
+  // Features we don't have
+  '/client-side-image-to-base64': '/client-side-private-image-compressor',
+  '/palette-color-extractor-image-hex': '/client-side-private-image-compressor',
+  '/ai-image-compressor-online-private': '/client-side-private-image-compressor',
+  '/compress-animated-gif-size-online': '/client-side-private-image-compressor',
 };
 
 export function useAppRouting({ initialPath, initialSeoData, setSettings, touchedKeys }: UseAppRoutingOptions) {
@@ -79,7 +119,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
     }
     rawPath = rawPath || '/';
     let path = rawPath.length > 1 && rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
-
+    
     // Canonicalize nested article paths like /articles/workflows/slug to /articles/slug
     if (path.startsWith('/articles/')) {
       const subPath = path.replace(/^\/articles\//, '');
@@ -92,7 +132,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
         return target;
       }
     }
-
+    
     if (path in REDIRECTS_MAP) {
       const target = REDIRECTS_MAP[path];
       if (typeof window !== 'undefined') {
@@ -111,10 +151,12 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
         return { ...embedded, path: currentPath };
       }
     }
+    
     if (!isKnownRoute(currentPath)) {
       const fullUrl = `${DOMAIN}${currentPath === '/' ? '' : currentPath}`;
       return getNotFoundSeo(fullUrl, currentPath);
     }
+    
     return { ...INITIAL_FALLBACK_SEO, path: currentPath };
   });
 
@@ -122,11 +164,11 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
     setSettings(prev => {
       let next = { ...prev };
       const touched = touchedKeys || new Set<string>();
-
+      
       if (!touched.has('targetFormat') && seo.toFormat) {
         next.targetFormat = seo.toFormat;
       }
-
+      
       if (!touched.has('targetMaxKB')) {
         if (seo.targetMaxKB) {
           next.targetMaxKB = seo.targetMaxKB;
@@ -134,13 +176,13 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
           next.targetMaxKB = undefined;
         }
       }
-
+      
       if (!touched.has('stripExif')) {
         if (seo.stripExif !== undefined) {
           next.stripExif = seo.stripExif;
         }
       }
-
+      
       if (!touched.has('resize')) {
         if (seo.presetResize) {
           next.resize = {
@@ -155,7 +197,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
           next.resize = { ...next.resize, enabled: false };
         }
       }
-
+      
       if (!touched.has('cropAspectRatio')) {
         if (seo.path.includes('crop')) {
           next.cropAspectRatio = { width: 16, height: 9 };
@@ -163,7 +205,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
           next.cropAspectRatio = null;
         }
       }
-
+      
       return next;
     });
   }, [setSettings, touchedKeys]);
@@ -171,6 +213,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
   // Handle path transitions asynchronously
   useEffect(() => {
     let isCancelled = false;
+    
     const embedded = getEmbeddedSeoData();
     if (embedded && embedded.path === currentPath) {
       setSeoData(embedded);
@@ -185,6 +228,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
         }
       });
     }
+    
     return () => {
       isCancelled = true;
     };
@@ -194,7 +238,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
     const handlePopState = () => {
       let path = window.location.pathname || '/';
       let normalizedPath = path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
-
+      
       // Canonicalize nested article paths like /articles/workflows/slug to /articles/slug
       if (normalizedPath.startsWith('/articles/')) {
         const subPath = normalizedPath.replace(/^\/articles\//, '');
@@ -206,7 +250,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
           return;
         }
       }
-
+      
       if (normalizedPath in REDIRECTS_MAP) {
         const target = REDIRECTS_MAP[normalizedPath];
         window.history.replaceState(null, '', target);
@@ -215,6 +259,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
         setCurrentPath(path);
       }
     };
+    
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -222,7 +267,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
   const handleNavigate = useCallback((newPath: string) => {
     if (typeof window !== 'undefined') {
       let normalizedPath = newPath.length > 1 && newPath.endsWith('/') ? newPath.slice(0, -1) : newPath;
-
+      
       // Canonicalize nested article paths like /articles/workflows/slug to /articles/slug
       if (normalizedPath.startsWith('/articles/')) {
         const subPath = normalizedPath.replace(/^\/articles\//, '');
@@ -231,7 +276,7 @@ export function useAppRouting({ initialPath, initialSeoData, setSettings, touche
           normalizedPath = `/articles/${article.slug}`;
         }
       }
-
+      
       const targetPath = normalizedPath in REDIRECTS_MAP ? REDIRECTS_MAP[normalizedPath] : normalizedPath;
       window.history.pushState(null, '', targetPath);
       setCurrentPath(targetPath);

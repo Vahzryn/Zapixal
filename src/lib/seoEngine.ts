@@ -1,6 +1,12 @@
 import { TargetFormat } from '../types';
 import { PSEO_ROUTES_LIST, DOMAIN } from './seo/routes';
-import { parseSeoRoute, applySeoToHead } from './seo/meta';
+import { parseSeoRoute } from './seo/meta';
+import { applySeoToHead } from './seo/head';
+import { getPageSeo as getNotFoundPageSeo } from './seo/pages/not-found';
+
+export function getNotFoundSeo(fullUrl: string, path: string): SeoRouteData {
+  return getNotFoundPageSeo(fullUrl, path);
+}
 
 export { PSEO_ROUTES_LIST, DOMAIN, parseSeoRoute, applySeoToHead };
 
@@ -29,6 +35,7 @@ export interface SeoRouteData {
     faqs: { question: string; answer: string }[];
   } | null;
   relatedRoutes?: Array<{ path: string; label: string }> | null;
+  relatedArticles?: Array<{ path: string; label: string }> | null;
   ogImage?: {
     url: string;
     width: number;
