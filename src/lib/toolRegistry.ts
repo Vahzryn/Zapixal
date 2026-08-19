@@ -23,7 +23,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['compression', 'wasm', 'batch'],
     searchIntents: ['compress image offline', 'private image compressor', 'wasm jpeg compressor'],
-    relatedTools: ['bulk-image-compressor-offline', 'compress-png-images-online', 'compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['bulk-image-compressor-offline', 'compress-png-images-online', 'compress-image-to-exact-size-kb', 'convert-heic-to-jpg-locally'],
     featured: true
   },
   {
@@ -36,7 +36,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'heic', 'batch'],
     searchIntents: ['convert heic to jpg', 'heic viewer offline', 'apple heic converter'],
-    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-image-to-exact-size-kb'],
+    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-image-to-exact-size-kb', 'convert-image-to-pdf'],
     featured: true
   },
   {
@@ -49,7 +49,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['privacy', 'metadata', 'exif'],
     searchIntents: ['remove exif metadata', 'strip image location online', 'privacy metadata cleaner'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['blur-sensitive-image-privacy-pixelator', 'client-side-private-image-compressor', 'dpi-ppi-converter-change-image-resolution', 'convert-heic-to-jpg-locally'],
     featured: true
   },
   {
@@ -62,7 +62,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['batch', 'compression', 'zip'],
     searchIntents: ['bulk image compressor', 'batch resize images offline', 'multiple image optimizer'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['client-side-private-image-compressor', 'compress-image-to-exact-size-kb', 'compress-png-images-online', 'convert-image-to-pdf'],
     featured: true
   },
   {
@@ -75,7 +75,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['compression', 'png', 'wasm'],
     searchIntents: ['compress png lossless', 'png quantizer online', 'shrink png size'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-png-to-webp-lossless', 'convert-webp-to-png-transparent', 'client-side-private-image-compressor', 'convert-png-to-jpg-white-background'],
     featured: false
   },
   {
@@ -88,7 +88,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'webp', 'png'],
     searchIntents: ['convert webp to png', 'transparent webp converter'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-png-to-webp-lossless', 'compress-png-images-online', 'convert-jpg-to-webp-browser', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -101,7 +101,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'avif', 'jpg'],
     searchIntents: ['convert avif to jpg', 'avif decoder online'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-to-avif-online-free', 'convert-heic-to-jpg-locally', 'client-side-private-image-compressor', 'convert-jpg-to-webp-browser'],
     featured: false
   },
   {
@@ -114,7 +114,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'svg', 'rasterize'],
     searchIntents: ['convert svg to png', 'vector to raster online'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-png-to-webp-lossless', 'client-side-image-to-base64', 'compress-png-images-online'],
     featured: false
   },
   {
@@ -127,7 +127,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'png', 'webp'],
     searchIntents: ['convert png to webp', 'lossless webp encoder'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-webp-to-png-transparent', 'compress-png-images-online', 'convert-jpg-to-webp-browser', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -140,7 +140,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['crop', 'editing', 'resize'],
     searchIntents: ['crop image aspect ratio', 'square photo cropper online'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['dpi-ppi-converter-change-image-resolution', 'add-text-watermark-image-browser', 'blur-sensitive-image-privacy-pixelator', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -153,7 +153,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['watermark', 'editing', 'security'],
     searchIntents: ['add text watermark to image', 'watermark photos offline'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['blur-sensitive-image-privacy-pixelator', 'crop-image-to-exact-aspect-ratio', 'strip-exif-metadata-online-private', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -166,7 +166,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'tiff', 'bmp'],
     searchIntents: ['convert tiff to jpg', 'bmp converter online'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-heic-to-jpg-locally', 'convert-png-to-jpg-white-background', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -179,7 +179,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['resolution', 'dpi', 'print'],
     searchIntents: ['change image dpi online', 'ppi resizer tool'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['crop-image-to-exact-aspect-ratio', 'convert-image-to-pdf', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -192,7 +192,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'jpg', 'webp'],
     searchIntents: ['convert jpg to webp', 'jpeg to webp converter'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-png-to-webp-lossless', 'convert-webp-to-png-transparent', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -205,7 +205,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['compression', 'target-size', 'kb'],
     searchIntents: ['compress image to kb', 'shrink photo to 100kb', 'image size reducer kb'],
-    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-image-to-exact-size-kb'],
+    relatedTools: ['client-side-private-image-compressor', 'bulk-image-compressor-offline', 'compress-png-images-online'],
     featured: true
   },
   {
@@ -218,7 +218,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'ico', 'favicon'],
     searchIntents: ['convert ico to png', 'extract favicon online'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-png-to-webp-lossless', 'client-side-image-to-base64', 'convert-svg-to-png-transparent'],
     featured: false
   },
   {
@@ -231,7 +231,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'png', 'jpg', 'flatten'],
     searchIntents: ['convert png to jpg white background', 'remove transparency jpeg'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-webp-to-png-transparent', 'compress-png-images-online', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -244,7 +244,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['privacy', 'blur', 'pixelate'],
     searchIntents: ['blur sensitive image data', 'pixelate face online private'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['strip-exif-metadata-online-private', 'add-text-watermark-image-browser', 'client-side-private-image-compressor'],
     featured: false
   },
   {
@@ -257,8 +257,21 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['conversion', 'avif', 'compression'],
     searchIntents: ['convert to avif online', 'image to avif encoder'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['convert-avif-to-jpg-converter', 'convert-png-to-webp-lossless', 'client-side-private-image-compressor'],
     featured: false
+  },
+  {
+    id: 'convert-image-to-pdf',
+    name: 'Convert Images to PDF',
+    description: 'Combine multiple JPG, PNG, or HEIC images into a single multi-page PDF document locally.',
+    category: 'documents',
+    route: '/convert-image-to-pdf',
+    status: 'active',
+    indexable: true,
+    capabilities: ['pdf', 'conversion', 'images', 'merge'],
+    searchIntents: ['jpg to pdf', 'image to pdf converter', 'combine images to pdf', 'png to pdf offline'],
+    relatedTools: ['merge-pdf', 'convert-pdf-pages-to-jpg-images', 'secure-document-compressor-pdf', 'client-side-private-image-compressor'],
+    featured: true
   },
   {
     id: 'merge-pdf',
@@ -322,7 +335,7 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['developer', 'base64', 'encoding'],
     searchIntents: ['image to base64 converter', 'encode image data uri'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['json-formatter-validator', 'palette-color-extractor-image-hex', 'client-side-private-image-compressor'],
     featured: true
   },
   {
@@ -335,7 +348,85 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     indexable: true,
     capabilities: ['design', 'colors', 'palette'],
     searchIntents: ['extract color palette from image', 'image color hex picker'],
-    relatedTools: ['compress-image-to-exact-size-kb', 'client-side-private-image-compressor'],
+    relatedTools: ['json-formatter-validator', 'client-side-image-to-base64', 'client-side-private-image-compressor'],
     featured: false
+  },
+  {
+    id: 'json-formatter-validator',
+    name: 'JSON Formatter & Validator',
+    description: 'Format, beautify, minify, and validate JSON data locally in browser memory with detailed syntax diagnostics.',
+    category: 'developer',
+    route: '/json-formatter-validator',
+    status: 'active',
+    indexable: true,
+    capabilities: ['developer', 'json', 'formatter', 'validator', 'tree-view', 'minify'],
+    searchIntents: ['json formatter', 'json validator online', 'beautify json offline', 'format json private', 'json tree viewer'],
+    relatedTools: ['regex-tester', 'jwt-decoder', 'csv-to-json-converter', 'client-side-image-to-base64'],
+    featured: true
+  },
+  {
+    id: 'csv-to-json-converter',
+    name: 'CSV ↔ JSON Converter',
+    description: 'Convert CSV/TSV spreadsheets to JSON arrays or transform JSON objects to RFC 4180 CSV tables locally in browser memory.',
+    category: 'developer',
+    route: '/csv-to-json-converter',
+    status: 'active',
+    indexable: true,
+    capabilities: ['developer', 'csv', 'json', 'converter', 'tsv', 'table-view'],
+    searchIntents: ['csv to json', 'json to csv', 'convert csv to json offline', 'csv json converter private', 'tsv to json'],
+    relatedTools: ['regex-tester', 'json-formatter-validator', 'jwt-decoder', 'client-side-image-to-base64'],
+    featured: true
+  },
+  {
+    id: 'jwt-decoder',
+    name: 'JWT Debugger & Decoder',
+    description: 'Decode, inspect, and verify JSON Web Tokens (JWT) locally with real-time expiration countdown and client-side signature verification.',
+    category: 'developer',
+    route: '/jwt-decoder',
+    status: 'active',
+    indexable: true,
+    capabilities: ['developer', 'jwt', 'decoder', 'debugger', 'security', 'auth'],
+    searchIntents: ['jwt decoder', 'decode jwt online', 'jwt debugger offline', 'jwt token viewer', 'jwt inspector', 'verify jwt signature client-side'],
+    relatedTools: ['regex-tester', 'json-formatter-validator', 'csv-to-json-converter', 'client-side-image-to-base64'],
+    featured: true
+  },
+  {
+    id: 'regex-tester',
+    name: 'Regex Tester & String Debugger',
+    description: 'Test, debug, and analyze regular expressions locally with real-time match highlighting, capture group inspection, Unicode string diagnostics, and replacement preview.',
+    category: 'developer',
+    route: '/regex-tester',
+    status: 'active',
+    indexable: true,
+    capabilities: ['developer', 'regex', 'tester', 'debugger', 'string-diagnostics', 'replace', 'unicode'],
+    searchIntents: ['regex tester', 'regular expression tester', 'regex debugger', 'regex match tester', 'test regex online', 'javascript regex tester'],
+    relatedTools: ['markdown-live-preview', 'json-formatter-validator', 'jwt-decoder', 'csv-to-json-converter'],
+    featured: true
+  },
+  {
+    id: 'markdown-live-preview',
+    name: 'Markdown Live Previewer & Converter',
+    description: 'Edit, preview, and convert GitHub-Flavored Markdown (GFM) in real-time with table alignments, task lists, code blocks, XSS sanitization, and offline exports.',
+    category: 'text',
+    route: '/markdown-live-preview',
+    status: 'active',
+    indexable: true,
+    capabilities: ['text', 'markdown', 'gfm', 'previewer', 'converter', 'html-export', 'sanitizer', 'unicode'],
+    searchIntents: ['markdown live preview', 'gfm editor online', 'markdown to html converter', 'markdown editor private', 'markdown preview offline'],
+    relatedTools: ['text-diff', 'regex-tester', 'json-formatter-validator', 'jwt-decoder'],
+    featured: true
+  },
+  {
+    id: 'text-diff',
+    name: 'Diff Viewer & Text Comparator',
+    description: 'Compare two text or code files side-by-side or in unified view with character-level diff highlighting, whitespace controls, statistics, and offline patch export.',
+    category: 'text',
+    route: '/text-diff',
+    status: 'active',
+    indexable: true,
+    capabilities: ['text', 'diff', 'comparison', 'side-by-side', 'unified', 'patch', 'unicode'],
+    searchIntents: ['text diff', 'diff viewer online', 'compare text side by side', 'code diff checker', 'diff comparator offline', 'unified diff viewer'],
+    relatedTools: ['markdown-live-preview', 'regex-tester', 'json-formatter-validator', 'csv-to-json-converter'],
+    featured: true
   }
 ];

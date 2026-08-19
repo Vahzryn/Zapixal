@@ -311,24 +311,14 @@ export function PdfToJpgConverter({ onNavigate }: PdfToJpgConverterProps) {
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
       {/* Tool Header Card */}
-      <div className="bg-white dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-[#1e293b] border border-blue-200 dark:border-[#384c6c] text-blue-700 dark:text-[#8ab4f8] text-xs font-bold mb-3">
-              <FileText className="w-3.5 h-3.5" />
-              <span>In-Browser PDF Rasterizer</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
-              Convert PDF Pages to JPG Images
-            </h1>
-            <p className="text-sm sm:text-base text-neutral-600 dark:text-[#9aa0a6] mt-2 max-w-2xl">
-              Convert selected pages from a PDF into JPG images directly in your browser. Choose the pages you need, adjust the output settings, and download the resulting images.
-            </p>
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-xs text-emerald-700 dark:text-[#81c995] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3.5 py-2 rounded-2xl shrink-0 font-medium">
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span>Secure Local Memory</span>
-          </div>
+      <div className="bg-white dark:bg-[#303134] border border-neutral-200 dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 shadow-xs">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
+            Convert PDF Pages to JPG Images
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-[#9aa0a6] max-w-2xl leading-relaxed">
+            Convert selected pages from a PDF into JPG images directly in your browser. Choose pages, adjust output settings, and download single images or a ZIP archive.
+          </p>
         </div>
       </div>
 

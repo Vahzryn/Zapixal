@@ -151,18 +151,13 @@ export function PdfMergerPage({ seoData, onNavigate }: PdfMergerPageProps) {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
       {/* Breadcrumbs & Header */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         <Breadcrumbs items={seoData.breadcrumbs} onNavigate={onNavigate} />
-        
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
-          <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Client-Side PDF Merger</span>
-        </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 dark:text-white tracking-tight">
           {seoData.h1Title}
         </h1>
-        <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
           {seoData.metaDescription}
         </p>
       </div>
@@ -293,7 +288,7 @@ export function PdfMergerPage({ seoData, onNavigate }: PdfMergerPageProps) {
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>100% Private — Processed locally in browser memory</span>
+                <span>Local Privacy — Processed entirely in browser memory</span>
               </div>
 
               <button

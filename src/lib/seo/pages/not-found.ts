@@ -15,22 +15,7 @@ export function getPageSeo(fullUrl: string, path: string): SeoRouteData {
       { name: 'Home', url: '/' },
       { name: 'Not Found', url: path },
     ],
-    guideContent: {
-      badge: '',
-      section1Title: '',
-      section1Body: '',
-      section2Title: '',
-      section2Body: '',
-      steps: [],
-      faqs: []
-    },
-    jsonLd: {
-      softwareApp: {},
-      howTo: null,
-      faqPage: null,
-      breadcrumbs: null,
-      organization: {},
-      website: {}
-    }
+    guideContent: null,
+    jsonLd: null
   };
 }

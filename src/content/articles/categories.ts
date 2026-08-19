@@ -44,9 +44,9 @@ export const ARTICLE_CATEGORIES: Record<ArticleCategory, CategoryInfo> = {
     metaDescription: 'Practical workflows for meeting strict KB file limits (50KB, 100KB, 200KB), e-commerce catalog resizing, and digital form requirements.',
     iconName: 'Sliders',
     relatedTools: [
-      { path: '/compress-image-to-100kb-online', label: 'Compress Image to 100KB', description: 'Binary search optimization loop for strict 100KB caps.' },
-      { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB for Portals', description: 'Scale passport photos and ID uploads for strict limits.' },
-      { path: '/bulk-image-resizer-ecommerce-catalog', label: 'Bulk E-commerce Resizer', description: 'Batch process catalog photos to exact dimensions.' },
+      { path: '/compress-image-to-exact-size-kb', label: 'Compress Image to Exact KB', description: 'Binary search optimization loop for strict size caps.' },
+      { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop & Resize Dimensions', description: 'Scale passport photos and ID uploads for strict requirements.' },
+      { path: '/bulk-image-compressor-offline', label: 'Bulk Image Compressor', description: 'Batch process photos locally in browser memory.' },
     ],
   },
   performance: {

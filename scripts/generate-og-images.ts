@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import { parseSeoRoute } from '../src/lib/seo/meta';
 import { TOOL_REGISTRY } from "../src/lib/toolRegistry";
-import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, SeoRouteItem } from '../src/lib/seo/routes';
+import { PSEO_ROUTES_LIST, ALL_ARTICLE_SYSTEM_ROUTES, CATEGORY_ROUTES, SeoRouteItem } from '../src/lib/seo/routes';
 import { SeoRouteData } from '../src/lib/seoEngine';
 
 function escapeXml(unsafe: string): string {
@@ -82,6 +82,140 @@ function extractFormats(routePath: string, seoData: SeoRouteData): { from: strin
 
 function generateRightVisualSvg(routePath: string, seoData: SeoRouteData): string {
   const slug = routePath.toLowerCase();
+
+  // 00. Diff Viewer & Text Comparator
+  if (slug.includes('text-diff') || slug.includes('diff')) {
+    return `
+      <g transform="translate(660, 160)">
+        <rect width="420" height="260" rx="18" fill="#1E293B" stroke="#10B981" stroke-width="1.5"/>
+        <rect x="20" y="20" width="380" height="35" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1"/>
+        <circle cx="42" cy="37" r="5" fill="#EF4444"/>
+        <circle cx="58" cy="37" r="5" fill="#F59E0B"/>
+        <circle cx="74" cy="37" r="5" fill="#10B981"/>
+        <text x="210" y="42" fill="#34D399" font-size="12" font-family="monospace" text-anchor="middle">Side-by-Side &amp; Unified Text Diff</text>
+
+        <!-- Diff Columns Representation -->
+        <g transform="translate(30, 75)">
+          <rect x="0" y="0" width="170" height="110" rx="8" fill="#0F172A" stroke="#334155"/>
+          <text x="10" y="22" fill="#94A3B8" font-size="11" font-family="monospace">1  const val = 10;</text>
+          <rect x="6" y="32" width="158" height="20" fill="#EF4444" fill-opacity="0.2"/>
+          <text x="10" y="46" fill="#F87171" font-size="11" font-family="monospace">-  const max = 50;</text>
+          <text x="10" y="70" fill="#94A3B8" font-size="11" font-family="monospace">3  return val;</text>
+
+          <rect x="190" y="0" width="170" height="110" rx="8" fill="#0F172A" stroke="#334155"/>
+          <text x="10" y="22" fill="#94A3B8" font-size="11" font-family="monospace">1  const val = 10;</text>
+          <rect x="6" y="32" width="158" height="20" fill="#10B981" fill-opacity="0.2"/>
+          <text x="10" y="46" fill="#34D399" font-size="11" font-family="monospace">+  const max = 100;</text>
+          <text x="10" y="70" fill="#94A3B8" font-size="11" font-family="monospace">3  return val;</text>
+        </g>
+
+        <rect x="110" y="195" width="200" height="36" rx="18" fill="#064E3B" stroke="#10B981" stroke-width="1.5"/>
+        <text x="210" y="218" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">INLINE CHAR HIGHLIGHT</text>
+      </g>`;
+  }
+
+  // 0. Markdown Live Previewer & Converter
+  if (slug.includes('markdown-live-preview') || slug.includes('markdown')) {
+    return `
+      <g transform="translate(660, 160)">
+        <rect width="420" height="260" rx="18" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+        <rect x="20" y="20" width="380" height="35" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1"/>
+        <circle cx="42" cy="37" r="5" fill="#EF4444"/>
+        <circle cx="58" cy="37" r="5" fill="#F59E0B"/>
+        <circle cx="74" cy="37" r="5" fill="#10B981"/>
+        <text x="210" y="42" fill="#60A5FA" font-size="12" font-family="monospace" text-anchor="middle">Markdown GFM • Live Split View</text>
+
+        <!-- Markdown and Rendered Columns representation -->
+        <g transform="translate(30, 75)">
+          <text x="10" y="20" fill="#94A3B8" font-size="12" font-family="monospace"># Hello World</text>
+          <text x="10" y="45" fill="#94A3B8" font-size="12" font-family="monospace">| Tables | GFM |</text>
+          <text x="10" y="70" fill="#38BDF8" font-size="12" font-family="monospace">- [x] Client-Side AST</text>
+          <text x="10" y="95" fill="#34D399" font-size="12" font-family="monospace">&gt; Zero Telemetry</text>
+        </g>
+
+        <rect x="110" y="195" width="200" height="36" rx="18" fill="#1E3A8A" stroke="#3B82F6" stroke-width="1.5"/>
+        <text x="210" y="218" fill="#93C5FD" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">LIVE GFM PREVIEW</text>
+      </g>`;
+  }
+
+  // 0a. Regex Tester & String Debugger
+  if (slug.includes('regex-tester') || slug.includes('regex')) {
+    return `
+      <g transform="translate(660, 160)">
+        <rect width="420" height="260" rx="18" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+        <rect x="20" y="20" width="380" height="35" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1"/>
+        <circle cx="42" cy="37" r="5" fill="#EF4444"/>
+        <circle cx="58" cy="37" r="5" fill="#F59E0B"/>
+        <circle cx="74" cy="37" r="5" fill="#10B981"/>
+        <text x="210" y="42" fill="#60A5FA" font-size="12" font-family="monospace" text-anchor="middle">/([a-z0-9]+)@([a-z]+)\.([a-z]{2,})/g</text>
+
+        <!-- Visual Match Highlight Boxes -->
+        <g transform="translate(30, 75)">
+          <text x="10" y="20" fill="#94A3B8" font-size="12" font-family="monospace">Contact: </text>
+          <rect x="75" y="6" width="170" height="18" rx="4" fill="#F59E0B" fill-opacity="0.2" stroke="#F59E0B"/>
+          <text x="80" y="20" fill="#FBBF24" font-size="12" font-family="monospace" font-weight="700">dev@zapixal.com</text>
+
+          <text x="10" y="50" fill="#94A3B8" font-size="12" font-family="monospace">Group 1: </text>
+          <text x="80" y="50" fill="#38BDF8" font-size="12" font-family="monospace" font-weight="700">"dev"</text>
+
+          <text x="10" y="75" fill="#94A3B8" font-size="12" font-family="monospace">Group 2: </text>
+          <text x="80" y="75" fill="#34D399" font-size="12" font-family="monospace" font-weight="700">"zapixal"</text>
+
+          <text x="10" y="100" fill="#94A3B8" font-size="12" font-family="monospace">Unicode: </text>
+          <text x="80" y="100" fill="#C084FC" font-size="12" font-family="monospace">UTF-8 • Code Points</text>
+        </g>
+
+        <rect x="110" y="195" width="200" height="36" rx="18" fill="#1E3A8A" stroke="#3B82F6" stroke-width="1.5"/>
+        <text x="210" y="218" fill="#93C5FD" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">MATCHES HIGHLIGHTED</text>
+      </g>`;
+  }
+
+  // 0b. JWT Decoder & Debugger
+  if (slug.includes('jwt-decoder') || slug.includes('jwt')) {
+    return `
+      <g transform="translate(660, 160)">
+        <rect width="420" height="260" rx="18" fill="#1E293B" stroke="#A855F7" stroke-width="1.5"/>
+        <rect x="20" y="20" width="380" height="35" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1"/>
+        <circle cx="42" cy="37" r="5" fill="#EF4444"/>
+        <circle cx="58" cy="37" r="5" fill="#F59E0B"/>
+        <circle cx="74" cy="37" r="5" fill="#10B981"/>
+        <text x="210" y="42" fill="#C084FC" font-size="12" font-family="monospace" text-anchor="middle">JWT Inspector: RFC 7519</text>
+
+        <!-- Color Coded Parts -->
+        <g transform="translate(30, 75)">
+          <text x="10" y="20" fill="#F43F5E" font-size="12" font-family="monospace" font-weight="700">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</text>
+          <text x="10" y="45" fill="#A855F7" font-size="12" font-family="monospace" font-weight="700">eyJzdWIiOiIxMjM0NTYiLCJuYW1lIjoiQWxleCJ9</text>
+          <text x="10" y="70" fill="#06B6D4" font-size="12" font-family="monospace" font-weight="700">tjVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ</text>
+        </g>
+
+        <rect x="110" y="195" width="200" height="36" rx="18" fill="#581C87" stroke="#A855F7" stroke-width="1.5"/>
+        <text x="210" y="218" fill="#E9D5FF" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">VERIFIED &amp; DECODED</text>
+      </g>`;
+  }
+
+  // 0b. JSON Formatter & Validator
+  if (slug.includes('json-formatter') || slug.includes('json')) {
+    return `
+      <g transform="translate(660, 160)">
+        <rect width="420" height="260" rx="18" fill="#1E293B" stroke="#38BDF8" stroke-width="1.5"/>
+        <rect x="20" y="20" width="380" height="35" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1"/>
+        <circle cx="42" cy="37" r="5" fill="#EF4444"/>
+        <circle cx="58" cy="37" r="5" fill="#F59E0B"/>
+        <circle cx="74" cy="37" r="5" fill="#10B981"/>
+        <text x="210" y="42" fill="#94A3B8" font-size="12" font-family="monospace" text-anchor="middle">payload.json — Valid</text>
+
+        <!-- Code Block Preview -->
+        <g transform="translate(30, 75)">
+          <text x="10" y="20" fill="#38BDF8" font-size="13" font-family="monospace">"name": <tspan fill="#34D399">"Zapixal Engine"</tspan>,</text>
+          <text x="10" y="45" fill="#38BDF8" font-size="13" font-family="monospace">"version": <tspan fill="#FBBF24">"1.0.0"</tspan>,</text>
+          <text x="10" y="70" fill="#38BDF8" font-size="13" font-family="monospace">"offline": <tspan fill="#F43F5E">true</tspan>,</text>
+          <text x="10" y="95" fill="#38BDF8" font-size="13" font-family="monospace">"sandbox": <tspan fill="#34D399">"Client RAM"</tspan></text>
+        </g>
+
+        <rect x="110" y="195" width="200" height="36" rx="18" fill="#064E3B" stroke="#10B981" stroke-width="1.5"/>
+        <text x="210" y="218" fill="#34D399" font-size="12" font-family="sans-serif" font-weight="800" text-anchor="middle">SYNTAX VALIDATED</text>
+      </g>`;
+  }
 
   // 1. Palette Color Extractor
   if (slug.includes('palette-color-extractor')) {
@@ -485,7 +619,9 @@ async function generateAllOgImages() {
   const allRoutes = Array.from(
     new Set([
       ...staticRoutes,
-      ...ALL_ARTICLE_SYSTEM_ROUTES, ...TOOL_REGISTRY.map((t) => t.route),
+      ...CATEGORY_ROUTES,
+      ...ALL_ARTICLE_SYSTEM_ROUTES,
+      ...TOOL_REGISTRY.map((t) => t.route),
       ...PSEO_ROUTES_LIST.map((r: SeoRouteItem) => r.path),
     ])
   );

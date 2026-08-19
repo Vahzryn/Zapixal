@@ -6,14 +6,16 @@ Zapixal processes images locally using WebAssembly, Web Workers, and browser API
 
 ## Features
 
-- Local, client-side image processing
+- Local, client-side image & document processing
 - Batch conversion and compression
-- HEIC, JPG, PNG, WebP, AVIF, BMP, and ICO support
-- Web Workers for responsive processing
-- Adaptive processing for different devices
-- No account required
-- No image uploads for conversion
-- 42+ dedicated image tools
+- HEIC, JPG, PNG, WebP, AVIF, SVG, BMP, and ICO support
+- PDF merge, split, compression, and image extraction
+- Developer utilities: JSON formatter, CSV/JSON converter, JWT decoder, Regex tester
+- Text tools: Markdown live previewer, side-by-side Diff viewer
+- Web Workers and WebAssembly for responsive local execution
+- Adaptive concurrency and memory protection for high-volume batches
+- Zero account required
+- Zero server uploads for core file processing
 
 ## Technology
 

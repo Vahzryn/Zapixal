@@ -6,6 +6,7 @@ import { HeroHeader } from './components/Converter/HeroHeader';
 import { CompleteView } from './components/Converter/CompleteView';
 import { ValuePropsSection } from './components/Converter/ValuePropsSection';
 import { PopularToolsSection } from './components/Converter/PopularToolsSection';
+import { CategoryDiscoverySection } from './components/CategoryDiscoverySection';
 import { SeoGuideContent } from './components/Converter/SeoGuideContent';
 import { QueueSection } from './components/Converter/QueueSection';
 import { ModalsOrchestrator } from './components/Modals/ModalsOrchestrator';
@@ -31,11 +32,19 @@ const ArticlesHubPage = lazy(() => import('./components/Articles/ArticlesHubPage
 const ArticleCategoryPage = lazy(() => import('./components/Articles/ArticleCategoryPage').then(module => ({ default: module.ArticleCategoryPage })));
 const ArticleViewPage = lazy(() => import('./components/Articles/ArticleViewPage').then(module => ({ default: module.ArticleViewPage })));
 const PdfToJpgConverter = lazy(() => import('./components/PdfToJpgConverter').then(module => ({ default: module.PdfToJpgConverter })));
+const SvgToPngPage = lazy(() => import('./components/SvgToPngPage').then(module => ({ default: module.SvgToPngPage })));
 const PdfCompressorPage = lazy(() => import('./components/PdfCompressorPage').then(module => ({ default: module.PdfCompressorPage })));
 const PdfMergerPage = lazy(() => import('./components/PdfMergerPage').then(module => ({ default: module.PdfMergerPage })));
 const PdfSplitterPage = lazy(() => import('./components/PdfSplitterPage').then(module => ({ default: module.PdfSplitterPage })));
+const ImageToPdfPage = lazy(() => import('./components/ImageToPdfPage').then(module => ({ default: module.ImageToPdfPage })));
 const ImageToBase64Converter = lazy(() => import('./components/ImageToBase64Converter').then(module => ({ default: module.ImageToBase64Converter })));
 const ColorPaletteExtractor = lazy(() => import('./components/ColorPaletteExtractor').then(module => ({ default: module.ColorPaletteExtractor })));
+const JsonFormatterPage = lazy(() => import('./components/JsonFormatterPage').then(module => ({ default: module.JsonFormatterPage })));
+const CsvToJsonPage = lazy(() => import('./components/CsvToJsonPage'));
+const JwtDecoderPage = lazy(() => import('./components/JwtDecoderPage'));
+const RegexTesterPage = lazy(() => import('./components/RegexTesterPage'));
+const MarkdownLivePreviewPage = lazy(() => import('./components/MarkdownLivePreviewPage').then(module => ({ default: module.MarkdownLivePreviewPage })));
+const TextDiffPage = lazy(() => import('./components/TextDiffPage').then(module => ({ default: module.TextDiffPage })));
 const EmbedWidget = lazy(() => import('./components/Widget/EmbedWidget'));
 const WidgetDocumentationPage = lazy(() => import('./components/Widget/WidgetDocumentationPage'));
 const BenchmarkPage = lazy(() => import('./components/Articles/BenchmarkPage'));
@@ -196,6 +205,7 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
     currentPath === '/terms' ||
     currentPath === '/about' ||
     currentPath === '/tools' ||
+    currentPath.startsWith('/tools/') ||
     currentPath === '/widget' ||
     currentPath === '/articles/benchmarks' ||
     currentPath === '/articles' ||
@@ -276,8 +286,11 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
           <TermsOfService />
         ) : currentPath === '/about' ? (
           <AboutPage />
-        ) : currentPath === '/tools' ? (
-          <ToolsDirectoryPage onNavigate={handleNavigate} />
+        ) : currentPath === '/tools' || currentPath.startsWith('/tools/') ? (
+          <ToolsDirectoryPage 
+            onNavigate={handleNavigate} 
+            initialCategory={currentPath.startsWith('/tools/') ? (currentPath.replace('/tools/', '') as any) : 'all'}
+          />
         ) : currentPath === '/widget' ? (
           <WidgetDocumentationPage onNavigate={handleNavigate} />
         ) : currentPath === '/articles/benchmarks' ? (
@@ -298,6 +311,10 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
           <PdfMergerPage seoData={seoData} onNavigate={handleNavigate} />
         ) : currentPath === '/split-pdf' ? (
           <PdfSplitterPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/convert-image-to-pdf' ? (
+          <ImageToPdfPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/convert-svg-to-png-transparent' ? (
+          <SvgToPngPage seoData={seoData} onNavigate={handleNavigate} />
         ) : currentPath === '/secure-document-compressor-pdf' ? (
           <PdfCompressorPage seoData={seoData} onNavigate={handleNavigate} />
         ) : currentPath === '/convert-pdf-pages-to-jpg-images' ? (
@@ -318,12 +335,37 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
             <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
             <ValuePropsSection />
           </React.Fragment>
+        ) : currentPath === '/json-formatter-validator' ? (
+          <JsonFormatterPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/csv-to-json-converter' ? (
+          <CsvToJsonPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/jwt-decoder' ? (
+          <JwtDecoderPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/regex-tester' ? (
+          <RegexTesterPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/markdown-live-preview' ? (
+          <MarkdownLivePreviewPage seoData={seoData} onNavigate={handleNavigate} />
+        ) : currentPath === '/text-diff' ? (
+          <TextDiffPage seoData={seoData} onNavigate={handleNavigate} />
         ) : (
           <React.Fragment>
             {files.length === 0 ? (
-              /* STATE 1: IDLE */
-              <div className="flex flex-col gap-6 mb-16 animate-in fade-in zoom-in-95 duration-300 min-h-[400px]">
+              /* STATE 1: IDLE / WORKSPACE READY */
+              <div className="flex flex-col gap-6 mb-12 animate-in fade-in zoom-in-95 duration-300 min-h-[400px]">
                 <Dropzone onFilesAdded={handleFilesAdded} fromFormat={seoData.fromFormat} />
+                
+                {seoData.pageCategory === 'home' ? (
+                  <React.Fragment>
+                    <CategoryDiscoverySection onNavigate={handleNavigate} />
+                    <ValuePropsSection />
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
+                    <PopularToolsSection onNavigate={handleNavigate} />
+                    <ValuePropsSection />
+                  </React.Fragment>
+                )}
               </div>
             ) : showCompleteView && files.length > 0 ? (
               /* COMPLETE / DOWNLOAD VIEW */
@@ -392,17 +434,6 @@ export default function App({ initialPath, initialSeoData }: AppProps) {
                 onContinueToDownload={() => setShowCompleteView(true)}
               />
             )}
-
-            {/* SEO Guide Content (only on pSEO routes) */}
-            {!isArticleOrStaticRoute && seoData.pageCategory !== 'home' && (
-              <SeoGuideContent seoData={seoData} onNavigate={handleNavigate} />
-            )}
-
-            {/* Popular Image Tools Section */}
-            <PopularToolsSection onNavigate={handleNavigate} />
-
-            {/* Value Propositions / Why choose Zapixal */}
-            <ValuePropsSection />
           </React.Fragment>
         )}
         </Suspense>

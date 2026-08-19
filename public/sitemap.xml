@@ -20,12 +20,27 @@
     <loc>https://zapixal.com/widget</loc>
   </url>
   <url>
+    <loc>https://zapixal.com/tools/images</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/tools/documents</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/tools/developer</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/tools/text</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/tools/utilities</loc>
+  </url>
+  <url>
     <loc>https://zapixal.com/articles</loc>
-    <lastmod>2026-08-09</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zapixal.com/articles/formats</loc>
-    <lastmod>2026-08-09</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zapixal.com/articles/privacy</loc>
@@ -33,11 +48,11 @@
   </url>
   <url>
     <loc>https://zapixal.com/articles/workflows</loc>
-    <lastmod>2026-08-09</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zapixal.com/articles/performance</loc>
-    <lastmod>2026-08-09</lastmod>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zapixal.com/articles/heic-vs-jpg</loc>
@@ -50,6 +65,18 @@
   <url>
     <loc>https://zapixal.com/articles/compress-image-to-kb-limit-guide</loc>
     <lastmod>2026-08-09</lastmod>
+  </url>
+  <url>
+    <loc>https://zapixal.com/articles/webp-vs-png-vs-jpeg</loc>
+    <lastmod>2026-08-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zapixal.com/articles/browser-wasm-privacy-architecture</loc>
+    <lastmod>2026-08-17</lastmod>
+  </url>
+  <url>
+    <loc>https://zapixal.com/articles/client-side-pdf-merge-split-security-guide</loc>
+    <lastmod>2026-08-17</lastmod>
   </url>
   <url>
     <loc>https://zapixal.com/articles/benchmarks</loc>
@@ -112,6 +139,9 @@
     <loc>https://zapixal.com/convert-to-avif-online-free</loc>
   </url>
   <url>
+    <loc>https://zapixal.com/convert-image-to-pdf</loc>
+  </url>
+  <url>
     <loc>https://zapixal.com/merge-pdf</loc>
   </url>
   <url>
@@ -128,5 +158,23 @@
   </url>
   <url>
     <loc>https://zapixal.com/palette-color-extractor-image-hex</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/json-formatter-validator</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/csv-to-json-converter</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/jwt-decoder</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/regex-tester</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/markdown-live-preview</loc>
+  </url>
+  <url>
+    <loc>https://zapixal.com/text-diff</loc>
   </url>
 </urlset>

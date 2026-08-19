@@ -18,6 +18,11 @@ interface UseAppRoutingOptions {
 const STATIC_KNOWN_ROUTES = new Set([
   '/',
   '/tools',
+  '/tools/images',
+  '/tools/documents',
+  '/tools/developer',
+  '/tools/text',
+  '/tools/utilities',
   '/about',
   '/privacy',
   '/terms',

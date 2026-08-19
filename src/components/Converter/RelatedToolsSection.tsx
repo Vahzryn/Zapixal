@@ -2,11 +2,13 @@ import React from 'react';
 import { ArrowRight, Wrench } from 'lucide-react';
 
 interface RelatedToolsSectionProps {
+  title?: string;
   relatedRoutes?: Array<{ path: string; label: string }> | null;
   onNavigate?: (path: string) => void;
 }
 
 export const RelatedToolsSection: React.FC<RelatedToolsSectionProps> = ({
+  title = 'Related Tools & Converters',
   relatedRoutes,
   onNavigate,
 }) => {
@@ -24,7 +26,7 @@ export const RelatedToolsSection: React.FC<RelatedToolsSectionProps> = ({
       <div className="flex items-center gap-2 mb-4">
         <Wrench className="w-4 h-4 text-blue-600 dark:text-[#8ab4f8]" />
         <h3 className="text-base font-black text-neutral-900 dark:text-white">
-          Related Image Tools & Converters
+          {title}
         </h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -43,3 +45,4 @@ export const RelatedToolsSection: React.FC<RelatedToolsSectionProps> = ({
     </div>
   );
 };
+

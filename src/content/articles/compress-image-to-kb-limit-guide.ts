@@ -92,9 +92,9 @@ export const articleCompressImageToKbLimitGuide: Article = {
     },
   ],
   relatedTools: [
-    { path: '/compress-image-to-100kb-online', label: 'Compress Image to 100KB', description: 'Target-size binary search loop for 100KB caps.' },
-    { path: '/compress-image-under-50kb-government-portal', label: 'Compress Under 50KB', description: 'Scale passport and ID photos under strict bounds.' },
-    { path: '/passport-photo-size-reducer-kb', label: 'Passport Photo Size Reducer', description: 'Optimize dimensions and file size for passport requirements.' },
+    { path: '/compress-image-to-exact-size-kb', label: 'Compress Image to Exact KB', description: 'Target-size binary search loop for strict size caps.' },
+    { path: '/crop-image-to-exact-aspect-ratio', label: 'Crop & Resize Dimensions', description: 'Optimize dimensions and file size for application requirements.' },
+    { path: '/client-side-private-image-compressor', label: 'Client-Side Image Compressor', description: 'Local in-browser photo optimization with WebAssembly.' },
   ],
   relatedArticleSlugs: ['heic-vs-jpg', 'exif-metadata-privacy-guide'],
 };

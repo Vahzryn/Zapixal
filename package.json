@@ -19,7 +19,12 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts && tsx scripts/test-feedback.ts && tsx scripts/test-pdf-split-merge.ts"
+    "test": "tsx scripts/test-bench.ts && tsx scripts/test-og-images.ts && tsx scripts/test-codecs.ts && tsx scripts/test-orchestration.ts && tsx scripts/test-seo-quality.ts && tsx scripts/test-routing-presets.ts && tsx scripts/test-eta-adaptive.ts && tsx scripts/test-feedback.ts && tsx scripts/test-pdf-split-merge.ts && tsx scripts/test-json-formatter.ts && tsx scripts/test-csv-converter.ts && tsx scripts/test-jwt-decoder.ts && tsx scripts/test-regex-tester.ts && tsx scripts/test-markdown-preview.ts && tsx scripts/test-diff-comparator.ts",
+    "test:jwt": "tsx scripts/test-jwt-decoder.ts",
+    "test:csv": "tsx scripts/test-csv-converter.ts",
+    "test:regex": "tsx scripts/test-regex-tester.ts",
+    "test:markdown": "tsx scripts/test-markdown-preview.ts",
+    "test:diff": "tsx scripts/test-diff-comparator.ts"
   },
   "dependencies": {
     "@jsquash/avif": "^2.1.1",
@@ -28,6 +33,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "clsx": "^2.1.1",
+    "diff": "^9.0.0",
     "heic2any": "^0.0.4",
     "imagequant": "^0.1.2",
     "jspdf": "^4.2.1",
@@ -42,6 +48,7 @@
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "@types/diff": "^8.0.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

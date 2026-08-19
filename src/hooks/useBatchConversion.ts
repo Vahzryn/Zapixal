@@ -4,6 +4,7 @@ import { detectHardwareCapabilities, checkBatteryThrottling, getBatchThresholds,
 import { formatBytes, formatOutputFilename, getExtensionFromMime, getEffectiveTargetFormat } from '../lib/utils';
 import { safeRandomUUID } from '../lib/capabilities';
 import { saveFilesToDirectory, downloadBlob } from '../lib/fileSystemAccess';
+import { terminateWorkers } from '../lib/imageProcessor';
 
 interface UseBatchConversionProps {
   settings: ConversionSettings;
@@ -140,11 +141,11 @@ export function useBatchConversion({ settings, setSettings }: UseBatchConversion
         setIsStopping(false);
         setStalledResetMessage('Conversion stalled and was reset — you can try converting again.');
 
-        import('../lib/imageProcessor').then(m => {
-          m.terminateWorkers();
-        }).catch(e => {
+        try {
+          terminateWorkers();
+        } catch (e) {
           console.error('Failed to terminate workers in watchdog:', e);
-        });
+        }
 
         clearInterval(intervalId);
       }

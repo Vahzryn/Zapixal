@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { TOOL_REGISTRY } from '../src/lib/toolRegistry';
-import { ALL_ARTICLE_SYSTEM_ROUTES, DOMAIN } from '../src/lib/seo/routes';
+import { ALL_ARTICLE_SYSTEM_ROUTES, CATEGORY_ROUTES, DOMAIN } from '../src/lib/seo/routes';
 import { ALL_ARTICLES, getArticleBySlug, getArticlesByCategory, getCategoryInfo } from '../src/content/articles';
 import { ROUTE_ALIASES } from '../src/lib/seo/meta';
 
@@ -46,6 +46,9 @@ function generateSitemap() {
 
   // Add static routes
   STATIC_ROUTES.forEach((r) => routesSet.add(r));
+
+  // Add category routes
+  CATEGORY_ROUTES.forEach((r) => routesSet.add(r));
 
   // Add article system routes
   ALL_ARTICLE_SYSTEM_ROUTES.forEach((r) => routesSet.add(r));

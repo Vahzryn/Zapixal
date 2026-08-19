@@ -30,7 +30,7 @@ export default defineConfig(() => {
     server: {
       host: '0.0.0.0',
       port: 3000,
-      allowedHosts: true as const,
+      allowedHosts: true as true,
       // HMR environment check
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR === 'true' ? false : { clientPort: 443 },

@@ -18,9 +18,10 @@ import {
 
 interface ToolsDirectoryPageProps {
   onNavigate: (path: string) => void;
+  initialCategory?: CategoryKey;
 }
 
-type CategoryKey = 'all' | 'images' | 'documents' | 'developer' | 'utilities';
+type CategoryKey = 'all' | 'images' | 'documents' | 'developer' | 'text' | 'utilities';
 
 interface CategoryMeta {
   key: CategoryKey;
@@ -35,7 +36,7 @@ const CATEGORY_DEFINITIONS: Record<CategoryKey, CategoryMeta> = {
     key: 'all',
     title: 'All Tools',
     badge: 'Directory',
-    description: 'Complete collection of secure, offline-first browser utilities.',
+    description: 'Complete collection of secure, browser-based utilities.',
     icon: Grid,
   },
   images: {
@@ -55,27 +56,42 @@ const CATEGORY_DEFINITIONS: Record<CategoryKey, CategoryMeta> = {
   developer: {
     key: 'developer',
     title: 'Developer Tools',
-    badge: 'Code & Encoding',
-    description: 'Encode images to Base64 data URIs and inspect data securely offline.',
+    badge: 'Code, Formats & Tokens',
+    description: 'Format JSON, convert CSV, decode JWT tokens, and test Regex securely.',
     icon: Code,
+  },
+  text: {
+    key: 'text',
+    title: 'Text Tools',
+    badge: 'Markdown & Comparison',
+    description: 'Live Markdown previewer, side-by-side text diff, and text analysis utilities.',
+    icon: FileText,
   },
   utilities: {
     key: 'utilities',
     title: 'Utilities & Design',
     badge: 'Color & Analysis',
-    description: 'Extract color palettes, analyze HEX codes, and manage visual assets.',
+    description: 'Extract color palettes, analyze HEX codes, and inspect visual assets.',
     icon: ShieldCheck,
   },
 };
 
-export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNavigate }) => {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('all');
+export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNavigate, initialCategory = 'all' }) => {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const breadcrumbs = [
-    { name: 'Home', url: '/' },
-    { name: 'Tools Directory', url: '/tools' },
-  ];
+  const activeCategoryMeta = CATEGORY_DEFINITIONS[selectedCategory];
+
+  const breadcrumbs = useMemo(() => {
+    const list = [
+      { name: 'Home', url: '/' },
+      { name: 'Tools Directory', url: '/tools' },
+    ];
+    if (selectedCategory !== 'all') {
+      list.push({ name: activeCategoryMeta.title, url: `/tools/${selectedCategory}` });
+    }
+    return list;
+  }, [selectedCategory, activeCategoryMeta]);
 
   const filteredTools = useMemo(() => {
     return TOOL_REGISTRY.filter((tool) => {
@@ -97,6 +113,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
       images: 0,
       documents: 0,
       developer: 0,
+      text: 0,
       utilities: 0,
     };
     TOOL_REGISTRY.forEach((t) => {
@@ -107,26 +124,32 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
     return counts;
   }, []);
 
+  const handleSelectCategory = (catKey: CategoryKey) => {
+    setSelectedCategory(catKey);
+    if (catKey === 'all') {
+      onNavigate('/tools');
+    } else {
+      onNavigate(`/tools/${catKey}`);
+    }
+  };
+
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 py-2 sm:py-6 animate-in fade-in duration-300">
       {/* Header & Breadcrumbs */}
-      <div className="text-center space-y-3">
+      <div className="text-center space-y-2">
         <Breadcrumbs items={breadcrumbs} onNavigate={onNavigate} />
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100/80 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
-          <Grid className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Multi-Category Client-Side Utility Hub</span>
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-neutral-900 dark:text-white tracking-tight">
-          Zapixal Tools Directory
+        <h1 className="text-2xl sm:text-4xl font-black text-neutral-900 dark:text-white tracking-tight">
+          Tools Directory
         </h1>
-        <p className="max-w-2xl mx-auto text-xs sm:text-base text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
-          Private, browser-based utilities for image optimization, PDF document extraction, format conversion, and developer encoding. Zero server uploads for core processing.
+        <p className="max-w-2xl mx-auto text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed">
+          Browser-based utilities for image optimization, PDF processing, developer formatting, and media extraction.
         </p>
       </div>
 
       {/* Category Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        {(['images', 'documents', 'developer', 'utilities'] as CategoryKey[]).map((catKey) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        {(['images', 'documents', 'developer', 'text', 'utilities'] as CategoryKey[]).map((catKey) => {
           const cat = CATEGORY_DEFINITIONS[catKey];
           const Icon = cat.icon;
           const isActive = selectedCategory === catKey;
@@ -135,24 +158,23 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
           return (
             <button
               key={catKey}
-              onClick={() => setSelectedCategory(isActive ? 'all' : catKey)}
-              className={`flex flex-col items-start p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              onClick={() => handleSelectCategory(isActive ? 'all' : catKey)}
+              className={`flex flex-col items-start p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-[1.02]'
-                  : 'bg-white dark:bg-[#282a2e] border-neutral-200/80 dark:border-neutral-700/80 text-neutral-800 dark:text-neutral-200 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xs'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-xs'
+                  : 'bg-white dark:bg-[#282a2e] border-neutral-200/80 dark:border-neutral-700/80 text-neutral-800 dark:text-neutral-200 hover:border-neutral-400 dark:hover:border-neutral-500'
               }`}
             >
-              <div className="w-full flex items-center justify-between mb-2">
-                <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20 text-white' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'}`}>
-                  <Icon className="w-4 h-4" />
+              <div className="w-full flex items-center justify-between mb-1.5">
+                <div className={`p-1.5 rounded-lg ${isActive ? 'bg-white/20 text-white dark:bg-neutral-900/20 dark:text-neutral-900' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'}`}>
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
-                <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'}`}>
+                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-white/20 text-white dark:bg-neutral-900/10 dark:text-neutral-900' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'}`}>
                   {count}
                 </span>
               </div>
-              <span className="text-[10px] font-bold tracking-tight uppercase opacity-80">{cat.badge}</span>
-              <span className="text-sm font-black mt-0.5 leading-snug">{cat.title}</span>
-              <span className={`text-[11px] mt-1 font-medium line-clamp-2 ${isActive ? 'text-blue-100' : 'text-neutral-500 dark:text-neutral-400'}`}>
+              <span className="text-xs font-bold leading-snug">{cat.title}</span>
+              <span className={`text-[11px] mt-0.5 font-normal line-clamp-2 ${isActive ? 'text-neutral-300 dark:text-neutral-600' : 'text-neutral-500 dark:text-neutral-400'}`}>
                 {cat.description}
               </span>
             </button>
@@ -161,56 +183,32 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-[#282a2e] border border-neutral-200/80 dark:border-neutral-700/80 space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by tool name, format, or task (e.g. HEIC, PDF, Base64, Crop)..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-neutral-50 dark:bg-[#1a1b1e] border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Category Quick Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none shrink-0">
-            {(['all', 'images', 'documents', 'developer', 'utilities'] as CategoryKey[]).map((catKey) => {
-              const cat = CATEGORY_DEFINITIONS[catKey];
-              const isSelected = selectedCategory === catKey;
-              return (
-                <button
-                  key={catKey}
-                  onClick={() => setSelectedCategory(catKey)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                    isSelected
-                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                  }`}
-                >
-                  {cat.title} ({categoryCounts[catKey]})
-                </button>
-              );
-            })}
-          </div>
+      <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-[#282a2e] border border-neutral-200/80 dark:border-neutral-700/80">
+        <div className="relative">
+          <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tools by name, format, or task (e.g. HEIC, PDF, JSON, Regex, Diff)..."
+            className="w-full pl-10 pr-12 py-2 text-xs sm:text-sm bg-neutral-50 dark:bg-[#1a1b1e] border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
       {/* Tools List Results */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-            Showing {filteredTools.length} of {TOOL_REGISTRY.length} registered tools
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            {filteredTools.length} {filteredTools.length === 1 ? 'tool' : 'tools'} available
             {selectedCategory !== 'all' && ` in ${CATEGORY_DEFINITIONS[selectedCategory].title}`}
             {searchQuery && ` matching "${searchQuery}"`}
           </span>
@@ -220,7 +218,7 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
                 setSelectedCategory('all');
                 setSearchQuery('');
               }}
-              className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
             >
               Reset Filters
             </button>
@@ -228,25 +226,24 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
         </div>
 
         {filteredTools.length === 0 ? (
-          <div className="p-12 text-center bg-white dark:bg-[#282a2e] rounded-2xl border border-neutral-200/80 dark:border-neutral-700/80 space-y-3">
-            <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">
-              No tools found matching your search.
+          <div className="p-10 text-center bg-white dark:bg-[#282a2e] rounded-xl border border-neutral-200/80 dark:border-neutral-700/80 space-y-2">
+            <p className="text-xs sm:text-sm font-semibold text-neutral-600 dark:text-neutral-400">
+              No tools match the current filter criteria.
             </p>
             <button
               onClick={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
               }}
-              className="px-4 py-2 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors"
+              className="px-3.5 py-1.5 text-xs font-bold bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:opacity-90 transition-opacity"
             >
-              View All Registered Tools
+              View All Tools
             </button>
           </div>
         ) : (
-          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTools.map((tool) => {
               const catDef = CATEGORY_DEFINITIONS[tool.category as CategoryKey] || CATEGORY_DEFINITIONS.images;
-              const Icon = catDef.icon;
 
               return (
                 <a
@@ -256,20 +253,16 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
                     e.preventDefault();
                     onNavigate(tool.route);
                   }}
-                  className="group p-4 rounded-2xl bg-white dark:bg-[#282a2e] border border-neutral-200/80 dark:border-neutral-700/80 hover:border-blue-400 dark:hover:border-blue-500 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                  className="group p-3.5 rounded-xl bg-white dark:bg-[#282a2e] border border-neutral-200/80 dark:border-neutral-700/80 hover:border-neutral-400 dark:hover:border-neutral-500 transition-all flex flex-col justify-between"
                 >
-                  <div className="space-y-2.5">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-100 dark:border-blue-900/50">
-                        <Icon className="w-3 h-3" />
-                        {catDef.badge}
-                      </span>
-                      <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[120px]">
-                        {tool.route}
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">
+                        {catDef.title}
                       </span>
                     </div>
 
-                    <h2 className="text-sm font-black text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                    <h2 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
                       {tool.name}
                     </h2>
                     <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">
@@ -277,13 +270,9 @@ export const ToolsDirectoryPage: React.FC<ToolsDirectoryPageProps> = ({ onNaviga
                     </p>
                   </div>
 
-                  <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
-                    <span className="text-[11px] font-medium text-neutral-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                      Client-Side Local
-                    </span>
+                  <div className="pt-2.5 mt-2.5 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-end text-xs font-semibold text-neutral-700 dark:text-neutral-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     <span className="inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                      <span>Launch Tool</span>
+                      <span>Open tool</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>

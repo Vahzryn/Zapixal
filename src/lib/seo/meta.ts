@@ -4,6 +4,48 @@ import { getArticleBySlug, getCategoryInfo } from '../../content/articles';
 import { generateArticleJsonLdSchema } from './schema';
 import { TOOL_REGISTRY } from '../toolRegistry';
 
+import * as homePage from './pages/home';
+import * as privacyPage from './pages/privacy';
+import * as termsPage from './pages/terms';
+import * as aboutPage from './pages/about';
+import * as clientSidePrivateImageCompressorPage from './pages/client-side-private-image-compressor';
+import * as convertHeicToJpgLocallyPage from './pages/convert-heic-to-jpg-locally';
+import * as stripExifMetadataOnlinePrivatePage from './pages/strip-exif-metadata-online-private';
+import * as bulkImageCompressorOfflinePage from './pages/bulk-image-compressor-offline';
+import * as compressPngImagesOnlinePage from './pages/compress-png-images-online';
+import * as convertWebpToPngTransparentPage from './pages/convert-webp-to-png-transparent';
+import * as convertAvifToJpgConverterPage from './pages/convert-avif-to-jpg-converter';
+import * as convertSvgToPngTransparentPage from './pages/convert-svg-to-png-transparent';
+import * as convertPngToWebpLosslessPage from './pages/convert-png-to-webp-lossless';
+import * as cropImageToExactAspectRatioPage from './pages/crop-image-to-exact-aspect-ratio';
+import * as addTextWatermarkImageBrowserPage from './pages/add-text-watermark-image-browser';
+import * as convertTiffBmpToJpgPage from './pages/convert-tiff-bmp-to-jpg';
+import * as dpiPpiConverterChangeImageResolutionPage from './pages/dpi-ppi-converter-change-image-resolution';
+import * as convertJpgToWebpBrowserPage from './pages/convert-jpg-to-webp-browser';
+import * as convertIcoToPngFaviconExtractorPage from './pages/convert-ico-to-png-favicon-extractor';
+import * as convertPngToJpgWhiteBackgroundPage from './pages/convert-png-to-jpg-white-background';
+import * as blurSensitiveImagePrivacyPixelatorPage from './pages/blur-sensitive-image-privacy-pixelator';
+import * as secureDocumentCompressorPdfPage from './pages/secure-document-compressor-pdf';
+import * as convertToAvifOnlineFreePage from './pages/convert-to-avif-online-free';
+import * as compressImageToExactSizeKbPage from './pages/compress-image-to-exact-size-kb';
+import * as convertPdfPagesToJpgImagesPage from './pages/convert-pdf-pages-to-jpg-images';
+import * as mergePdfPage from './pages/merge-pdf';
+import * as splitPdfPage from './pages/split-pdf';
+import * as convertImageToPdfPage from './pages/convert-image-to-pdf';
+import * as clientSideImageToBase64Page from './pages/client-side-image-to-base64';
+import * as paletteColorExtractorImageHexPage from './pages/palette-color-extractor-image-hex';
+import * as jsonFormatterValidatorPage from './pages/json-formatter-validator';
+import * as csvToJsonConverterPage from './pages/csv-to-json-converter';
+import * as jwtDecoderPage from './pages/jwt-decoder';
+import * as regexTesterPage from './pages/regex-tester';
+import * as markdownLivePreviewPage from './pages/markdown-live-preview';
+import * as textDiffPage from './pages/text-diff';
+import * as embedPage from './pages/embed';
+import * as widgetPage from './pages/widget';
+import * as toolsPage from './pages/tools';
+import * as articlesPage from './pages/articles';
+import * as articleBenchmarksPage from './pages/articles/benchmarks';
+
 export { applySeoToHead };
 
 function getArticleCategorySeo(subPath: string, fullUrl: string): SeoRouteData | null {
@@ -28,40 +70,47 @@ function getArticleCategorySeo(subPath: string, fullUrl: string): SeoRouteData |
 }
 
 export const PAGE_IMPORTS: Record<string, () => Promise<{ getPageSeo: (url: string, path: string) => SeoRouteData }>> = {
-  'home': () => import('./pages/home'),
-  'privacy': () => import('./pages/privacy'),
-  'terms': () => import('./pages/terms'),
-  'about': () => import('./pages/about'),
-  'client-side-private-image-compressor': () => import('./pages/client-side-private-image-compressor'),
-  'convert-heic-to-jpg-locally': () => import('./pages/convert-heic-to-jpg-locally'),
-  'strip-exif-metadata-online-private': () => import('./pages/strip-exif-metadata-online-private'),
-  'bulk-image-compressor-offline': () => import('./pages/bulk-image-compressor-offline'),
-  'compress-png-images-online': () => import('./pages/compress-png-images-online'),
-  'convert-webp-to-png-transparent': () => import('./pages/convert-webp-to-png-transparent'),
-  'convert-avif-to-jpg-converter': () => import('./pages/convert-avif-to-jpg-converter'),
-  'convert-svg-to-png-transparent': () => import('./pages/convert-svg-to-png-transparent'),
-  'convert-png-to-webp-lossless': () => import('./pages/convert-png-to-webp-lossless'),
-  'crop-image-to-exact-aspect-ratio': () => import('./pages/crop-image-to-exact-aspect-ratio'),
-  'add-text-watermark-image-browser': () => import('./pages/add-text-watermark-image-browser'),
-  'convert-tiff-bmp-to-jpg': () => import('./pages/convert-tiff-bmp-to-jpg'),
-  'dpi-ppi-converter-change-image-resolution': () => import('./pages/dpi-ppi-converter-change-image-resolution'),
-  'convert-jpg-to-webp-browser': () => import('./pages/convert-jpg-to-webp-browser'),
-  'convert-ico-to-png-favicon-extractor': () => import('./pages/convert-ico-to-png-favicon-extractor'),
-  'convert-png-to-jpg-white-background': () => import('./pages/convert-png-to-jpg-white-background'),
-  'blur-sensitive-image-privacy-pixelator': () => import('./pages/blur-sensitive-image-privacy-pixelator'),
-  'secure-document-compressor-pdf': () => import('./pages/secure-document-compressor-pdf'),
-  'convert-to-avif-online-free': () => import('./pages/convert-to-avif-online-free'),
-  'compress-image-to-exact-size-kb': () => import('./pages/compress-image-to-exact-size-kb'),
-  'convert-pdf-pages-to-jpg-images': () => import('./pages/convert-pdf-pages-to-jpg-images'),
-  'merge-pdf': () => import('./pages/merge-pdf'),
-  'split-pdf': () => import('./pages/split-pdf'),
-  'client-side-image-to-base64': () => import('./pages/client-side-image-to-base64'),
-  'palette-color-extractor-image-hex': () => import('./pages/palette-color-extractor-image-hex'),
-  'embed': () => import('./pages/embed'),
-  'widget': () => import('./pages/widget'),
-  'tools': () => import('./pages/tools'),
-  'articles': () => import('./pages/articles'),
-  'articles/benchmarks': () => import('./pages/articles/benchmarks'),
+  'home': () => Promise.resolve(homePage),
+  'privacy': () => Promise.resolve(privacyPage),
+  'terms': () => Promise.resolve(termsPage),
+  'about': () => Promise.resolve(aboutPage),
+  'client-side-private-image-compressor': () => Promise.resolve(clientSidePrivateImageCompressorPage),
+  'convert-heic-to-jpg-locally': () => Promise.resolve(convertHeicToJpgLocallyPage),
+  'strip-exif-metadata-online-private': () => Promise.resolve(stripExifMetadataOnlinePrivatePage),
+  'bulk-image-compressor-offline': () => Promise.resolve(bulkImageCompressorOfflinePage),
+  'compress-png-images-online': () => Promise.resolve(compressPngImagesOnlinePage),
+  'convert-webp-to-png-transparent': () => Promise.resolve(convertWebpToPngTransparentPage),
+  'convert-avif-to-jpg-converter': () => Promise.resolve(convertAvifToJpgConverterPage),
+  'convert-svg-to-png-transparent': () => Promise.resolve(convertSvgToPngTransparentPage),
+  'convert-png-to-webp-lossless': () => Promise.resolve(convertPngToWebpLosslessPage),
+  'crop-image-to-exact-aspect-ratio': () => Promise.resolve(cropImageToExactAspectRatioPage),
+  'add-text-watermark-image-browser': () => Promise.resolve(addTextWatermarkImageBrowserPage),
+  'convert-tiff-bmp-to-jpg': () => Promise.resolve(convertTiffBmpToJpgPage),
+  'dpi-ppi-converter-change-image-resolution': () => Promise.resolve(dpiPpiConverterChangeImageResolutionPage),
+  'convert-jpg-to-webp-browser': () => Promise.resolve(convertJpgToWebpBrowserPage),
+  'convert-ico-to-png-favicon-extractor': () => Promise.resolve(convertIcoToPngFaviconExtractorPage),
+  'convert-png-to-jpg-white-background': () => Promise.resolve(convertPngToJpgWhiteBackgroundPage),
+  'blur-sensitive-image-privacy-pixelator': () => Promise.resolve(blurSensitiveImagePrivacyPixelatorPage),
+  'secure-document-compressor-pdf': () => Promise.resolve(secureDocumentCompressorPdfPage),
+  'convert-to-avif-online-free': () => Promise.resolve(convertToAvifOnlineFreePage),
+  'compress-image-to-exact-size-kb': () => Promise.resolve(compressImageToExactSizeKbPage),
+  'convert-pdf-pages-to-jpg-images': () => Promise.resolve(convertPdfPagesToJpgImagesPage),
+  'merge-pdf': () => Promise.resolve(mergePdfPage),
+  'split-pdf': () => Promise.resolve(splitPdfPage),
+  'convert-image-to-pdf': () => Promise.resolve(convertImageToPdfPage),
+  'client-side-image-to-base64': () => Promise.resolve(clientSideImageToBase64Page),
+  'palette-color-extractor-image-hex': () => Promise.resolve(paletteColorExtractorImageHexPage),
+  'json-formatter-validator': () => Promise.resolve(jsonFormatterValidatorPage),
+  'csv-to-json-converter': () => Promise.resolve(csvToJsonConverterPage),
+  'jwt-decoder': () => Promise.resolve(jwtDecoderPage),
+  'regex-tester': () => Promise.resolve(regexTesterPage),
+  'markdown-live-preview': () => Promise.resolve(markdownLivePreviewPage),
+  'text-diff': () => Promise.resolve(textDiffPage),
+  'embed': () => Promise.resolve(embedPage),
+  'widget': () => Promise.resolve(widgetPage),
+  'tools': () => Promise.resolve(toolsPage),
+  'articles': () => Promise.resolve(articlesPage),
+  'articles/benchmarks': () => Promise.resolve(articleBenchmarksPage),
 };
 
 export const ROUTE_ALIASES: Record<string, string> = {
@@ -89,6 +138,8 @@ export const ROUTE_ALIASES: Record<string, string> = {
   'compress-animated-gif-size-online': 'client-side-private-image-compressor',
 };
 
+import { getCategoryPageSeo, CategoryKey } from './pages/category-tools';
+
 export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
   const normalizedPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
   const fullUrl = `https://zapixal.com${normalizedPath === '/' ? '' : normalizedPath}`;
@@ -98,6 +149,12 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
     const isAlias = !!ROUTE_ALIASES[key];
     if (isAlias) {
       key = ROUTE_ALIASES[key];
+    }
+
+    // Dynamic Category Tools Directory Handling
+    if (key.startsWith('tools/')) {
+      const catKey = key.replace('tools/', '') as CategoryKey;
+      return getCategoryPageSeo(catKey, fullUrl, normalizedPath);
     }
 
     // Dynamic Article Handling
@@ -175,7 +232,7 @@ export async function parseSeoRoute(path: string): Promise<SeoRouteData> {
         const breadcrumbs = [
           { name: 'Home', url: '/' },
           { name: 'Tools', url: '/tools' },
-          { name: catTitle, url: `/tools?category=${toolData.category}` },
+          { name: catTitle, url: `/tools/${toolData.category}` },
           { name: toolData.name, url: toolData.route }
         ];
 

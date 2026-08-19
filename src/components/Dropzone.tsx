@@ -186,45 +186,21 @@ export function Dropzone({ onFilesAdded, fromFormat }: DropzoneProps) {
             </div>
           )}
 
-          <h2 className="text-xs min-[360px]:text-sm sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-extrabold text-neutral-800 dark:text-[#e8eaed] mb-1 sm:mb-2 tracking-tight leading-snug px-1">
-            Drop {fromFormat ? <span className="uppercase text-blue-600 dark:text-[#8ab4f8]">{fromFormat}</span> : "images"} here, or <span className="text-blue-600 dark:text-[#8ab4f8] underline decoration-blue-200 dark:decoration-[#384c6c] hover:decoration-blue-400 underline-offset-4 transition-colors font-black">browse files</span>
+          <h2 className="text-xs min-[360px]:text-sm sm:text-lg md:text-xl lg:text-2xl font-bold text-neutral-800 dark:text-[#e8eaed] mb-1 sm:mb-2 tracking-tight leading-snug px-1">
+            Drop {fromFormat ? <span className="uppercase text-blue-600 dark:text-[#8ab4f8]">{fromFormat}</span> : "images"} here, or <span className="text-blue-600 dark:text-[#8ab4f8] font-bold underline decoration-blue-200 dark:decoration-[#384c6c] hover:decoration-blue-400 underline-offset-4 transition-colors">browse files</span>
           </h2>
 
           {/* Format Badges */}
-          <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mt-0.5 sm:mt-1 md:mt-2 mb-1">
+          <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1 mb-2">
             {(fromFormat ? [fromFormat.toUpperCase()] : ['HEIC', 'PNG', 'JPG', 'WebP', 'AVIF']).map((fmt) => (
-              <span key={fmt} className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 md:px-2.5 md:py-1 text-[8px] min-[360px]:text-[9px] sm:text-[10px] md:text-[11px] font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-100/80 dark:bg-[#202124] border border-neutral-200/80 dark:border-[#3c4043] rounded uppercase tracking-wider shadow-2xs">
+              <span key={fmt} className="px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-neutral-600 dark:text-neutral-300 bg-neutral-100/80 dark:bg-[#202124] border border-neutral-200/80 dark:border-[#3c4043] rounded uppercase tracking-wider">
                 {fmt}
               </span>
             ))}
           </div>
 
-          {/* Mobile Tap Button CTA */}
-          <div className="mt-1 mb-1 sm:hidden">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black text-white bg-blue-600 dark:bg-[#8ab4f8] dark:text-[#202124] rounded-full shadow-2xs">
-              <Upload className="w-3 h-3" />
-              <span>Select Photos</span>
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-1.5 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm lg:text-base text-neutral-500 dark:text-[#9aa0a6] font-medium mt-0.5">
-            <span>Free local conversion</span>
-            <span>•</span>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] min-[360px]:text-[10px] font-bold text-blue-700 dark:text-[#8ab4f8] bg-blue-50 dark:bg-[#1e293b] rounded-md border border-blue-200 dark:border-[#384c6c]">
-              <span>📋 Paste (Ctrl+V)</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Features list */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4 md:gap-6 lg:gap-8 mt-1.5 sm:mt-4 md:mt-5 lg:mt-6 pt-1.5 sm:pt-4 md:pt-5 lg:pt-6 border-t border-neutral-100 dark:border-[#3c4043] w-full max-w-md">
-          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-emerald-700 dark:text-[#81c995]">
-            <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>Secure Local Privacy</span>
-          </div>
-          <div className="flex items-center gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs md:text-sm font-bold text-blue-700 dark:text-[#8ab4f8]">
-            <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-            <span>Local Processing (No Upload)</span>
+          <div className="flex items-center justify-center gap-2 text-xs text-neutral-500 dark:text-[#9aa0a6]">
+            <span>Supports batch selection & paste (Ctrl+V)</span>
           </div>
         </div>
       </div>

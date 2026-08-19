@@ -53,7 +53,7 @@ export function getPageSeo(fullUrl: string, path: string): SeoRouteData {
     guideContent: {
       badge: 'Client-Side PDF Merger',
       section1Title: 'Secure, Offline PDF Combination',
-      section1Body: 'Zapixal Merge PDF runs entirely in browser memory. Unlike online cloud converters that require uploading sensitive contracts or personal records to remote servers, our client-side architecture keeps your documents 100% private.',
+      section1Body: 'Zapixal Merge PDF runs entirely in browser memory. Unlike online cloud converters that require uploading sensitive contracts or personal records to remote servers, our client-side architecture keeps your documents locally private.',
       section2Title: 'Exact Page Ordering and Batch Control',
       section2Body: 'Arrange multiple PDF files in any order you choose. The resulting document preserves exact vector layout, fonts, and quality with zero rasterization loss.',
       steps: howToSteps,

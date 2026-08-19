@@ -236,6 +236,14 @@ export const PSEO_ROUTES_LIST: SeoRouteItem[] = [
   },
 ];
 
+export const CATEGORY_ROUTES = [
+  '/tools/images',
+  '/tools/documents',
+  '/tools/developer',
+  '/tools/text',
+  '/tools/utilities',
+];
+
 export const ARTICLE_CATEGORY_ROUTES = [
   '/articles/formats',
   '/articles/privacy',
@@ -247,6 +255,9 @@ export const ARTICLE_ITEM_ROUTES = [
   '/articles/heic-vs-jpg',
   '/articles/exif-metadata-privacy-guide',
   '/articles/compress-image-to-kb-limit-guide',
+  '/articles/webp-vs-png-vs-jpeg',
+  '/articles/browser-wasm-privacy-architecture',
+  '/articles/client-side-pdf-merge-split-security-guide',
   '/articles/benchmarks',
 ];
 

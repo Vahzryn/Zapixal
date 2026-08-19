@@ -175,7 +175,7 @@ export function PdfCompressorPage({ seoData, onNavigate }: PdfCompressorPageProp
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0A0A]">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24">
-        <Breadcrumbs currentPath={seoData.path} title={seoData.h1Title} />
+        <Breadcrumbs items={seoData.breadcrumbs} onNavigate={onNavigate} />
         
         <div className="text-center mb-10 mt-6">
           <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white tracking-tight mb-4">

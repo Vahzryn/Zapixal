@@ -138,19 +138,14 @@ export function ImageToBase64Converter({ onNavigate }: ImageToBase64ConverterPro
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
-              <FileCode className="w-6 h-6" />
+              <FileCode className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">Image to Base64 Encoder</h2>
               <p className="text-xs sm:text-sm text-neutral-500 dark:text-[#9aa0a6] mt-0.5">
-                Convert image pixels directly into high-fidelity inline Data URLs.
+                Convert image pixels directly into inline Data URLs and base64 strings.
               </p>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 rounded-lg shrink-0 border border-green-100 dark:border-green-900/40 w-fit self-start sm:self-center">
-            <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-            <span>100% Client-Side Conversion</span>
           </div>
         </div>
 

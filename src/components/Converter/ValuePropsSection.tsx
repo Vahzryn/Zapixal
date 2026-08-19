@@ -1,53 +1,48 @@
 import React from 'react';
-import { ShieldCheck, Lock, Activity, Image as ImageIcon } from 'lucide-react';
+import { ShieldCheck, Lock, Activity, Wrench } from 'lucide-react';
 
 export const ValuePropsSection = React.memo(function ValuePropsSection() {
   return (
-    <section className="w-full max-w-5xl mx-auto mb-8 rounded-3xl border border-neutral-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-[#3c4043] dark:bg-[#303134]/90 sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-2xl">
-          <p className="text-sm font-bold text-blue-600 dark:text-[#8ab4f8] mb-1">
-            Why people choose Zapixal
-          </p>
-          <h2 className="mt-2 text-lg font-black text-neutral-900 dark:text-white sm:text-xl">
-            A stronger image workflow for privacy, compatibility, and speed
-          </h2>
-        </div>
-        <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-[#2d523c] dark:bg-[#1e3427] dark:text-[#81c995]">
-          <ShieldCheck className="h-4 w-4" />
-          No image upload · Local processing
-        </div>
+    <section className="w-full max-w-5xl mx-auto mb-8 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 dark:border-[#3c4043] dark:bg-[#303134]/90 sm:p-6">
+      <div className="max-w-2xl mb-4">
+        <h2 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">
+          Why use Zapixal
+        </h2>
+        <p className="mt-1 text-xs sm:text-sm text-neutral-600 dark:text-[#9aa0a6]">
+          Fast browser-based tools engineered for privacy, performance, and day-to-day workflow tasks.
+        </p>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-          <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-            <Lock className="h-4 w-4 text-emerald-600" />
-            Privacy-first by design
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
+            <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            In-browser processing
           </div>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-            Files stay in your browser, which lowers the risk of exposing metadata, documents, or personal content.
+          <p className="mt-1.5 text-xs leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+            Image compression, PDF manipulation, and developer parsing run locally in browser memory via WebAssembly and Web Workers.
           </p>
         </div>
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-          <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-            <Activity className="h-4 w-4 text-blue-600" />
-            Built for real workflows
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
+            <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            Zero software setup
           </div>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-            The app supports batch work, size targets, format changes, and accessible delivery for web, ecommerce, and documents.
+          <p className="mt-1.5 text-xs leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+            No desktop applications or account signups required. Load the tool and process files immediately with full batch capabilities.
           </p>
         </div>
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
-          <div className="flex items-center gap-2 text-sm font-black text-neutral-900 dark:text-white">
-            <ImageIcon className="h-4 w-4 text-amber-600" />
-            Better output decisions
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4 dark:border-[#3c4043] dark:bg-[#202124]">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
+            <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            Unified toolkit
           </div>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
-            The guidance explains when to use JPEG, PNG, WebP, AVIF, or a smaller target size so the results are practical, not just smaller.
+          <p className="mt-1.5 text-xs leading-relaxed text-neutral-600 dark:text-[#9aa0a6]">
+            From HEIC conversions and PDF merges to JWT inspection and text diffing, access all essential tools in one clean environment.
           </p>
         </div>
       </div>
     </section>
   );
 });
+

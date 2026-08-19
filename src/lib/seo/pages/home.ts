@@ -5,19 +5,20 @@ import { SeoRouteData } from '../../seoEngine';
 
 export function getHomeContent(): RouteEditorialContent {
   return {
-    badge: 'Practical image workflow',
-    section1Title: 'How to choose the right image workflow before you convert anything',
-    section1Body: 'The most effective image workflows start by working backward from where the file will ultimately live. Before tweaking sliders or hitting convert, consider the destination. JPEG is still the undisputed standard for general compatibility and photography, while PNG handles transparency and crisp graphics best. WebP offers excellent efficiency for modern websites, and HEIC saves space on mobile devices even if it struggles with cross-platform sharing. By processing these files entirely within your browser, you eliminate unnecessary server uploads, ensuring your raw image files are processed locally.',
-    section2Title: 'Best practices for privacy, performance, and accessibility',
-    section2Body: 'A reliable process means keeping your original files intact while generating optimized versions for specific tasks. Many people make the mistake of aggressively compressing an image just to make it smaller, only to ruin the legibility of important text or blur critical details. Whether you are prepping product shots for an online store, optimizing hero banners to improve page load times, or converting scanned documents, the goal is balance. Local conversion keeps your private data and metadata secure, while thoughtful compression ensures that faces, text, and interface elements remain sharp and accessible to everyone.',
+    badge: 'Browser Utility Hub',
+    section1Title: 'Practical, privacy-first tools for daily digital workflows',
+    section1Body: 'Zapixal brings essential media optimization, document editing, data formatting, and text comparison tools directly into your web browser. Instead of relying on heavy cloud uploads or intrusive software installs, Zapixal executes core processing locally using client-side WebAssembly, Web Workers, and JavaScript APIs. From compressing photos under strict portal limits to merging PDFs, validating JSON data, and comparing text diffs, every utility is designed for maximum speed and privacy.',
+    section2Title: 'Built for privacy, cross-platform compatibility, and developer productivity',
+    section2Body: 'Keeping sensitive documents, customer photos, code snippets, and API tokens private is paramount. Processing files directly in browser memory eliminates unnecessary data transfers over the network, lowering risk and speeding up iteration. Whether you are a web designer preparing modern WebP assets, an engineer debugging JSON payloads and JWT signatures, or a professional assembling PDF documents, Zapixal delivers clean, fast results without registration, subscriptions, or intrusive popups.',
     steps: [
-      'Select your source image files or drag them into the browser workspace.',
-      'Choose the target format and adjust visual quality or sizing parameters locally.',
-      'Export your optimized images directly from your browser memory.'
+      'Choose your tool from the directory or drop files into the workspace.',
+      'Configure options, target sizes, formatting, or comparison parameters locally.',
+      'Export or copy your optimized result directly from browser memory.'
     ],
     faqs: [
-      { question: 'Are my images uploaded to any servers?', answer: 'No. Zapixal uses WebAssembly and standard browser APIs to process all images entirely on your local machine. Your image files are not uploaded to our servers for normal conversion or compression.' },
-      { question: 'Is Zapixal free to use?', answer: 'Yes. Zapixal is completely free to use, without any registration, subscription, or watermark requirements.' }
+      { question: 'Do my files leave my computer when using Zapixal tools?', answer: 'For core utilities like image compression, PDF merging, JSON formatting, and text diffing, processing happens directly in your browser memory via WebAssembly and Web Workers without uploading your files to our servers.' },
+      { question: 'What types of tools are available on Zapixal?', answer: 'Zapixal provides five core categories of tools: Image Optimization & Codecs, PDF & Document Utilities, Developer Tools (JSON, CSV, JWT, Regex), Text Tools (Markdown preview, Text diff), and Design Utilities (Color palette extraction).' },
+      { question: 'Is Zapixal free to use?', answer: 'Yes. Zapixal is completely free to use with no account registration or hidden usage fees required.' }
     ]
   };
 }
@@ -26,17 +27,17 @@ export function getPageSeo(fullUrl: string, path: string): SeoRouteData {
   const guideContent = getHomeContent();
   return {
     path,
-    h1Title: 'Zapixal: Privacy-First Image Converter',
-    metaTitle: 'Zapixal — Private In-Browser Image Converter & Compressor',
-    metaDescription: 'Convert, compress, and crop images entirely inside your browser with WebAssembly. Images are processed locally and are not uploaded to servers.',
+    h1Title: 'Fast Browser-Based Toolkit for Images, Documents & Developer Tools',
+    metaTitle: 'Zapixal — Browser Tools for Images, Documents & Developers',
+    metaDescription: 'Fast, browser-based tools for image optimization, PDF manipulation, JSON formatting, text comparison, and developer workflows. Many tools process files locally in your browser.',
     canonicalUrl: fullUrl,
     isIndexable: true,
     pageCategory: 'home',
     breadcrumbs: [{ name: 'Home', url: '/' }],
     guideContent,
     jsonLd: generateJsonLdSchemas(
-      'Zapixal: Privacy-First Image Converter',
-      'Convert and compress images entirely in your browser without uploading your files.',
+      'Zapixal: Browser Tools for Images, Documents & Developers',
+      'Fast, browser-based tools for image optimization, PDF manipulation, JSON formatting, text comparison, and developer workflows.',
       fullUrl,
       guideContent.faqs,
       [{ name: 'Home', url: '/' }],

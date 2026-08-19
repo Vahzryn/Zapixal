@@ -3,6 +3,9 @@ import { ARTICLE_CATEGORIES } from './categories';
 import { articleHeicVsJpg } from './heic-vs-jpg';
 import { articleExifMetadataPrivacyGuide } from './exif-metadata-privacy-guide';
 import { articleCompressImageToKbLimitGuide } from './compress-image-to-kb-limit-guide';
+import { articleWebpVsPngVsJpeg } from './webp-vs-png-vs-jpeg';
+import { articleBrowserWasmPrivacyArchitecture } from './browser-wasm-privacy-architecture';
+import { articleClientSidePdfMergeSplitSecurityGuide } from './client-side-pdf-merge-split-security-guide';
 
 export * from './types';
 export * from './categories';
@@ -11,6 +14,9 @@ export const ALL_ARTICLES: Article[] = [
   articleHeicVsJpg,
   articleExifMetadataPrivacyGuide,
   articleCompressImageToKbLimitGuide,
+  articleWebpVsPngVsJpeg,
+  articleBrowserWasmPrivacyArchitecture,
+  articleClientSidePdfMergeSplitSecurityGuide,
 ];
 
 export function getArticleBySlug(slug: string): Article | undefined {

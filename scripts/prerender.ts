@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { parseSeoRoute, PSEO_ROUTES_LIST } from '../src/lib/seoEngine';
-import { ALL_ARTICLE_SYSTEM_ROUTES } from '../src/lib/seo/routes';
+import { ALL_ARTICLE_SYSTEM_ROUTES, CATEGORY_ROUTES } from '../src/lib/seo/routes';
 import { TOOL_REGISTRY } from '../src/lib/toolRegistry';
+import { ROUTE_ALIASES } from '../src/lib/seo/meta';
 
 async function prerender() {
   const distDir = path.resolve(process.cwd(), 'dist');
@@ -24,11 +25,13 @@ async function prerender() {
   const templateHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 
   const toolRoutes = TOOL_REGISTRY.map(t => t.route);
+  const canonicalPseoRoutes = PSEO_ROUTES_LIST.filter(r => !ROUTE_ALIASES[r.path.replace(/^\//, '')]).map(r => r.path);
 
   const staticRoutes = [
     '/',
     '/tools',
-    ...PSEO_ROUTES_LIST.map(r => r.path),
+    ...CATEGORY_ROUTES,
+    ...canonicalPseoRoutes,
     ...ALL_ARTICLE_SYSTEM_ROUTES,
     ...toolRoutes,
     '/about',
