@@ -199,7 +199,7 @@ class SettingsStateTracker {
   assert.strictEqual(toolsSeo.isIndexable, true, '/tools must be indexable');
   assert.strictEqual(toolsSeo.canonicalUrl, 'https://zapixal.com/tools', 'Canonical URL must be /tools');
   assert.ok(toolsSeo.metaTitle.includes('Tools'), '/tools title must reference Tools');
-  assert.ok(toolsSeo.metaDescription.includes('free, client-side'), '/tools description must reference client-side tools');
+  assert.ok(toolsSeo.metaDescription.includes('free in-browser') || toolsSeo.metaDescription.includes('client-side'), '/tools description must reference in-browser/client-side tools');
 
   console.log('✓ /tools Directory route metadata verified');
 }

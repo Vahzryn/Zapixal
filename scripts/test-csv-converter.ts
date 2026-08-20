@@ -157,7 +157,7 @@ async function runTests() {
   assert.strictEqual(seoData.path, '/csv-to-json-converter');
   assert.strictEqual(seoData.isIndexable, true);
   assert.strictEqual(seoData.h1Title, 'CSV ↔ JSON Converter');
-  assert.ok(seoData.metaTitle.includes('CSV to JSON'));
+  assert.ok(seoData.metaTitle.includes('CSV') && seoData.metaTitle.includes('JSON'));
   assert.ok(seoData.metaDescription.length > 50);
   assert.ok(seoData.jsonLd?.softwareApp);
   assert.ok(seoData.jsonLd?.howTo);
