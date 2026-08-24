@@ -16,7 +16,9 @@
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/widget.js
+/embed
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; frame-ancestors *;
+  X-Frame-Options: ALLOWALL
   Cache-Control: public, max-age=0, must-revalidate
 
 /sitemap.xml
