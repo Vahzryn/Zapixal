@@ -1,0 +1,6 @@
+{
+  "name": "Zapixal",
+  "description": "Browser-based image, PDF, and developer tools with local client-side processing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
