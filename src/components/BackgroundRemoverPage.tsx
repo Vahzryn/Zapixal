@@ -402,7 +402,7 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 PNG, JPG, WebP, AVIF, HEIC • Runs 100% locally on your device
               </p>
-              <div className="pt-1.5 flex items-center justify-center gap-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+              <div className="pt-1.5 hidden sm:flex items-center justify-center gap-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
                 <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-400">Ctrl+V</kbd>
                 <span>or</span>
                 <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-400">⌘+V</kbd>
@@ -446,22 +446,22 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
             </div>
 
             {/* Reassuring Privacy & Setup Info Banner */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 text-xs">
-              <div className="flex items-start gap-2 text-indigo-950 dark:text-indigo-200">
-                <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-2.5 p-2.5 sm:p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 text-xs">
+              <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200">
+                <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <div>
                   <span className="font-semibold">100% Private & Local</span>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 hidden sm:block">
                     Your photo is processed directly on your device. Zero server uploads.
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-2 text-indigo-950 dark:text-indigo-200">
-                <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+              <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200">
+                <Zap className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <div>
-                  <span className="font-semibold">Cached AI Neural Model</span>
-                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
-                    Downloads once (~40 MB) on first click and stays cached for instant future use.
+                  <span className="font-semibold">Cached AI Model (~40 MB)</span>
+                  <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 hidden sm:block">
+                    Downloads once on first click and stays cached for instant future use.
                   </p>
                 </div>
               </div>
@@ -568,15 +568,13 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
         {selectedFile && !isProcessing && result && (
           <div className="space-y-5 animate-in fade-in duration-200">
             {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[180px] sm:max-w-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-0.5 xs:gap-2 text-xs text-zinc-600 dark:text-zinc-400 min-w-0">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[160px] sm:max-w-xs">
                   {selectedFile.name}
                 </span>
-                <span>•</span>
-                <span>{result.width}×{result.height}px</span>
-                <span>•</span>
-                <span>{formatBytes(result.sizeBytes)}</span>
+                <span className="hidden xs:block">•</span>
+                <span className="text-zinc-500">{result.width}×{result.height}px • {formatBytes(result.sizeBytes)}</span>
               </div>
 
               {/* View Mode Toggle */}
@@ -584,7 +582,7 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                 <button
                   type="button"
                   onClick={() => setViewMode('slider')}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer min-h-[36px] ${
                     viewMode === 'slider' 
                       ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs' 
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
@@ -595,7 +593,7 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                 <button
                   type="button"
                   onClick={() => setViewMode('cutout')}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer min-h-[36px] ${
                     viewMode === 'cutout' 
                       ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-2xs' 
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
@@ -710,7 +708,7 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
               </div>
 
               {/* Background Mode Buttons */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -718,13 +716,13 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                     setTargetFormat('png');
                     runRemoval(selectedFile, { backgroundMode: 'transparent', targetFormat: 'png' });
                   }}
-                  className={`py-2 px-3 rounded-lg border text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+                  className={`py-2.5 px-2 rounded-lg border text-[11px] sm:text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer min-h-[44px] ${
                     backgroundMode === 'transparent'
                       ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
                       : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Layers className="w-3.5 h-3.5" />
+                  <Layers className="w-3.5 h-3.5 shrink-0" />
                   <span>Transparent</span>
                 </button>
 
@@ -735,13 +733,13 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                     setBackgroundColor('#ffffff');
                     runRemoval(selectedFile, { backgroundMode: 'color', backgroundColor: '#ffffff' });
                   }}
-                  className={`py-2 px-3 rounded-lg border text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+                  className={`py-2.5 px-2 rounded-lg border text-[11px] sm:text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer min-h-[44px] ${
                     backgroundMode === 'color' && backgroundColor === '#ffffff'
                       ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
                       : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <div className="w-3 h-3 rounded-full border border-zinc-400 bg-white" />
+                  <div className="w-3 h-3 rounded-full border border-zinc-400 bg-white shrink-0" />
                   <span>White</span>
                 </button>
 
@@ -752,14 +750,14 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                     if (backgroundColor === '#ffffff') setBackgroundColor('#09090b');
                     runRemoval(selectedFile, { backgroundMode: 'color', backgroundColor: backgroundColor === '#ffffff' ? '#09090b' : backgroundColor });
                   }}
-                  className={`py-2 px-3 rounded-lg border text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+                  className={`py-2.5 px-2 rounded-lg border text-[11px] sm:text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer min-h-[44px] ${
                     backgroundMode === 'color' && backgroundColor !== '#ffffff'
                       ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
                       : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Palette className="w-3.5 h-3.5" />
-                  <span>Custom Color</span>
+                  <Palette className="w-3.5 h-3.5 shrink-0" />
+                  <span>Custom</span>
                 </button>
               </div>
 

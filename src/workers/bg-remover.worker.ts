@@ -14,7 +14,38 @@ let currentActiveOperationId: string | null = null;
 let isCancelled = false;
 
 /**
+ * Detects WebAssembly SIMD support by validating a minimal SIMD magic bytes probe.
+ */
+async function detectWasmSimd(): Promise<boolean> {
+  try {
+    // Minimal WASM module that uses i32x4.add (a SIMD operation)
+    const simdProbe = new Uint8Array([
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
+      0x01, 0x05, 0x01, 0x60, 0x00, 0x01, 0x7b, 0x03,
+      0x02, 0x01, 0x00, 0x0a, 0x0a, 0x01, 0x08, 0x00,
+      0xfd, 0x0f, 0xfd, 0x0f, 0xfd, 0xfe, 0x01, 0x0b,
+    ]);
+    return WebAssembly.validate(simdProbe);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Creates a timeout promise that rejects after `ms` milliseconds.
+ */
+function createTimeout(ms: number, label: string): Promise<never> {
+  return new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms / 1000}s. Check your internet connection and try again.`)),
+      ms
+    )
+  );
+}
+
+/**
  * Lazily loads transformers.js and instantiates the segmentation pipeline.
+ * Includes chunked/resilient loading for constrained mobile devices (e.g., Galaxy A35).
  */
 async function loadSegmentationModel(
   backend: ExecutionBackend = 'webgpu',
@@ -48,11 +79,36 @@ async function loadSegmentationModel(
 
   const { AutoModel, AutoProcessor, env } = await import('@huggingface/transformers');
 
+  // Detect mobile context for conservative threading
+  const isMobile = typeof self !== 'undefined' &&
+    /Mobi|Android|iPhone|iPad|iPod/i.test((self as any).navigator?.userAgent || '');
+
+  // Detect SIMD support for WASM thread configuration
+  const hasSimd = await detectWasmSimd();
+
   // Configure browser environment flags
   env.allowLocalModels = false;
   env.useBrowserCache = true;
-  if (env.backends?.onnx?.wasm) {
-    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3/dist/';
+
+  // Guard WASM path configuration against missing/partial env objects
+  try {
+    if (env.backends?.onnx?.wasm) {
+      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3/dist/';
+      // Disable SharedArrayBuffer-dependent proxy mode on mobile (SAB not guaranteed without COOP/COEP headers)
+      if (isMobile) {
+        (env.backends.onnx.wasm as any).proxy = false;
+        (env.backends.onnx.wasm as any).numThreads = 1;
+      } else if (!hasSimd) {
+        (env.backends.onnx.wasm as any).numThreads = 1;
+      } else {
+        (env.backends.onnx.wasm as any).numThreads = Math.min(
+          typeof navigator !== 'undefined' ? (navigator.hardwareConcurrency || 1) : 1,
+          2
+        );
+      }
+    }
+  } catch {
+    // If env.backends config fails, proceed — transformers.js will use defaults
   }
 
   const fileProgressMap = new Map<string, { loaded: number; total: number; percent: number }>();
@@ -69,7 +125,6 @@ async function loadSegmentationModel(
         percent: p.progress,
       });
 
-      // Aggregate loaded and total across all files
       let totalLoaded = 0;
       let totalExpected = 0;
       for (const entry of fileProgressMap.values()) {
@@ -82,11 +137,9 @@ async function loadSegmentationModel(
       }
 
       const globalPct = Math.min(100, Math.max(0, Math.round((totalLoaded / totalExpected) * 100)));
-      // Map 0-100% download to 5%-75% UI progress
       const scaledUiPct = Math.min(75, Math.max(5, 5 + Math.round((globalPct * 70) / 100)));
 
       const now = performance.now();
-      // Throttle messages to avoid UI flooding, but always send first and near-completion
       if (now - lastReportedTime > 80 || globalPct >= 99 || globalPct <= 5) {
         lastReportedTime = now;
         postResponse({
@@ -114,42 +167,121 @@ async function loadSegmentationModel(
   let model: any = null;
   let processor: any = null;
 
+  // Load processor with its own error context
   try {
-    processor = await AutoProcessor.from_pretrained(modelId, {
-      progress_callback: progressCallback,
-    });
+    processor = await Promise.race([
+      AutoProcessor.from_pretrained(modelId, { progress_callback: progressCallback }),
+      createTimeout(90_000, 'Processor download'),
+    ]);
+  } catch (procErr: any) {
+    const rawMsg = procErr?.message || String(procErr);
+    const friendlyMsg = rawMsg.includes('timed out')
+      ? rawMsg
+      : rawMsg.includes('Failed to fetch') || rawMsg.includes('NetworkError')
+      ? 'Unable to download AI model config. Please check your internet connection and try again.'
+      : `Failed to load model processor: ${rawMsg}`;
+    throw new Error(friendlyMsg);
+  }
 
-    try {
-      model = await AutoModel.from_pretrained(modelId, {
-        device: backend === 'webgpu' ? 'webgpu' : 'wasm',
+  // Helper: attempt model load with a specific device
+  async function attemptModelLoad(device: 'webgpu' | 'wasm', label: string): Promise<any> {
+    postResponse({
+      type: 'PROGRESS',
+      operationId,
+      stage: 'initializing-backend',
+      progress: 78,
+      message: `Initializing ${label} backend...`,
+    });
+    return Promise.race([
+      AutoModel.from_pretrained(modelId, {
+        device,
         progress_callback: progressCallback,
+      }),
+      createTimeout(120_000, `${label} model initialization`),
+    ]);
+  }
+
+  // Primary attempt
+  try {
+    model = await attemptModelLoad(
+      backend === 'webgpu' ? 'webgpu' : 'wasm',
+      backend === 'webgpu' ? 'WebGPU' : 'WASM'
+    );
+    actualBackend = backend;
+  } catch (primaryErr: any) {
+    const primaryMsg = primaryErr?.message || String(primaryErr);
+    console.warn(`[bg-remover] Primary backend (${backend}) failed:`, primaryMsg);
+
+    // First fallback: switch to WASM if WebGPU failed
+    if (backend === 'webgpu') {
+      postResponse({
+        type: 'PROGRESS',
+        operationId,
+        stage: 'initializing-backend',
+        progress: 78,
+        message: 'WebGPU unavailable, switching to WASM fallback...',
       });
-      actualBackend = backend;
-    } catch (err) {
-      if (backend === 'webgpu') {
-        console.warn('WebGPU model initialization failed in worker, falling back to WASM:', err);
+      try {
+        model = await attemptModelLoad('wasm', 'WASM');
+        actualBackend = 'wasm';
+      } catch (wasmErr: any) {
+        // Second fallback: single-threaded WASM (for Galaxy A35-class devices)
+        console.warn('[bg-remover] Multi-threaded WASM failed, trying single-threaded:', wasmErr?.message);
         postResponse({
           type: 'PROGRESS',
           operationId,
           stage: 'initializing-backend',
-          progress: 78,
-          message: 'WebGPU unavailable, switching to high-performance WASM fallback...',
+          progress: 79,
+          message: 'Applying single-threaded fallback for this device...',
         });
-        model = await AutoModel.from_pretrained(modelId, {
-          device: 'wasm',
-          progress_callback: progressCallback,
-        });
+        try {
+          if (env.backends?.onnx?.wasm) {
+            (env.backends.onnx.wasm as any).numThreads = 1;
+            (env.backends.onnx.wasm as any).proxy = false;
+          }
+          model = await attemptModelLoad('wasm', 'WASM (single-thread)');
+          actualBackend = 'wasm';
+        } catch (finalErr: any) {
+          const rawMsg = finalErr?.message || String(finalErr);
+          const friendlyMsg = rawMsg.includes('timed out')
+            ? rawMsg
+            : rawMsg.includes('Failed to fetch') || rawMsg.includes('NetworkError')
+            ? 'Unable to download AI model weights. Please check your internet connection and try again.'
+            : rawMsg.includes('memory') || rawMsg.includes('OOM') || rawMsg.includes('allocation')
+            ? 'Not enough device memory to load the AI model. Try closing other browser tabs and retry.'
+            : `Failed to load background removal model: ${rawMsg}`;
+          throw new Error(friendlyMsg);
+        }
+      }
+    } else {
+      // WASM primary failed: try single-threaded WASM fallback
+      console.warn('[bg-remover] WASM multi-thread failed, trying single-threaded:', primaryMsg);
+      postResponse({
+        type: 'PROGRESS',
+        operationId,
+        stage: 'initializing-backend',
+        progress: 79,
+        message: 'Applying single-threaded fallback for this device...',
+      });
+      try {
+        if (env.backends?.onnx?.wasm) {
+          (env.backends.onnx.wasm as any).numThreads = 1;
+          (env.backends.onnx.wasm as any).proxy = false;
+        }
+        model = await attemptModelLoad('wasm', 'WASM (single-thread)');
         actualBackend = 'wasm';
-      } else {
-        throw err;
+      } catch (finalErr: any) {
+        const rawMsg = finalErr?.message || String(finalErr);
+        const friendlyMsg = rawMsg.includes('timed out')
+          ? rawMsg
+          : rawMsg.includes('Failed to fetch') || rawMsg.includes('NetworkError')
+          ? 'Unable to download AI model weights. Please check your internet connection and try again.'
+          : rawMsg.includes('memory') || rawMsg.includes('OOM') || rawMsg.includes('allocation')
+          ? 'Not enough device memory to load the AI model. Try closing other browser tabs and retry.'
+          : `Failed to load background removal model: ${rawMsg}`;
+        throw new Error(friendlyMsg);
       }
     }
-  } catch (error: any) {
-    const rawMsg = error?.message || String(error);
-    const friendlyMsg = rawMsg.includes('Failed to fetch') || rawMsg.includes('NetworkError')
-      ? 'Unable to download AI model weights. Please check your internet connection and try again.'
-      : `Failed to load background removal model: ${rawMsg}`;
-    throw new Error(friendlyMsg);
   }
 
   modelInstance = model;

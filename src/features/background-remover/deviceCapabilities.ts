@@ -71,24 +71,32 @@ export async function getDeviceInferenceProfile(forceBackend?: ExecutionBackend)
     inferenceResolution = 1024;
     maxSourceResolution = 6000;
     enableHighPrecisionMatte = true;
-  } else if (hasWebGpu && memoryGB >= 4) {
+  } else if (hasWebGpu && !isMobile && memoryGB >= 4) {
     tier = 'balanced';
     preferredBackend = 'webgpu';
     inferenceResolution = 768;
     maxSourceResolution = 4096;
     enableHighPrecisionMatte = true;
-  } else if (!hasWebGpu && memoryGB >= 6 && cores >= 6) {
+  } else if (hasWebGpu && isMobile && memoryGB >= 6 && cores >= 6) {
+    // High-tier mobile phones (e.g. flagship Snapdragon/Tensor/Apple Silicon) with WebGPU
+    tier = 'balanced';
+    preferredBackend = 'webgpu';
+    inferenceResolution = 640;
+    maxSourceResolution = 3000;
+    enableHighPrecisionMatte = true;
+  } else if (!hasWebGpu && !isMobile && memoryGB >= 6 && cores >= 6) {
     tier = 'balanced';
     preferredBackend = 'wasm';
     inferenceResolution = 768;
     maxSourceResolution = 4096;
     enableHighPrecisionMatte = true;
   } else {
-    // Constrained devices (older phones, limited RAM, single/dual core)
+    // Constrained devices (budget/mid-range mobile like Galaxy A35, older phones, low RAM)
+    // Automatically routes through a streamlined low-memory mode to prevent WASM heap exhaustion
     tier = 'constrained';
     preferredBackend = 'wasm';
-    inferenceResolution = 512;
-    maxSourceResolution = 3000;
+    inferenceResolution = isMobile ? 384 : 512;
+    maxSourceResolution = isMobile ? 2048 : 3000;
     enableHighPrecisionMatte = false;
   }
 

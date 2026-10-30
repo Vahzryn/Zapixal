@@ -76,7 +76,18 @@ export function generateJsonLdSchemas(
       'Local device processing'
     ];
 
-    if (category === 'developer') {
+    if (category === 'use-case') {
+      appCategory = 'MultimediaApplication';
+      subCategory = 'AI-Powered Image Editing';
+      browserReq = 'Requires Modern Web Browser with WebAssembly (WASM) or WebGPU support';
+      featureList = [
+        'Client-Side AI Neural Network Inference',
+        'WebGPU Hardware Acceleration with WASM Fallback',
+        'Zero Cloud Server Uploads — 100% Private',
+        'Works on Android and iOS mobile browsers',
+        'Offline-capable after initial model download',
+      ];
+    } else if (category === 'developer') {
       appCategory = 'DeveloperApplication';
       subCategory = 'Developer Utility';
       browserReq = 'Requires Modern Web Browser';
