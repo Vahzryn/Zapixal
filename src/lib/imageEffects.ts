@@ -248,19 +248,27 @@ export async function reduceToTargetMaxKB(
   let currentQuality = quality;
   let step = 0;
 
+  let cachedImageData: ImageData | null = null;
+  const getImageDataCached = () => {
+    if (!cachedImageData) {
+      cachedImageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+    }
+    return cachedImageData;
+  };
+
   // 1. First degrade quality
   while (blob.size > maxBytes && currentQuality > 0.12 && step < 10) {
     step++;
     currentQuality = Math.max(0.1, currentQuality * 0.75);
     if (targetFormat === 'jpg') {
-      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const imgData = getImageDataCached();
       let bytes = await encodeJpeg(imgData, currentQuality, canvas);
       if (targetDPI && targetDPI > 0) {
         bytes = injectDpiMetadata(bytes, 'jpg', targetDPI);
       }
       blob = new Blob([bytes], { type: 'image/jpeg' });
     } else if (targetFormat === 'png') {
-      const imgData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const imgData = getImageDataCached();
       let bytes = await encodePng(imgData, currentQuality, originalSize, canvas);
       if (targetDPI && targetDPI > 0) {
         bytes = injectDpiMetadata(bytes, 'png', targetDPI);

@@ -90,10 +90,9 @@ async function loadSegmentationModel(
   env.allowLocalModels = false;
   env.useBrowserCache = true;
 
-  // Guard WASM path configuration against missing/partial env objects
+  // Guard WASM thread and environment configuration
   try {
     if (env.backends?.onnx?.wasm) {
-      env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3/dist/';
       // Disable SharedArrayBuffer-dependent proxy mode on mobile (SAB not guaranteed without COOP/COEP headers)
       if (isMobile) {
         (env.backends.onnx.wasm as any).proxy = false;

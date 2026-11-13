@@ -106,18 +106,18 @@ export function HeaderNavbar({
               <span className="truncate">{isOffline ? "Offline" : "Client-Side"}</span>
             </div>
 
-            {/* Adaptive Hardware Engine Badge (Interactive) */}
+            {/* Adaptive Hardware Engine Badge (Hidden on mobile to reduce clutter, accessible via settings) */}
             <button
               onClick={() => setIsAdaptiveModalOpen(true)}
               className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer hover:scale-105 active:scale-95 shrink-0",
+                "hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer hover:scale-105 active:scale-95 shrink-0",
                 tierBadge.color
               )}
               title="Click to view Adaptive Hardware Engine stats, benchmarks, & compute settings"
               aria-label="Adaptive Hardware Engine settings"
             >
               <TierIcon className="w-3 h-3" />
-              <span className="hidden sm:inline">{tierBadge.label}</span>
+              <span className="hidden md:inline">{tierBadge.label}</span>
             </button>
           </div>
 

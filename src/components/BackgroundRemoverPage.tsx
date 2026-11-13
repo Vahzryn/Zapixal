@@ -675,13 +675,14 @@ export function BackgroundRemoverPage({ seoData, onNavigate }: BackgroundRemover
                     )}
                   </div>
 
-                  {/* Badge: Original */}
-                  <div 
-                    className="absolute top-3 left-3 z-10 px-2 py-1 bg-zinc-900/80 text-white text-[11px] font-medium rounded-md backdrop-blur-xs shadow-2xs"
-                    style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-                  >
-                    Original
-                  </div>
+                  {/* Badge: Original (Visible when slider reveals left side) */}
+                  {sliderPosition > 12 && (
+                    <div 
+                      className="absolute top-3 left-3 z-10 px-2 py-1 bg-zinc-900/80 text-white text-[11px] font-medium rounded-md backdrop-blur-xs shadow-2xs pointer-events-none transition-opacity duration-150"
+                    >
+                      Original
+                    </div>
+                  )}
 
                   {/* Divider Line & Handle */}
                   <div 
